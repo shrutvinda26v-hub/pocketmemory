@@ -263,6 +263,7 @@ body {
   top: 42%;
   transform: translateY(-50%);
   max-width: min(30rem, 40vw);
+  transition: opacity 0.6s ease;
 }
 
 .hero-copy h1 {

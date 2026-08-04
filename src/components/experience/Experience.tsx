@@ -42,11 +42,6 @@ export function Experience() {
         { opacity: 1, y: 0, duration: 1.2, ease: "power3.out", delay: 0.6 }
       );
       gsap.fromTo(
-        ".hero-copy",
-        { opacity: 0, y: 28 },
-        { opacity: 1, y: 0, duration: 1.5, ease: "power3.out", delay: 0.9 }
-      );
-      gsap.fromTo(
         ".chrome-bottom",
         { opacity: 0 },
         { opacity: 1, duration: 1, ease: "power2.out", delay: 1.4 }

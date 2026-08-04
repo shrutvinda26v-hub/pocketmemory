@@ -157,7 +157,17 @@ export function SeasonControls() {
           key={s.id}
           type="button"
           className={season === s.id ? "active" : ""}
-          onClick={() => setSeason(s.id)}
+          aria-pressed={season === s.id}
+          onPointerDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setSeason(s.id);
+          }}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setSeason(s.id);
+          }}
         >
           {s.label}
         </button>

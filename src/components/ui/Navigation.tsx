@@ -89,12 +89,9 @@ export function HeroCopy() {
   const opacity = Math.max(0, 1 - progress / 0.1);
 
   return (
-    <motion.div
+    <div
       className="hero-copy"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity, y: 0 }}
-      transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-      style={{ pointerEvents: opacity < 0.15 ? "none" : "auto" }}
+      style={{ opacity, pointerEvents: opacity < 0.15 ? "none" : "auto" }}
     >
       <h1>
         Every great story starts as a{" "}
@@ -124,7 +121,7 @@ export function HeroCopy() {
         </button>
         <span>SCROLL TO GROW</span>
       </div>
-    </motion.div>
+    </div>
   );
 }
 

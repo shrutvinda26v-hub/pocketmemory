@@ -123,7 +123,7 @@ export function SkillBlossoms() {
   if (!show) return null;
 
   return (
-    <group position={[0.55, -0.85, 0]}>
+    <group position={[0.85, -0.92, 0]}>
       {skills.map((s, i) => (
         <Blossom
           key={s.id}

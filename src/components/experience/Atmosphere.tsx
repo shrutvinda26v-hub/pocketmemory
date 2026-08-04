@@ -102,7 +102,7 @@ export function Lanterns() {
   if (!golden.lanterns) return null;
 
   return (
-    <group position={[0.55, -0.4, 0.4]}>
+    <group position={[0.85, -0.45, 0.35]}>
       {[0, 1, 2].map((i) => (
         <group key={i} position={[0.35 + i * 0.2, 0, 0.2 - i * 0.15]}>
           <mesh
@@ -151,9 +151,9 @@ export function Butterfly() {
 
     const path = t * 0.35;
     group.current.position.set(
-      0.55 + Math.sin(path) * 0.6,
-      0.2 + Math.sin(path * 1.3) * 0.35,
-      Math.cos(path * 0.8) * 0.4
+      0.85 + Math.sin(path) * 0.65,
+      0.25 + Math.sin(path * 1.3) * 0.4,
+      Math.cos(path * 0.8) * 0.45
     );
     group.current.rotation.y = path + Math.PI / 2;
 
@@ -187,30 +187,5 @@ export function Butterfly() {
         />
       </mesh>
     </group>
-  );
-}
-
-export function LeafShadowDecals() {
-  const ref = useRef<THREE.Mesh>(null);
-  const wind = useExperienceStore((s) => s.wind);
-
-  useFrame(({ clock }) => {
-    if (!ref.current) return;
-    const t = clock.elapsedTime;
-    ref.current.position.x = 1.2 + Math.sin(t * 0.15) * 0.15 + wind.x * 0.1;
-    ref.current.position.y = 1.0 + Math.cos(t * 0.12) * 0.08;
-    ref.current.rotation.z = Math.sin(t * 0.1) * 0.1;
-  });
-
-  return (
-    <mesh ref={ref} position={[1.4, 1.15, -1.15]} scale={[1.2, 0.9, 1]}>
-      <planeGeometry args={[1.2, 0.9]} />
-      <meshBasicMaterial
-        color="#2C2C2C"
-        transparent
-        opacity={0.035}
-        depthWrite={false}
-      />
-    </mesh>
   );
 }

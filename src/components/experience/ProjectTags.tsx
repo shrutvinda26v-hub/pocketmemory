@@ -8,10 +8,10 @@ import { projects } from "@/data/content";
 import { useExperienceStore } from "@/store/useExperienceStore";
 
 const TAG_ANCHORS: [number, number, number][] = [
-  [0.95, 0.55, 0.25],
-  [0.15, 0.7, -0.35],
-  [1.05, 0.95, -0.15],
-  [0.25, 0.4, 0.35],
+  [0.72, 0.95, 0.18],
+  [-0.55, 1.05, -0.2],
+  [0.45, 1.35, -0.22],
+  [-0.4, 1.4, 0.25],
 ];
 
 function WoodenTag({
@@ -107,7 +107,7 @@ export function ProjectTags() {
   if (!show) return null;
 
   return (
-    <group position={[0.55, -0.85, 0]}>
+    <group position={[0.85, -0.92, 0]}>
       {items.map((p, i) => (
         <WoodenTag
           key={p.id}

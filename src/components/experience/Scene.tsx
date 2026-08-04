@@ -13,9 +13,13 @@ import {
   AmbientParticles,
   Lanterns,
   Butterfly,
-  LeafShadowDecals,
 } from "./Atmosphere";
-import { SceneLighting, CameraRig, PaperWall } from "./Lighting";
+import {
+  SceneLighting,
+  CameraRig,
+  PaperWall,
+  BambooShadows,
+} from "./Lighting";
 
 function SceneContent() {
   return (
@@ -23,7 +27,7 @@ function SceneContent() {
       <SceneLighting />
       <CameraRig />
       <PaperWall />
-      <LeafShadowDecals />
+      <BambooShadows />
       <Pot />
       <Bonsai />
       <ProjectTags />
@@ -49,7 +53,7 @@ export function Scene() {
           powerPreference: "high-performance",
           toneMapping: ACESFilmicToneMapping,
         }}
-        camera={{ position: [0.2, 0.5, 3.2], fov: 42, near: 0.1, far: 40 }}
+        camera={{ position: [-0.35, 0.35, 3.4], fov: 40, near: 0.1, far: 40 }}
       >
         <Suspense fallback={null}>
           <SceneContent />

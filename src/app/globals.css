@@ -82,6 +82,14 @@ body {
   background-size: 180px 180px;
 }
 
+.intro-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  background: var(--bg);
+}
+
 .paper-grain::after {
   content: "";
   position: absolute;
@@ -251,10 +259,10 @@ body {
 /* —— Hero —— */
 .hero-copy {
   position: absolute;
-  left: 2rem;
+  left: clamp(1.5rem, 5vw, 3.5rem);
   top: 42%;
   transform: translateY(-50%);
-  max-width: min(28rem, 42vw);
+  max-width: min(30rem, 40vw);
 }
 
 .hero-copy h1 {

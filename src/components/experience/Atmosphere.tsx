@@ -203,12 +203,12 @@ export function LeafShadowDecals() {
   });
 
   return (
-    <mesh ref={ref} position={[1.2, 1.0, -1.2]} scale={[1.8, 1.2, 1]}>
-      <planeGeometry args={[1.5, 1.2]} />
+    <mesh ref={ref} position={[1.4, 1.15, -1.15]} scale={[1.2, 0.9, 1]}>
+      <planeGeometry args={[1.2, 0.9]} />
       <meshBasicMaterial
         color="#2C2C2C"
         transparent
-        opacity={0.06}
+        opacity={0.035}
         depthWrite={false}
       />
     </mesh>

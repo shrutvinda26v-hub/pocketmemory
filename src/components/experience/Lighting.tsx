@@ -70,15 +70,15 @@ export function CameraRig() {
   const pos = useRef(new THREE.Vector3(0.2, 0.5, 3.2));
 
   useFrame(() => {
-    // Slow push-in as tree grows
-    const z = 3.4 - cameraPush * 0.85;
-    const y = 0.45 - cameraPush * 0.15;
-    const x = 0.15 + cameraPush * 0.1;
-    pos.current.lerp(new THREE.Vector3(x + wind.x * 0.05, y, z), 0.035);
+    // Slow push-in as tree grows — keep bonsai on the right third
+    const z = 3.5 - cameraPush * 0.9;
+    const y = 0.35 - cameraPush * 0.05;
+    const x = -0.15 + cameraPush * 0.2;
+    pos.current.lerp(new THREE.Vector3(x + wind.x * 0.04, y, z), 0.04);
     camera.position.copy(pos.current);
     target.current.lerp(
-      new THREE.Vector3(0.45 + wind.x * 0.02, 0.1 + cameraPush * 0.25, 0),
-      0.035
+      new THREE.Vector3(0.65 + wind.x * 0.02, 0.05 + cameraPush * 0.35, 0),
+      0.04
     );
     camera.lookAt(target.current);
   });

@@ -20,7 +20,7 @@ export function Navigation() {
 
   const scrollTo = (ratio: number) => {
     const max = document.documentElement.scrollHeight - window.innerHeight;
-    window.scrollTo({ top: max * ratio, behavior: "smooth" });
+    window.scrollTo({ top: Math.max(0, max * ratio), behavior: "smooth" });
   };
 
   return (
@@ -34,7 +34,12 @@ export function Navigation() {
           <button
             key={item.id}
             type="button"
-            className={section === item.id || (item.id === "home" && section === "growth") ? "active" : ""}
+            className={
+              section === item.id ||
+              (item.id === "home" && (section === "home" || section === "growth"))
+                ? "active"
+                : ""
+            }
             onClick={() => {
               const map: Record<string, number> = {
                 home: 0,
@@ -81,15 +86,15 @@ export function Navigation() {
 
 export function HeroCopy() {
   const progress = useExperienceStore((s) => s.progress);
-  const opacity = Math.max(0, 1 - progress * 8);
+  const opacity = Math.max(0, 1 - progress / 0.1);
 
   return (
     <motion.div
       className="hero-copy"
-      style={{ opacity, pointerEvents: opacity < 0.1 ? "none" : "auto" }}
-      initial={{ opacity: 0, y: 24 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity, y: 0 }}
+      transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+      style={{ pointerEvents: opacity < 0.15 ? "none" : "auto" }}
     >
       <h1>
         Every great story starts as a{" "}
@@ -105,7 +110,7 @@ export function HeroCopy() {
           onClick={() => {
             const max =
               document.documentElement.scrollHeight - window.innerHeight;
-            window.scrollTo({ top: max * 0.06, behavior: "smooth" });
+            window.scrollTo({ top: max * 0.08, behavior: "smooth" });
           }}
         >
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -123,10 +128,7 @@ export function HeroCopy() {
   );
 }
 
-const SECTION_COPY: Record<
-  string,
-  { title: string; body: string } | null
-> = {
+const SECTION_COPY: Record<string, { title: string; body: string } | null> = {
   home: null,
   growth: {
     title: "Growth",
@@ -148,10 +150,7 @@ const SECTION_COPY: Record<
     title: "Voices",
     body: "Leaves drift on the wind. Catch one to read a note.",
   },
-  finale: {
-    title: "Together",
-    body: "Let's grow something beautiful together.",
-  },
+  finale: null, // FinaleCTA owns this moment
 };
 
 export function SectionCopy() {

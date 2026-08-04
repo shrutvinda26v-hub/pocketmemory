@@ -91,13 +91,9 @@ function WoodenTag({
 }
 
 export function ProjectTags() {
-  const section = useExperienceStore((s) => s.section);
-  const show =
-    section === "projects" ||
-    section === "skills" ||
-    section === "journey" ||
-    section === "testimonials" ||
-    section === "finale";
+  const progress = useExperienceStore((s) => s.progress);
+  // Visible during projects window; soft hold into skills
+  const show = progress >= 0.26 && progress < 0.55;
 
   const items = useMemo(
     () =>

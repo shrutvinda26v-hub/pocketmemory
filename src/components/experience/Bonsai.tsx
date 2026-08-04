@@ -22,63 +22,63 @@ function smoothstep(edge0: number, edge1: number, x: number) {
 
 function buildBranches(): BranchDef[] {
   const branches: BranchDef[] = [];
-  // Main trunk — twisted bonsai silhouette
-  const trunkPoints = [
-    [0, 0, 0],
-    [0.05, 0.25, 0.02],
-    [-0.08, 0.55, -0.04],
-    [0.06, 0.95, 0.03],
-    [-0.02, 1.35, -0.02],
-    [0.04, 1.7, 0.01],
-  ] as const;
 
-  for (let i = 0; i < trunkPoints.length - 1; i++) {
-    const a = trunkPoints[i];
-    const b = trunkPoints[i + 1];
+  const trunk: [number, number, number][] = [
+    [0, 0.02, 0],
+    [0.04, 0.22, 0.02],
+    [-0.06, 0.48, -0.03],
+    [0.05, 0.78, 0.04],
+    [-0.03, 1.08, -0.02],
+    [0.02, 1.38, 0.01],
+    [0.0, 1.62, 0],
+  ];
+
+  for (let i = 0; i < trunk.length - 1; i++) {
+    const a = trunk[i];
+    const b = trunk[i + 1];
     branches.push({
-      start: new THREE.Vector3(a[0], a[1], a[2]),
-      end: new THREE.Vector3(b[0], b[1], b[2]),
-      radiusStart: 0.09 - i * 0.01,
-      radiusEnd: 0.08 - i * 0.01,
-      appearAt: 0.08 + i * 0.04,
-      sway: 0.002,
+      start: new THREE.Vector3(...a),
+      end: new THREE.Vector3(...b),
+      radiusStart: 0.085 - i * 0.008,
+      radiusEnd: 0.075 - i * 0.008,
+      appearAt: 0.1 + i * 0.035,
+      sway: 0.0015,
     });
   }
 
-  const limbDefs: {
-    anchorY: number;
+  const limbs: {
+    start: [number, number, number];
     end: [number, number, number];
     appearAt: number;
     r0: number;
     r1: number;
+    sway: number;
   }[] = [
-    { anchorY: 0.9, end: [0.62, 1.35, 0.18], appearAt: 0.28, r0: 0.035, r1: 0.014 },
-    { anchorY: 1.0, end: [-0.55, 1.4, -0.22], appearAt: 0.32, r0: 0.032, r1: 0.012 },
-    { anchorY: 1.2, end: [0.48, 1.7, -0.28], appearAt: 0.4, r0: 0.028, r1: 0.01 },
-    { anchorY: 1.25, end: [-0.42, 1.75, 0.3], appearAt: 0.44, r0: 0.026, r1: 0.01 },
-    { anchorY: 1.45, end: [0.28, 2.05, 0.12], appearAt: 0.52, r0: 0.022, r1: 0.008 },
-    { anchorY: 1.5, end: [-0.22, 2.1, -0.1], appearAt: 0.56, r0: 0.02, r1: 0.008 },
-    { anchorY: 0.7, end: [0.45, 0.95, -0.2], appearAt: 0.36, r0: 0.03, r1: 0.012 },
-    { anchorY: 0.75, end: [-0.5, 1.0, 0.15], appearAt: 0.38, r0: 0.028, r1: 0.011 },
-    // Fine twigs
-    { anchorY: 1.6, end: [0.45, 1.95, 0.05], appearAt: 0.62, r0: 0.012, r1: 0.005 },
-    { anchorY: 1.55, end: [-0.4, 1.9, -0.08], appearAt: 0.64, r0: 0.012, r1: 0.005 },
-    { anchorY: 1.35, end: [0.7, 1.55, 0.05], appearAt: 0.58, r0: 0.014, r1: 0.005 },
-    { anchorY: 1.3, end: [-0.65, 1.5, -0.05], appearAt: 0.6, r0: 0.014, r1: 0.005 },
+    { start: [0.02, 0.72, 0.02], end: [0.55, 1.05, 0.22], appearAt: 0.28, r0: 0.032, r1: 0.012, sway: 0.012 },
+    { start: [-0.02, 0.78, -0.01], end: [-0.5, 1.15, -0.2], appearAt: 0.32, r0: 0.03, r1: 0.011, sway: 0.012 },
+    { start: [0.03, 0.95, 0.01], end: [0.42, 1.4, -0.28], appearAt: 0.38, r0: 0.026, r1: 0.01, sway: 0.014 },
+    { start: [-0.02, 1.0, 0], end: [-0.38, 1.45, 0.28], appearAt: 0.42, r0: 0.024, r1: 0.009, sway: 0.014 },
+    { start: [0.01, 1.2, 0], end: [0.32, 1.7, 0.12], appearAt: 0.5, r0: 0.02, r1: 0.007, sway: 0.016 },
+    { start: [-0.01, 1.25, 0], end: [-0.28, 1.72, -0.1], appearAt: 0.54, r0: 0.018, r1: 0.007, sway: 0.016 },
+    { start: [0.04, 0.55, 0.02], end: [0.4, 0.72, -0.18], appearAt: 0.34, r0: 0.028, r1: 0.011, sway: 0.01 },
+    { start: [-0.04, 0.58, -0.01], end: [-0.42, 0.78, 0.16], appearAt: 0.36, r0: 0.026, r1: 0.01, sway: 0.01 },
+    // Twigs
+    { start: [0.35, 1.15, 0.1], end: [0.62, 1.35, 0.08], appearAt: 0.58, r0: 0.01, r1: 0.004, sway: 0.02 },
+    { start: [-0.32, 1.2, -0.1], end: [-0.58, 1.38, -0.05], appearAt: 0.6, r0: 0.01, r1: 0.004, sway: 0.02 },
+    { start: [0.25, 1.5, 0.05], end: [0.4, 1.78, 0.02], appearAt: 0.64, r0: 0.009, r1: 0.003, sway: 0.022 },
+    { start: [-0.2, 1.52, -0.05], end: [-0.35, 1.8, -0.02], appearAt: 0.66, r0: 0.009, r1: 0.003, sway: 0.022 },
+    { start: [0.3, 0.95, -0.15], end: [0.55, 1.15, -0.32], appearAt: 0.56, r0: 0.012, r1: 0.004, sway: 0.018 },
+    { start: [-0.28, 1.0, 0.15], end: [-0.5, 1.2, 0.32], appearAt: 0.57, r0: 0.012, r1: 0.004, sway: 0.018 },
   ];
 
-  for (const limb of limbDefs) {
-    // Find approx trunk x,z at anchorY
-    const t = (limb.anchorY - 0) / 1.7;
-    const sx = Math.sin(t * Math.PI * 2) * 0.06;
-    const sz = Math.cos(t * Math.PI * 1.5) * 0.03;
+  for (const limb of limbs) {
     branches.push({
-      start: new THREE.Vector3(sx, limb.anchorY, sz),
+      start: new THREE.Vector3(...limb.start),
       end: new THREE.Vector3(...limb.end),
       radiusStart: limb.r0,
       radiusEnd: limb.r1,
       appearAt: limb.appearAt,
-      sway: 0.01 + (1 - limb.r0) * 0.02,
+      sway: limb.sway,
     });
   }
 
@@ -87,14 +87,17 @@ function buildBranches(): BranchDef[] {
 
 function leafPositions(branches: BranchDef[], count: number) {
   const positions: THREE.Vector3[] = [];
-  const outer = branches.filter((b) => b.appearAt > 0.25);
+  const outer = branches.filter((b) => b.appearAt >= 0.28);
   for (let i = 0; i < count; i++) {
     const b = outer[i % outer.length];
-    const t = 0.35 + (i / count) * 0.6;
+    const t = 0.4 + ((i * 0.618) % 1) * 0.55;
     const p = new THREE.Vector3().lerpVectors(b.start, b.end, t);
-    p.x += (Math.sin(i * 12.9898) * 0.5 + 0.5 - 0.5) * 0.22;
-    p.y += (Math.sin(i * 78.233) * 0.5 + 0.5 - 0.5) * 0.12;
-    p.z += (Math.sin(i * 45.164) * 0.5 + 0.5 - 0.5) * 0.22;
+    const n = new THREE.Vector3().subVectors(b.end, b.start).normalize();
+    const side = new THREE.Vector3(n.z, 0, -n.x).normalize();
+    const up = new THREE.Vector3().crossVectors(n, side);
+    const r = 0.04 + (i % 5) * 0.025;
+    p.addScaledVector(side, Math.sin(i * 2.1) * r);
+    p.addScaledVector(up, Math.cos(i * 1.7) * r * 0.6);
     positions.push(p);
   }
   return positions;
@@ -109,102 +112,101 @@ function BranchMesh({
   growth: number;
   wind: { x: number; y: number };
 }) {
-  const ref = useRef<THREE.Mesh>(null);
-  const visible = growth >= def.appearAt - 0.05;
-  const scaleY = smoothstep(def.appearAt - 0.05, def.appearAt + 0.08, growth);
+  const pivot = useRef<THREE.Group>(null);
+  const visible = growth >= def.appearAt - 0.06;
+  const scaleY = smoothstep(def.appearAt - 0.06, def.appearAt + 0.1, growth);
 
-  const { position, quaternion, length } = useMemo(() => {
+  const { mid, quat, length } = useMemo(() => {
     const dir = new THREE.Vector3().subVectors(def.end, def.start);
-    const length = dir.length();
+    const length = Math.max(0.01, dir.length());
     const mid = new THREE.Vector3().addVectors(def.start, def.end).multiplyScalar(0.5);
     const quat = new THREE.Quaternion();
     quat.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.clone().normalize());
-    return { position: mid, quaternion: quat, length };
+    return { mid, quat, length };
   }, [def]);
 
   useFrame(({ clock }) => {
-    if (!ref.current) return;
+    if (!pivot.current) return;
     const t = clock.elapsedTime;
     const sway =
       Math.sin(t * 0.7 + def.appearAt * 10) * def.sway * scaleY +
-      wind.x * def.sway * 0.8;
-    ref.current.rotation.z = sway;
-    ref.current.rotation.x = wind.y * def.sway * 0.4;
+      wind.x * def.sway * 0.9;
+    pivot.current.rotation.z = sway;
+    pivot.current.rotation.x = wind.y * def.sway * 0.35;
+    const s = Math.max(0.001, scaleY);
+    pivot.current.scale.set(s, s, s);
   });
 
   if (!visible) return null;
 
   return (
-    <mesh
-      ref={ref}
-      position={position}
-      quaternion={quaternion}
-      scale={[scaleY, scaleY, scaleY]}
-      castShadow
-      receiveShadow
-    >
-      <cylinderGeometry
-        args={[def.radiusEnd, def.radiusStart, length, 8]}
-      />
-      <meshStandardMaterial
-        color="#4A3728"
-        roughness={0.92}
-        metalness={0.02}
-      />
-    </mesh>
-  );
-}
-
-function Seed({ growth }: { growth: number }) {
-  const crack = smoothstep(0.02, 0.1, growth);
-  const hide = smoothstep(0.08, 0.18, growth);
-  const ref = useRef<THREE.Group>(null);
-
-  useFrame(({ clock }) => {
-    if (!ref.current) return;
-    ref.current.rotation.y = Math.sin(clock.elapsedTime * 0.3) * 0.05;
-  });
-
-  if (hide > 0.98) return null;
-
-  return (
-    <group ref={ref} position={[0, 0.08, 0]} scale={1 - hide * 0.5}>
-      <mesh castShadow position={[-0.012 * crack, 0, 0]} rotation={[0, 0, -crack * 0.4]}>
-        <sphereGeometry args={[0.055, 16, 12, 0, Math.PI]} />
-        <meshStandardMaterial color="#6B5344" roughness={0.95} />
-      </mesh>
-      <mesh castShadow position={[0.012 * crack, 0, 0]} rotation={[0, Math.PI, crack * 0.4]}>
-        <sphereGeometry args={[0.055, 16, 12, 0, Math.PI]} />
-        <meshStandardMaterial color="#5C4638" roughness={0.95} />
+    <group ref={pivot} position={mid}>
+      <mesh quaternion={quat} castShadow receiveShadow>
+        <cylinderGeometry args={[def.radiusEnd, def.radiusStart, length, 7]} />
+        <meshStandardMaterial color="#4A3728" roughness={0.92} metalness={0.02} />
       </mesh>
     </group>
   );
 }
 
-function Sprout({ growth }: { growth: number }) {
-  const emerge = smoothstep(0.05, 0.14, growth);
-  const fade = smoothstep(0.14, 0.28, growth);
+function Seed({ growth }: { growth: number }) {
+  const crack = smoothstep(0.015, 0.09, growth);
+  const hide = smoothstep(0.1, 0.22, growth);
   const ref = useRef<THREE.Group>(null);
 
   useFrame(({ clock }) => {
     if (!ref.current) return;
-    ref.current.rotation.z = Math.sin(clock.elapsedTime * 1.2) * 0.04 * emerge;
+    ref.current.rotation.y = Math.sin(clock.elapsedTime * 0.25) * 0.04;
+  });
+
+  if (hide > 0.98) return null;
+
+  return (
+    <group ref={ref} position={[0, 0.1, 0]} scale={1 - hide * 0.4} visible={hide < 0.99}>
+      <mesh castShadow position={[-0.018 * crack, 0.01 * crack, 0]} rotation={[0.15, 0.2, -crack * 0.55]}>
+        <sphereGeometry args={[0.048, 16, 12, 0, Math.PI]} />
+        <meshStandardMaterial color="#6B5344" roughness={0.95} />
+      </mesh>
+      <mesh castShadow position={[0.018 * crack, 0.01 * crack, 0]} rotation={[0.15, 0.2 + Math.PI, crack * 0.55]}>
+        <sphereGeometry args={[0.048, 16, 12, 0, Math.PI]} />
+        <meshStandardMaterial color="#5C4638" roughness={0.95} />
+      </mesh>
+      {/* Seed highlight before crack */}
+      {crack < 0.3 && (
+        <mesh position={[0, 0.02, 0.04]}>
+          <sphereGeometry args={[0.012, 8, 6]} />
+          <meshStandardMaterial color="#8A7060" roughness={0.7} />
+        </mesh>
+      )}
+    </group>
+  );
+}
+
+function Sprout({ growth }: { growth: number }) {
+  const emerge = smoothstep(0.04, 0.13, growth);
+  const fade = smoothstep(0.16, 0.32, growth);
+  const ref = useRef<THREE.Group>(null);
+
+  useFrame(({ clock }) => {
+    if (!ref.current) return;
+    ref.current.rotation.z = Math.sin(clock.elapsedTime * 1.1) * 0.05 * emerge;
   });
 
   if (emerge < 0.01 || fade > 0.99) return null;
 
+  const s = emerge * (1 - fade * 0.35);
   return (
-    <group ref={ref} position={[0, 0.06, 0]} scale={[emerge * (1 - fade * 0.3), emerge, emerge]}>
-      <mesh castShadow position={[0, 0.08, 0]}>
-        <cylinderGeometry args={[0.008, 0.012, 0.16, 6]} />
+    <group ref={ref} position={[0, 0.08, 0]} scale={[s, s, s]}>
+      <mesh castShadow position={[0, 0.09, 0]}>
+        <cylinderGeometry args={[0.007, 0.011, 0.18, 6]} />
         <meshStandardMaterial color="#4F7A3E" roughness={0.8} />
       </mesh>
-      <mesh castShadow position={[0.03, 0.14, 0]} rotation={[0, 0, -0.6]}>
-        <sphereGeometry args={[0.035, 8, 6]} />
+      <mesh castShadow position={[0.035, 0.16, 0]} rotation={[0, 0, -0.7]}>
+        <sphereGeometry args={[0.032, 8, 6]} />
         <meshStandardMaterial color="#6B9A4E" roughness={0.7} />
       </mesh>
-      <mesh castShadow position={[-0.025, 0.12, 0.01]} rotation={[0, 0, 0.5]}>
-        <sphereGeometry args={[0.028, 8, 6]} />
+      <mesh castShadow position={[-0.03, 0.14, 0.01]} rotation={[0, 0, 0.55]}>
+        <sphereGeometry args={[0.026, 8, 6]} />
         <meshStandardMaterial color="#5E8E42" roughness={0.7} />
       </mesh>
     </group>
@@ -212,23 +214,23 @@ function Sprout({ growth }: { growth: number }) {
 }
 
 function Roots({ growth }: { growth: number }) {
-  const show = smoothstep(0.2, 0.4, growth);
+  const show = smoothstep(0.22, 0.42, growth);
   if (show < 0.01) return null;
   return (
     <group>
       {[
-        [0.12, 0.02, 0.08, 0.8],
-        [-0.1, 0.015, 0.1, -0.5],
-        [0.05, 0.01, -0.12, 0.3],
+        [0.1, 0.02, 0.07, 0.9],
+        [-0.09, 0.015, 0.09, -0.6],
+        [0.04, 0.01, -0.1, 0.25],
       ].map((r, i) => (
         <mesh
           key={i}
           castShadow
           position={[r[0] * show, r[1], r[2] * show]}
-          rotation={[0.2, r[3], 1.2]}
+          rotation={[0.25, r[3], 1.15]}
           scale={show}
         >
-          <cylinderGeometry args={[0.012, 0.02, 0.18, 5]} />
+          <cylinderGeometry args={[0.01, 0.018, 0.16, 5]} />
           <meshStandardMaterial color="#3D2E22" roughness={1} />
         </mesh>
       ))}
@@ -254,21 +256,20 @@ function Leaves({
     if (!meshRef.current) return;
     const t = clock.elapsedTime;
     for (let i = 0; i < positions.length; i++) {
-      const appear = 0.22 + (i / positions.length) * 0.55;
-      const s = smoothstep(appear, appear + 0.1, growth);
+      const appear = 0.26 + (i / positions.length) * 0.5;
+      const s = smoothstep(appear, appear + 0.12, growth);
       if (s < 0.01) {
         dummy.scale.setScalar(0);
       } else {
         const p = positions[i];
-        const sway =
-          Math.sin(t * 1.1 + i * 0.4) * 0.03 + wind.x * 0.06;
-        const swayY = Math.cos(t * 0.9 + i * 0.3) * 0.015 + wind.y * 0.02;
+        const sway = Math.sin(t * 1.05 + i * 0.35) * 0.025 + wind.x * 0.05;
+        const swayY = Math.cos(t * 0.85 + i * 0.28) * 0.012 + wind.y * 0.015;
         dummy.position.set(p.x + sway, p.y + swayY, p.z);
-        dummy.scale.setScalar(s * (0.7 + (i % 5) * 0.08));
+        dummy.scale.setScalar(s * (0.55 + (i % 4) * 0.08));
         dummy.rotation.set(
-          Math.sin(t * 0.5 + i) * 0.2,
-          i * 0.7,
-          Math.cos(t * 0.4 + i) * 0.15 + wind.x * 0.1
+          Math.sin(t * 0.45 + i) * 0.15,
+          i * 0.6,
+          Math.cos(t * 0.35 + i) * 0.12 + wind.x * 0.08
         );
       }
       dummy.updateMatrix();
@@ -279,12 +280,8 @@ function Leaves({
 
   return (
     <instancedMesh ref={meshRef} args={[undefined, undefined, positions.length]} castShadow>
-      <sphereGeometry args={[0.07, 6, 5]} />
-      <meshStandardMaterial
-        color={colors.leaf}
-        roughness={0.85}
-        metalness={0}
-      />
+      <sphereGeometry args={[0.065, 6, 5]} />
+      <meshStandardMaterial color={colors.leaf} roughness={0.85} metalness={0} />
     </instancedMesh>
   );
 }
@@ -293,13 +290,12 @@ export function Bonsai() {
   const growth = useExperienceStore((s) => s.growth);
   const wind = useExperienceStore((s) => s.wind);
   const branches = useMemo(() => buildBranches(), []);
-  const leaves = useMemo(() => leafPositions(branches, 180), [branches]);
+  const leaves = useMemo(() => leafPositions(branches, 160), [branches]);
   const group = useRef<THREE.Group>(null);
 
   useFrame(({ clock }) => {
     if (!group.current) return;
-    // Subtle overall life
-    group.current.rotation.y = Math.sin(clock.elapsedTime * 0.08) * 0.03;
+    group.current.rotation.y = Math.sin(clock.elapsedTime * 0.07) * 0.025;
   });
 
   return (
@@ -311,54 +307,6 @@ export function Bonsai() {
         <BranchMesh key={i} def={b} growth={growth} wind={wind} />
       ))}
       <Leaves positions={leaves} growth={growth} wind={wind} />
-      {/* Secondary leaf color accents */}
-      <LeafAccents positions={leaves} growth={growth} wind={wind} />
     </group>
-  );
-}
-
-function LeafAccents({
-  positions,
-  growth,
-  wind,
-}: {
-  positions: THREE.Vector3[];
-  growth: number;
-  wind: { x: number; y: number };
-}) {
-  const meshRef = useRef<THREE.InstancedMesh>(null);
-  const season = useExperienceStore((s) => s.season);
-  const dummy = useMemo(() => new THREE.Object3D(), []);
-  const color = SEASON_CONFIG[season].leafSecondary;
-  const subset = useMemo(
-    () => positions.filter((_, i) => i % 3 === 0),
-    [positions]
-  );
-
-  useFrame(({ clock }) => {
-    if (!meshRef.current) return;
-    const t = clock.elapsedTime;
-    for (let i = 0; i < subset.length; i++) {
-      const appear = 0.3 + (i / subset.length) * 0.5;
-      const s = smoothstep(appear, appear + 0.12, growth);
-      const p = subset[i];
-      dummy.position.set(
-        p.x + 0.04 + Math.sin(t + i) * 0.02 + wind.x * 0.04,
-        p.y - 0.02,
-        p.z + 0.03
-      );
-      dummy.scale.setScalar(s * 0.55);
-      dummy.rotation.set(0.3, i, wind.x * 0.08);
-      dummy.updateMatrix();
-      meshRef.current.setMatrixAt(i, dummy.matrix);
-    }
-    meshRef.current.instanceMatrix.needsUpdate = true;
-  });
-
-  return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, subset.length]} castShadow>
-      <sphereGeometry args={[0.055, 5, 4]} />
-      <meshStandardMaterial color={color} roughness={0.88} />
-    </instancedMesh>
   );
 }

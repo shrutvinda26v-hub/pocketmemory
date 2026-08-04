@@ -116,11 +116,8 @@ function Bird({
 }
 
 export function MilestoneBirds() {
-  const section = useExperienceStore((s) => s.section);
-  const show =
-    section === "journey" ||
-    section === "testimonials" ||
-    section === "finale";
+  const progress = useExperienceStore((s) => s.progress);
+  const show = progress >= 0.62 && progress < 0.88;
 
   if (!show) return null;
 

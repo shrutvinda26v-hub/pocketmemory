@@ -123,8 +123,8 @@ export function TestimonialPanel() {
 }
 
 export function FinaleCTA() {
-  const section = useExperienceStore((s) => s.section);
-  const visible = section === "finale";
+  const progress = useExperienceStore((s) => s.progress);
+  const visible = progress >= 0.9;
 
   return (
     <AnimatePresence>

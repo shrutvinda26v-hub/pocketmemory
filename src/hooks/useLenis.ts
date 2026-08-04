@@ -10,18 +10,24 @@ export function useLenis() {
 
   useEffect(() => {
     const lenis = new Lenis({
-      duration: 1.4,
+      duration: 1.35,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,
-      touchMultiplier: 1.2,
+      touchMultiplier: 1.15,
+      autoRaf: false,
     });
     lenisRef.current = lenis;
 
-    const onScroll = ({ progress }: { progress: number }) => {
-      setProgress(Math.min(1, Math.max(0, progress)));
+    const syncProgress = () => {
+      const max = Math.max(
+        1,
+        document.documentElement.scrollHeight - window.innerHeight
+      );
+      const p = Math.min(1, Math.max(0, window.scrollY / max));
+      setProgress(p);
     };
 
-    lenis.on("scroll", onScroll);
+    lenis.on("scroll", syncProgress);
 
     let frame = 0;
     const raf = (time: number) => {
@@ -30,19 +36,15 @@ export function useLenis() {
     };
     frame = requestAnimationFrame(raf);
 
-    // Also track document scroll height for progress when content drives height
-    const updateFromWindow = () => {
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-      if (max > 0) {
-        setProgress(Math.min(1, Math.max(0, window.scrollY / max)));
-      }
-    };
-    window.addEventListener("scroll", updateFromWindow, { passive: true });
+    window.addEventListener("scroll", syncProgress, { passive: true });
+    window.addEventListener("resize", syncProgress);
+    syncProgress();
 
     return () => {
       cancelAnimationFrame(frame);
       lenis.destroy();
-      window.removeEventListener("scroll", updateFromWindow);
+      window.removeEventListener("scroll", syncProgress);
+      window.removeEventListener("resize", syncProgress);
       lenisRef.current = null;
     };
   }, [setProgress]);

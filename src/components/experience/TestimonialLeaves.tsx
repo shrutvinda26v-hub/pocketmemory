@@ -75,8 +75,8 @@ function FloatingLeaf({
 }
 
 export function TestimonialLeaves() {
-  const section = useExperienceStore((s) => s.section);
-  const show = section === "testimonials" || section === "finale";
+  const progress = useExperienceStore((s) => s.progress);
+  const show = progress >= 0.76 && progress < 0.95;
 
   if (!show) return null;
 

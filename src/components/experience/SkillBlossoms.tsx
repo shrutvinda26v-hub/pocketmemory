@@ -114,14 +114,11 @@ function Blossom({
 }
 
 export function SkillBlossoms() {
-  const section = useExperienceStore((s) => s.section);
+  const progress = useExperienceStore((s) => s.progress);
   const season = useExperienceStore((s) => s.season);
   const show =
-    section === "skills" ||
-    section === "journey" ||
-    section === "testimonials" ||
-    section === "finale" ||
-    season === "spring";
+    (progress >= 0.46 && progress < 0.7) ||
+    (season === "spring" && progress >= 0.35);
 
   if (!show) return null;
 

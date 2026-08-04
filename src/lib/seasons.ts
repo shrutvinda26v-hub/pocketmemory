@@ -16,6 +16,7 @@ export interface SeasonPalette {
 }
 
 export const SEASON_CONFIG: Record<Season, SeasonPalette> = {
+  // Brighter seasonal leaf hues so canopy reads clearly against paper
   spring: {
     leaf: "#7BA05B",
     leafSecondary: "#C4D6A5",
@@ -31,8 +32,8 @@ export const SEASON_CONFIG: Record<Season, SeasonPalette> = {
     snowEnabled: false,
   },
   summer: {
-    leaf: "#3D5C3A",
-    leafSecondary: "#5A7A4A",
+    leaf: "#4F7A45",
+    leafSecondary: "#6B9A55",
     lightIntensity: 1.35,
     lightColor: "#FFF8EE",
     ambientIntensity: 0.5,
@@ -45,8 +46,8 @@ export const SEASON_CONFIG: Record<Season, SeasonPalette> = {
     snowEnabled: false,
   },
   autumn: {
-    leaf: "#B85C38",
-    leafSecondary: "#C4893A",
+    leaf: "#C46A3A",
+    leafSecondary: "#D4A04A",
     lightIntensity: 1.05,
     lightColor: "#FFE4C4",
     ambientIntensity: 0.45,

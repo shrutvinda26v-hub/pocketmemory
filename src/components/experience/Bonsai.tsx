@@ -322,7 +322,6 @@ function NeedleCanopy({
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const color = useMemo(() => new THREE.Color(), []);
   const eased = useRef(0);
-  const textures = useMemo(() => getTextures(), []);
 
   const needles = useMemo(() => {
     const items: {
@@ -406,14 +405,7 @@ function NeedleCanopy({
       frustumCulled={false}
     >
       <sphereGeometry args={[1, 8, 6]} />
-      <meshStandardMaterial
-        map={textures.needle}
-        roughness={0.78}
-        metalness={0}
-        transparent
-        alphaTest={0.15}
-        depthWrite
-      />
+      <meshStandardMaterial roughness={0.8} metalness={0} />
     </instancedMesh>
   );
 }

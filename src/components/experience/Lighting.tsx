@@ -1,11 +1,12 @@
 "use client";
 
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
+import { ContactShadows, Environment } from "@react-three/drei";
 import { useExperienceStore } from "@/store/useExperienceStore";
 import { SEASON_CONFIG, goldenHourBoost } from "@/lib/seasons";
-import { ContactShadows } from "@react-three/drei";
+import { getTextures } from "@/lib/textures";
 
 export function SceneLighting() {
   const season = useExperienceStore((s) => s.season);
@@ -16,7 +17,7 @@ export function SceneLighting() {
 
   useFrame(() => {
     if (!sun.current) return;
-    const targetIntensity = config.lightIntensity * golden.intensity;
+    const targetIntensity = config.lightIntensity * golden.intensity * 0.95;
     sun.current.intensity += (targetIntensity - sun.current.intensity) * 0.04;
     const c = new THREE.Color(config.lightColor);
     if (golden.colorShift > 0) {
@@ -29,28 +30,30 @@ export function SceneLighting() {
     <>
       <color attach="background" args={[config.fogColor]} />
       <fog attach="fog" args={[config.fogColor, 7, 18]} />
-      <ambientLight intensity={config.ambientIntensity} color="#F5F0E8" />
+      <ambientLight intensity={config.ambientIntensity * 0.85} color="#F5F0E8" />
       <directionalLight
         ref={sun}
         position={config.sunPosition}
         intensity={config.lightIntensity}
         color={config.lightColor}
         castShadow
-        shadow-mapSize={[1536, 1536]}
+        shadow-mapSize={[2048, 2048]}
         shadow-camera-near={0.5}
         shadow-camera-far={14}
         shadow-camera-left={-3.5}
         shadow-camera-right={3.5}
         shadow-camera-top={3.5}
         shadow-camera-bottom={-2.5}
-        shadow-bias={-0.0002}
+        shadow-bias={-0.00015}
+        shadow-normalBias={0.02}
       />
-      <hemisphereLight intensity={0.28} color="#FFF8EE" groundColor="#C4B5A0" />
+      <hemisphereLight intensity={0.32} color="#FFF8EE" groundColor="#C4B5A0" />
+      <Environment preset="apartment" environmentIntensity={0.2} />
       <ContactShadows
         position={[0.85, -1.1, 0]}
-        opacity={0.32}
+        opacity={0.35}
         scale={4.5}
-        blur={2.8}
+        blur={2.6}
         far={2.2}
         color="#3A2F24"
       />
@@ -66,7 +69,6 @@ export function CameraRig() {
   const pos = useRef(new THREE.Vector3(-0.35, 0.35, 3.4));
 
   useFrame(() => {
-    // Start wide with tree on the right; ease closer as it grows
     const z = 3.5 - cameraPush * 0.7;
     const y = 0.32 + cameraPush * 0.2;
     const x = -0.45 + cameraPush * 0.35;
@@ -83,15 +85,20 @@ export function CameraRig() {
 }
 
 export function PaperWall() {
+  const textures = useMemo(() => getTextures(), []);
   return (
     <mesh position={[0.6, 0.5, -2.2]} receiveShadow>
       <planeGeometry args={[14, 9]} />
-      <meshStandardMaterial color="#F5F0E8" roughness={0.96} metalness={0} />
+      <meshStandardMaterial
+        map={textures.paper}
+        color="#F5F0E8"
+        roughness={0.98}
+        metalness={0}
+      />
     </mesh>
   );
 }
 
-/** Soft bamboo / leaf silhouettes drifting on the wall — life before scroll */
 export function BambooShadows() {
   const g1 = useRef<THREE.Group>(null);
   const g2 = useRef<THREE.Group>(null);
@@ -115,7 +122,7 @@ export function BambooShadows() {
       <meshBasicMaterial
         color="#2C2C2C"
         transparent
-        opacity={0.04}
+        opacity={0.045}
         depthWrite={false}
       />
     </mesh>
@@ -124,13 +131,13 @@ export function BambooShadows() {
   return (
     <>
       <group ref={g1} position={[1.6, 1.2, -2.15]}>
-        {[0, 1, 2, 3, 4].map((i) =>
-          leaf(`a${i}`, (i - 2) * 0.15, Math.sin(i) * 0.2, i * 0.4, 0.9 + i * 0.05)
+        {[0, 1, 2, 3, 4, 5].map((i) =>
+          leaf(`a${i}`, (i - 2.5) * 0.14, Math.sin(i) * 0.22, i * 0.35, 0.85 + i * 0.04)
         )}
       </group>
       <group ref={g2} position={[2.2, 0.7, -2.15]}>
-        {[0, 1, 2, 3].map((i) =>
-          leaf(`b${i}`, (i - 1.5) * 0.12, Math.cos(i) * 0.15, -i * 0.35, 0.7)
+        {[0, 1, 2, 3, 4].map((i) =>
+          leaf(`b${i}`, (i - 2) * 0.11, Math.cos(i) * 0.16, -i * 0.3, 0.7)
         )}
       </group>
     </>

@@ -1,13 +1,15 @@
 "use client";
 
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useExperienceStore } from "@/store/useExperienceStore";
+import { getTextures } from "@/lib/textures";
 
 export function Pot() {
   const mossRef = useRef<THREE.Mesh>(null);
   const growth = useExperienceStore((s) => s.growth);
+  const textures = useMemo(() => getTextures(), []);
 
   useFrame(({ clock }) => {
     if (!mossRef.current) return;
@@ -21,19 +23,27 @@ export function Pot() {
   return (
     <group position={[0.85, -0.92, 0]}>
       <mesh castShadow receiveShadow position={[0, -0.05, 0]}>
-        <cylinderGeometry args={[0.38, 0.28, 0.18, 48]} />
-        <meshStandardMaterial color="#C4B5A0" roughness={0.9} metalness={0.04} />
+        <cylinderGeometry args={[0.38, 0.28, 0.18, 64]} />
+        <meshStandardMaterial
+          map={textures.ceramic}
+          roughness={0.82}
+          metalness={0.06}
+        />
       </mesh>
       <mesh castShadow position={[0, 0.04, 0]}>
-        <cylinderGeometry args={[0.39, 0.385, 0.028, 48]} />
-        <meshStandardMaterial color="#B8A890" roughness={0.88} />
+        <cylinderGeometry args={[0.39, 0.385, 0.028, 64]} />
+        <meshStandardMaterial
+          map={textures.ceramic}
+          color="#E8DFD0"
+          roughness={0.8}
+        />
       </mesh>
       <mesh receiveShadow position={[0, 0.028, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[0.32, 32]} />
+        <circleGeometry args={[0.32, 40]} />
         <meshStandardMaterial color="#3A2F24" roughness={1} />
       </mesh>
       <mesh ref={mossRef} castShadow position={[0, 0.032, 0]}>
-        <sphereGeometry args={[0.2, 24, 16, 0, Math.PI * 2, 0, Math.PI * 0.42]} />
+        <sphereGeometry args={[0.2, 28, 18, 0, Math.PI * 2, 0, Math.PI * 0.42]} />
         <meshStandardMaterial
           color="#4A6B3A"
           roughness={0.95}
@@ -53,12 +63,12 @@ export function Pot() {
           position={p as [number, number, number]}
           scale={0.65 + Math.min(1, growth) * 0.35}
         >
-          <sphereGeometry args={[0.04, 10, 8]} />
+          <sphereGeometry args={[0.04, 12, 10]} />
           <meshStandardMaterial color="#5A7A45" roughness={1} />
         </mesh>
       ))}
       <mesh receiveShadow position={[0, -0.18, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[0.5, 48]} />
+        <circleGeometry args={[0.5, 64]} />
         <meshStandardMaterial color="#D4C8B4" roughness={0.94} />
       </mesh>
       <mesh castShadow position={[0.34, -0.12, 0.13]} rotation={[0.2, 0.4, 0.1]}>

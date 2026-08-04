@@ -5,6 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useExperienceStore } from "@/store/useExperienceStore";
 import { SEASON_CONFIG } from "@/lib/seasons";
+import { getTextures } from "@/lib/textures";
 
 export function smoothstep(edge0: number, edge1: number, x: number) {
   const t = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0)));
@@ -18,20 +19,20 @@ type Limb = {
   sway: number;
 };
 
-/** Classic informal upright bonsai silhouette — twisted trunk, layered pads */
 function buildLimbs(): Limb[] {
   const trunk: Limb = {
     points: [
       new THREE.Vector3(0, 0.0, 0),
-      new THREE.Vector3(0.06, 0.18, 0.03),
-      new THREE.Vector3(-0.08, 0.4, -0.04),
-      new THREE.Vector3(0.1, 0.65, 0.05),
-      new THREE.Vector3(-0.05, 0.92, -0.02),
-      new THREE.Vector3(0.04, 1.2, 0.03),
-      new THREE.Vector3(-0.02, 1.45, 0),
-      new THREE.Vector3(0.01, 1.68, 0.01),
+      new THREE.Vector3(0.07, 0.16, 0.04),
+      new THREE.Vector3(-0.1, 0.38, -0.05),
+      new THREE.Vector3(0.12, 0.62, 0.06),
+      new THREE.Vector3(-0.08, 0.88, -0.03),
+      new THREE.Vector3(0.06, 1.15, 0.04),
+      new THREE.Vector3(-0.03, 1.4, -0.01),
+      new THREE.Vector3(0.02, 1.62, 0.01),
+      new THREE.Vector3(0.0, 1.78, 0),
     ],
-    radius: 0.078,
+    radius: 0.082,
     appearAt: 0.1,
     sway: 0.001,
   };
@@ -39,128 +40,127 @@ function buildLimbs(): Limb[] {
   const arms: Limb[] = [
     {
       points: [
-        new THREE.Vector3(0.06, 0.7, 0.03),
-        new THREE.Vector3(0.28, 0.82, 0.12),
-        new THREE.Vector3(0.52, 0.95, 0.18),
-        new THREE.Vector3(0.68, 1.05, 0.14),
+        new THREE.Vector3(0.08, 0.68, 0.04),
+        new THREE.Vector3(0.32, 0.8, 0.14),
+        new THREE.Vector3(0.58, 0.94, 0.2),
+        new THREE.Vector3(0.78, 1.06, 0.12),
       ],
-      radius: 0.028,
+      radius: 0.03,
       appearAt: 0.28,
       sway: 0.01,
     },
     {
       points: [
-        new THREE.Vector3(-0.04, 0.75, -0.02),
-        new THREE.Vector3(-0.25, 0.88, -0.12),
-        new THREE.Vector3(-0.48, 1.05, -0.18),
-        new THREE.Vector3(-0.62, 1.18, -0.12),
+        new THREE.Vector3(-0.05, 0.72, -0.02),
+        new THREE.Vector3(-0.28, 0.86, -0.14),
+        new THREE.Vector3(-0.52, 1.04, -0.2),
+        new THREE.Vector3(-0.7, 1.2, -0.1),
       ],
-      radius: 0.026,
+      radius: 0.028,
       appearAt: 0.32,
       sway: 0.011,
     },
     {
       points: [
-        new THREE.Vector3(0.03, 0.95, 0.01),
-        new THREE.Vector3(0.22, 1.15, -0.15),
-        new THREE.Vector3(0.4, 1.35, -0.28),
-        new THREE.Vector3(0.48, 1.48, -0.22),
+        new THREE.Vector3(0.04, 0.95, 0.01),
+        new THREE.Vector3(0.24, 1.18, -0.16),
+        new THREE.Vector3(0.44, 1.4, -0.3),
+        new THREE.Vector3(0.52, 1.55, -0.2),
       ],
-      radius: 0.022,
+      radius: 0.024,
       appearAt: 0.4,
       sway: 0.014,
     },
     {
       points: [
-        new THREE.Vector3(-0.02, 1.0, 0),
-        new THREE.Vector3(-0.2, 1.2, 0.16),
-        new THREE.Vector3(-0.38, 1.4, 0.28),
-        new THREE.Vector3(-0.45, 1.52, 0.2),
+        new THREE.Vector3(-0.03, 1.0, 0),
+        new THREE.Vector3(-0.22, 1.22, 0.18),
+        new THREE.Vector3(-0.42, 1.42, 0.3),
+        new THREE.Vector3(-0.5, 1.56, 0.18),
       ],
-      radius: 0.02,
+      radius: 0.022,
       appearAt: 0.44,
       sway: 0.014,
     },
     {
       points: [
-        new THREE.Vector3(0.01, 1.25, 0),
-        new THREE.Vector3(0.12, 1.45, 0.08),
-        new THREE.Vector3(0.22, 1.68, 0.06),
-        new THREE.Vector3(0.18, 1.88, 0.02),
+        new THREE.Vector3(0.01, 1.28, 0),
+        new THREE.Vector3(0.14, 1.5, 0.1),
+        new THREE.Vector3(0.24, 1.72, 0.06),
+        new THREE.Vector3(0.16, 1.95, 0.02),
       ],
-      radius: 0.016,
+      radius: 0.017,
       appearAt: 0.52,
       sway: 0.016,
     },
     {
       points: [
-        new THREE.Vector3(-0.01, 1.28, 0),
-        new THREE.Vector3(-0.1, 1.48, -0.06),
-        new THREE.Vector3(-0.18, 1.7, -0.04),
-        new THREE.Vector3(-0.14, 1.9, 0),
+        new THREE.Vector3(-0.01, 1.3, 0),
+        new THREE.Vector3(-0.12, 1.52, -0.08),
+        new THREE.Vector3(-0.2, 1.74, -0.04),
+        new THREE.Vector3(-0.12, 1.96, 0),
       ],
-      radius: 0.015,
+      radius: 0.016,
       appearAt: 0.55,
       sway: 0.016,
     },
     {
       points: [
-        new THREE.Vector3(0.05, 0.52, 0.02),
-        new THREE.Vector3(0.22, 0.58, -0.1),
-        new THREE.Vector3(0.38, 0.62, -0.16),
+        new THREE.Vector3(0.06, 0.5, 0.03),
+        new THREE.Vector3(0.26, 0.56, -0.1),
+        new THREE.Vector3(0.44, 0.6, -0.18),
       ],
-      radius: 0.024,
+      radius: 0.025,
       appearAt: 0.35,
       sway: 0.01,
     },
     {
       points: [
-        new THREE.Vector3(-0.05, 0.55, -0.01),
-        new THREE.Vector3(-0.24, 0.62, 0.1),
-        new THREE.Vector3(-0.4, 0.68, 0.14),
+        new THREE.Vector3(-0.06, 0.52, -0.01),
+        new THREE.Vector3(-0.28, 0.6, 0.12),
+        new THREE.Vector3(-0.46, 0.66, 0.16),
       ],
-      radius: 0.022,
+      radius: 0.023,
       appearAt: 0.37,
       sway: 0.01,
     },
-    // Fine twigs for pads
     {
       points: [
-        new THREE.Vector3(0.5, 0.98, 0.16),
-        new THREE.Vector3(0.72, 1.08, 0.1),
-        new THREE.Vector3(0.82, 1.12, 0.05),
+        new THREE.Vector3(0.55, 0.98, 0.16),
+        new THREE.Vector3(0.78, 1.1, 0.08),
+        new THREE.Vector3(0.9, 1.16, 0.02),
       ],
-      radius: 0.008,
+      radius: 0.009,
       appearAt: 0.58,
       sway: 0.02,
     },
     {
       points: [
-        new THREE.Vector3(-0.45, 1.08, -0.14),
-        new THREE.Vector3(-0.68, 1.2, -0.08),
-        new THREE.Vector3(-0.78, 1.28, -0.02),
+        new THREE.Vector3(-0.5, 1.08, -0.14),
+        new THREE.Vector3(-0.74, 1.22, -0.06),
+        new THREE.Vector3(-0.86, 1.3, 0),
       ],
-      radius: 0.008,
+      radius: 0.009,
       appearAt: 0.6,
       sway: 0.02,
     },
     {
       points: [
-        new THREE.Vector3(0.35, 1.3, -0.22),
-        new THREE.Vector3(0.55, 1.42, -0.18),
-        new THREE.Vector3(0.62, 1.5, -0.1),
+        new THREE.Vector3(0.38, 1.35, -0.24),
+        new THREE.Vector3(0.6, 1.48, -0.16),
+        new THREE.Vector3(0.68, 1.58, -0.06),
       ],
-      radius: 0.007,
+      radius: 0.008,
       appearAt: 0.62,
       sway: 0.022,
     },
     {
       points: [
-        new THREE.Vector3(-0.32, 1.35, 0.22),
-        new THREE.Vector3(-0.5, 1.48, 0.16),
-        new THREE.Vector3(-0.58, 1.55, 0.08),
+        new THREE.Vector3(-0.35, 1.38, 0.24),
+        new THREE.Vector3(-0.55, 1.52, 0.14),
+        new THREE.Vector3(-0.64, 1.6, 0.05),
       ],
-      radius: 0.007,
+      radius: 0.008,
       appearAt: 0.64,
       sway: 0.022,
     },
@@ -178,16 +178,18 @@ type FoliarPad = {
 
 function buildPads(): FoliarPad[] {
   return [
-    { center: new THREE.Vector3(0.55, 1.0, 0.12), radius: 0.28, appearAt: 0.34, density: 42 },
-    { center: new THREE.Vector3(-0.48, 1.1, -0.12), radius: 0.26, appearAt: 0.38, density: 40 },
-    { center: new THREE.Vector3(0.38, 1.38, -0.2), radius: 0.24, appearAt: 0.46, density: 38 },
-    { center: new THREE.Vector3(-0.35, 1.42, 0.2), radius: 0.22, appearAt: 0.5, density: 36 },
-    { center: new THREE.Vector3(0.12, 1.75, 0.02), radius: 0.26, appearAt: 0.58, density: 44 },
-    { center: new THREE.Vector3(-0.08, 1.78, -0.02), radius: 0.2, appearAt: 0.62, density: 30 },
-    { center: new THREE.Vector3(0.32, 0.62, -0.12), radius: 0.18, appearAt: 0.4, density: 28 },
-    { center: new THREE.Vector3(-0.3, 0.66, 0.1), radius: 0.17, appearAt: 0.42, density: 26 },
-    { center: new THREE.Vector3(0.7, 1.1, 0.06), radius: 0.14, appearAt: 0.66, density: 22 },
-    { center: new THREE.Vector3(-0.65, 1.22, -0.04), radius: 0.14, appearAt: 0.68, density: 22 },
+    { center: new THREE.Vector3(0.62, 1.02, 0.12), radius: 0.32, appearAt: 0.34, density: 70 },
+    { center: new THREE.Vector3(-0.55, 1.14, -0.1), radius: 0.3, appearAt: 0.38, density: 66 },
+    { center: new THREE.Vector3(0.42, 1.42, -0.22), radius: 0.28, appearAt: 0.46, density: 62 },
+    { center: new THREE.Vector3(-0.4, 1.46, 0.22), radius: 0.26, appearAt: 0.5, density: 58 },
+    { center: new THREE.Vector3(0.1, 1.82, 0.02), radius: 0.3, appearAt: 0.58, density: 74 },
+    { center: new THREE.Vector3(-0.08, 1.85, -0.02), radius: 0.24, appearAt: 0.62, density: 48 },
+    { center: new THREE.Vector3(0.36, 0.6, -0.12), radius: 0.2, appearAt: 0.4, density: 42 },
+    { center: new THREE.Vector3(-0.34, 0.64, 0.1), radius: 0.19, appearAt: 0.42, density: 40 },
+    { center: new THREE.Vector3(0.78, 1.12, 0.04), radius: 0.16, appearAt: 0.66, density: 34 },
+    { center: new THREE.Vector3(-0.72, 1.24, -0.02), radius: 0.16, appearAt: 0.68, density: 34 },
+    { center: new THREE.Vector3(0.55, 1.52, -0.1), radius: 0.15, appearAt: 0.7, density: 28 },
+    { center: new THREE.Vector3(-0.5, 1.55, 0.08), radius: 0.15, appearAt: 0.72, density: 28 },
   ];
 }
 
@@ -196,32 +198,82 @@ function hash(i: number) {
   return x - Math.floor(x);
 }
 
+/** Build a tapered tube along a curve */
+function createTaperedTube(
+  points: THREE.Vector3[],
+  radius: number,
+  tubularSegments = 48,
+  radialSegments = 8
+) {
+  const curve = new THREE.CatmullRomCurve3(points);
+  const frames = curve.computeFrenetFrames(tubularSegments, false);
+  const geo = new THREE.BufferGeometry();
+  const verts: number[] = [];
+  const uvs: number[] = [];
+  const indices: number[] = [];
+
+  for (let i = 0; i <= tubularSegments; i++) {
+    const t = i / tubularSegments;
+    const p = curve.getPointAt(t);
+    const N = frames.normals[i];
+    const B = frames.binormals[i];
+    const r = radius * (1 - t * 0.62) * (0.92 + Math.sin(t * Math.PI * 3) * 0.06);
+
+    for (let j = 0; j <= radialSegments; j++) {
+      const v = j / radialSegments;
+      const angle = v * Math.PI * 2;
+      const sin = Math.sin(angle);
+      const cos = Math.cos(angle);
+      const cx = -B.x * cos + N.x * sin;
+      const cy = -B.y * cos + N.y * sin;
+      const cz = -B.z * cos + N.z * sin;
+      verts.push(p.x + r * cx, p.y + r * cy, p.z + r * cz);
+      uvs.push(t * 2, v);
+    }
+  }
+
+  for (let i = 0; i < tubularSegments; i++) {
+    for (let j = 0; j < radialSegments; j++) {
+      const a = i * (radialSegments + 1) + j;
+      const b = a + radialSegments + 1;
+      indices.push(a, b, a + 1, b, b + 1, a + 1);
+    }
+  }
+
+  geo.setAttribute("position", new THREE.Float32BufferAttribute(verts, 3));
+  geo.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
+  geo.setIndex(indices);
+  geo.computeVertexNormals();
+  return geo;
+}
+
 function TubeLimb({
   limb,
   growth,
   wind,
   index,
+  barkMap,
 }: {
   limb: Limb;
   growth: number;
   wind: { x: number; y: number };
   index: number;
+  barkMap?: THREE.Texture;
 }) {
   const pivot = useRef<THREE.Group>(null);
   const eased = useRef(0);
   const visible = growth >= limb.appearAt - 0.08;
 
-  const geometry = useMemo(() => {
-    const curve = new THREE.CatmullRomCurve3(limb.points);
-    const tubularSegments = Math.max(12, limb.points.length * 8);
-    return new THREE.TubeGeometry(
-      curve,
-      tubularSegments,
-      limb.radius,
-      8,
-      false
-    );
-  }, [limb]);
+  const geometry = useMemo(
+    () =>
+      createTaperedTube(
+        limb.points,
+        limb.radius,
+        Math.max(24, limb.points.length * 10),
+        7
+      ),
+    [limb]
+  );
 
   useFrame((_, dt) => {
     if (!pivot.current) return;
@@ -236,17 +288,17 @@ function TubeLimb({
       Math.sin(t * 0.65 + index) * limb.sway * reveal + wind.x * limb.sway * 0.85;
     pivot.current.rotation.z = sway;
     pivot.current.rotation.x = wind.y * limb.sway * 0.3;
-    const s = Math.max(0.001, reveal);
-    pivot.current.scale.set(s, s, s);
+    pivot.current.scale.setScalar(Math.max(0.001, reveal));
   });
 
-  if (!visible && eased.current < limb.appearAt - 0.1) return null;
+  if (!visible) return null;
 
   return (
     <group ref={pivot}>
       <mesh geometry={geometry} castShadow receiveShadow>
         <meshStandardMaterial
-          color={index === 0 ? "#3F2E22" : "#4A3728"}
+          map={barkMap}
+          color={barkMap ? "#ffffff" : index === 0 ? "#3F2E22" : "#4A3728"}
           roughness={0.94}
           metalness={0.02}
         />
@@ -270,6 +322,7 @@ function NeedleCanopy({
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const color = useMemo(() => new THREE.Color(), []);
   const eased = useRef(0);
+  const textures = useMemo(() => getTextures(), []);
 
   const needles = useMemo(() => {
     const items: {
@@ -285,21 +338,17 @@ function NeedleCanopy({
         const u = hash(id + 1);
         const v = hash(id + 2);
         const w = hash(id + 3);
-        // Flattened ellipsoid cloud (bonsai pad)
         const theta = u * Math.PI * 2;
         const phi = Math.acos(2 * v - 1);
-        const r = Math.pow(w, 0.45) * pad.radius;
-        const x = Math.sin(phi) * Math.cos(theta) * r;
-        const y = Math.cos(phi) * r * 0.45;
-        const z = Math.sin(phi) * Math.sin(theta) * r * 0.85;
+        const r = Math.pow(w, 0.4) * pad.radius;
         items.push({
           pos: new THREE.Vector3(
-            pad.center.x + x,
-            pad.center.y + y,
-            pad.center.z + z
+            pad.center.x + Math.sin(phi) * Math.cos(theta) * r,
+            pad.center.y + Math.cos(phi) * r * 0.42,
+            pad.center.z + Math.sin(phi) * Math.sin(theta) * r * 0.88
           ),
-          appearAt: pad.appearAt + (i / pad.density) * 0.12,
-          scale: 0.045 + hash(id + 4) * 0.055,
+          appearAt: pad.appearAt + (i / pad.density) * 0.14,
+          scale: 0.055 + hash(id + 4) * 0.07,
           hue: hash(id + 5),
           seed: id,
         });
@@ -327,16 +376,16 @@ function NeedleCanopy({
         dummy.scale.setScalar(0);
       } else {
         const sway =
-          Math.sin(t * 1.05 + n.seed * 0.3) * 0.02 + wind.x * 0.045;
+          Math.sin(t * 1.05 + n.seed * 0.3) * 0.018 + wind.x * 0.04;
         const bob =
-          Math.cos(t * 0.9 + n.seed * 0.25) * 0.01 + wind.y * 0.012;
+          Math.cos(t * 0.9 + n.seed * 0.25) * 0.01 + wind.y * 0.01;
         dummy.position.set(n.pos.x + sway, n.pos.y + bob, n.pos.z);
         const sc = n.scale * s;
-        dummy.scale.set(sc * 1.15, sc * 0.7, sc * 1.05);
+        dummy.scale.set(sc * 1.2, sc * 0.65, sc * 1.1);
         dummy.rotation.set(
-          Math.sin(t * 0.3 + n.seed) * 0.2,
+          Math.sin(t * 0.3 + n.seed) * 0.25,
           n.seed * 0.7,
-          Math.cos(t * 0.25 + n.seed) * 0.15 + wind.x * 0.08
+          Math.cos(t * 0.25 + n.seed) * 0.2 + wind.x * 0.1
         );
       }
       dummy.updateMatrix();
@@ -356,8 +405,15 @@ function NeedleCanopy({
       castShadow
       frustumCulled={false}
     >
-      <sphereGeometry args={[1, 7, 6]} />
-      <meshStandardMaterial roughness={0.82} metalness={0} />
+      <sphereGeometry args={[1, 8, 6]} />
+      <meshStandardMaterial
+        map={textures.needle}
+        roughness={0.78}
+        metalness={0}
+        transparent
+        alphaTest={0.15}
+        depthWrite
+      />
     </instancedMesh>
   );
 }
@@ -376,28 +432,26 @@ function Seed({ growth }: { growth: number }) {
 
   return (
     <group ref={ref} position={[0, 0.11, 0]} scale={1 - hide * 0.45}>
-      {/* Whole seed before crack */}
       <mesh castShadow position={[0, 0.02, 0]} scale={1 - crack * 0.85}>
-        <sphereGeometry args={[0.058, 20, 16]} />
+        <sphereGeometry args={[0.06, 24, 18]} />
         <meshStandardMaterial color="#8B6848" roughness={0.88} />
       </mesh>
-      {/* Split halves */}
       <mesh
         castShadow
-        position={[-0.025 * crack, 0.015 * crack, 0]}
-        rotation={[0.25, 0.1, -crack * 0.7]}
+        position={[-0.028 * crack, 0.018 * crack, 0]}
+        rotation={[0.25, 0.1, -crack * 0.75]}
         scale={crack > 0.05 ? 1 : 0}
       >
-        <sphereGeometry args={[0.052, 16, 12, 0, Math.PI]} />
+        <sphereGeometry args={[0.054, 16, 12, 0, Math.PI]} />
         <meshStandardMaterial color="#7A5A42" roughness={0.92} />
       </mesh>
       <mesh
         castShadow
-        position={[0.025 * crack, 0.015 * crack, 0]}
-        rotation={[0.25, 0.1 + Math.PI, crack * 0.7]}
+        position={[0.028 * crack, 0.018 * crack, 0]}
+        rotation={[0.25, 0.1 + Math.PI, crack * 0.75]}
         scale={crack > 0.05 ? 1 : 0}
       >
-        <sphereGeometry args={[0.052, 16, 12, 0, Math.PI]} />
+        <sphereGeometry args={[0.054, 16, 12, 0, Math.PI]} />
         <meshStandardMaterial color="#6B4E38" roughness={0.92} />
       </mesh>
     </group>
@@ -419,16 +473,16 @@ function Sprout({ growth }: { growth: number }) {
 
   return (
     <group ref={ref} position={[0, 0.08, 0]} scale={[s, s, s]}>
-      <mesh castShadow position={[0, 0.1, 0]}>
-        <cylinderGeometry args={[0.006, 0.01, 0.2, 6]} />
+      <mesh castShadow position={[0, 0.11, 0]}>
+        <cylinderGeometry args={[0.006, 0.01, 0.22, 6]} />
         <meshStandardMaterial color="#4F7A3E" roughness={0.8} />
       </mesh>
-      <mesh castShadow position={[0.038, 0.18, 0]} rotation={[0, 0, -0.75]}>
-        <sphereGeometry args={[0.034, 8, 6]} />
+      <mesh castShadow position={[0.04, 0.2, 0]} rotation={[0, 0, -0.75]}>
+        <sphereGeometry args={[0.036, 8, 6]} />
         <meshStandardMaterial color="#6B9A4E" roughness={0.7} />
       </mesh>
-      <mesh castShadow position={[-0.032, 0.15, 0.012]} rotation={[0, 0, 0.55]}>
-        <sphereGeometry args={[0.028, 8, 6]} />
+      <mesh castShadow position={[-0.034, 0.17, 0.012]} rotation={[0, 0, 0.55]}>
+        <sphereGeometry args={[0.03, 8, 6]} />
         <meshStandardMaterial color="#5E8E42" roughness={0.7} />
       </mesh>
     </group>
@@ -467,6 +521,7 @@ export function Bonsai() {
   const limbs = useMemo(() => buildLimbs(), []);
   const pads = useMemo(() => buildPads(), []);
   const group = useRef<THREE.Group>(null);
+  const textures = useMemo(() => getTextures(), []);
 
   useFrame(() => {
     if (!group.current) return;
@@ -479,7 +534,14 @@ export function Bonsai() {
       <Sprout growth={growth} />
       <Roots growth={growth} />
       {limbs.map((limb, i) => (
-        <TubeLimb key={i} limb={limb} growth={growth} wind={wind} index={i} />
+        <TubeLimb
+          key={i}
+          limb={limb}
+          growth={growth}
+          wind={wind}
+          index={i}
+          barkMap={textures.bark}
+        />
       ))}
       <NeedleCanopy pads={pads} growth={growth} wind={wind} />
     </group>

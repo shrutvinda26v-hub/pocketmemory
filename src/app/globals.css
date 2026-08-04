@@ -90,6 +90,49 @@ body {
   background: var(--bg);
 }
 
+.loading-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  background: var(--bg);
+  pointer-events: none;
+}
+
+.loading-brand {
+  font-family: var(--font-display);
+  letter-spacing: 0.28em;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.loading-bar {
+  width: 8rem;
+  height: 1px;
+  background: color-mix(in srgb, var(--ink) 15%, transparent);
+  overflow: hidden;
+}
+
+.loading-bar span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.2s ease;
+}
+
+.loading-hint {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  color: var(--ink-soft);
+  font-family: var(--font-display);
+  font-style: italic;
+}
+
 .paper-grain::after {
   content: "";
   position: absolute;
@@ -568,6 +611,18 @@ body {
   transition: color 0.4s ease, border-color 0.4s ease, background 0.4s ease;
   pointer-events: auto;
   touch-action: manipulation;
+}
+
+.season-hint {
+  position: absolute;
+  left: 2rem;
+  bottom: 4.1rem;
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--ink-soft) 70%, transparent);
+  pointer-events: none;
+  z-index: 30;
 }
 
 .season-controls button.active,

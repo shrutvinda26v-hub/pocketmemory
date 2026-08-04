@@ -16,11 +16,13 @@ import {
   SeasonControls,
   SoundToggle,
 } from "@/components/ui/Panels";
+import { LoadingGate, useSeasonHotkeys } from "@/components/ui/Loading";
 
 export function Experience() {
   useLenis();
   useCursorWind();
   useAmbientSound();
+  useSeasonHotkeys();
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -32,19 +34,19 @@ export function Experience() {
           opacity: 0,
           duration: 1.8,
           ease: "power2.inOut",
-          delay: 0.25,
+          delay: 0.35,
           onComplete: () => setReady(true),
         }
       );
       gsap.fromTo(
         ".nav",
         { opacity: 0, y: -12 },
-        { opacity: 1, y: 0, duration: 1.2, ease: "power3.out", delay: 0.6 }
+        { opacity: 1, y: 0, duration: 1.2, ease: "power3.out", delay: 0.7 }
       );
       gsap.fromTo(
         ".chrome-bottom",
         { opacity: 0 },
-        { opacity: 1, duration: 1, ease: "power2.out", delay: 1.4 }
+        { opacity: 1, duration: 1, ease: "power2.out", delay: 1.5 }
       );
     });
     return () => ctx.revert();
@@ -52,32 +54,37 @@ export function Experience() {
 
   return (
     <div className={`experience ${ready ? "is-ready" : ""}`}>
-      <div className="intro-veil" aria-hidden />
-      <div className="paper-grain" aria-hidden />
-      <Scene />
-      <div className="ui-layer">
-        <Navigation />
-        <HeroCopy />
-        <SectionCopy />
-        <ProjectPanel />
-        <SkillNote />
-        <MilestoneNote />
-        <TestimonialPanel />
-        <FinaleCTA />
-        <div className="chrome-bottom">
-          <SeasonControls />
-          <SoundToggle />
+      <LoadingGate>
+        <div className="intro-veil" aria-hidden />
+        <div className="paper-grain" aria-hidden />
+        <Scene />
+        <div className="ui-layer">
+          <Navigation />
+          <HeroCopy />
+          <SectionCopy />
+          <ProjectPanel />
+          <SkillNote />
+          <MilestoneNote />
+          <TestimonialPanel />
+          <FinaleCTA />
+          <div className="chrome-bottom">
+            <SeasonControls />
+            <SoundToggle />
+          </div>
+          <p className="season-hint" aria-hidden>
+            Keys 1–4 seasons · M mute
+          </p>
         </div>
-      </div>
-      <div className="scroll-track" aria-hidden>
-        <section id="home" />
-        <section id="growth" />
-        <section id="projects" />
-        <section id="skills" />
-        <section id="journey" />
-        <section id="testimonials" />
-        <section id="finale" />
-      </div>
+        <div className="scroll-track" aria-hidden>
+          <section id="home" />
+          <section id="growth" />
+          <section id="projects" />
+          <section id="skills" />
+          <section id="journey" />
+          <section id="testimonials" />
+          <section id="finale" />
+        </div>
+      </LoadingGate>
     </div>
   );
 }

@@ -162,22 +162,19 @@ function Seed({ growth }: { growth: number }) {
   if (hide > 0.98) return null;
 
   return (
-    <group ref={ref} position={[0, 0.1, 0]} scale={1 - hide * 0.4} visible={hide < 0.99}>
-      <mesh castShadow position={[-0.018 * crack, 0.01 * crack, 0]} rotation={[0.15, 0.2, -crack * 0.55]}>
-        <sphereGeometry args={[0.048, 16, 12, 0, Math.PI]} />
-        <meshStandardMaterial color="#6B5344" roughness={0.95} />
+    <group ref={ref} position={[0, 0.12, 0]} scale={1 - hide * 0.4} visible={hide < 0.99}>
+      <mesh castShadow position={[-0.02 * crack, 0.012 * crack, 0]} rotation={[0.2, 0.15, -crack * 0.55]}>
+        <sphereGeometry args={[0.055, 16, 12, 0, Math.PI]} />
+        <meshStandardMaterial color="#7A5A42" roughness={0.92} />
       </mesh>
-      <mesh castShadow position={[0.018 * crack, 0.01 * crack, 0]} rotation={[0.15, 0.2 + Math.PI, crack * 0.55]}>
-        <sphereGeometry args={[0.048, 16, 12, 0, Math.PI]} />
-        <meshStandardMaterial color="#5C4638" roughness={0.95} />
+      <mesh castShadow position={[0.02 * crack, 0.012 * crack, 0]} rotation={[0.2, 0.15 + Math.PI, crack * 0.55]}>
+        <sphereGeometry args={[0.055, 16, 12, 0, Math.PI]} />
+        <meshStandardMaterial color="#6B4E38" roughness={0.92} />
       </mesh>
-      {/* Seed highlight before crack */}
-      {crack < 0.3 && (
-        <mesh position={[0, 0.02, 0.04]}>
-          <sphereGeometry args={[0.012, 8, 6]} />
-          <meshStandardMaterial color="#8A7060" roughness={0.7} />
-        </mesh>
-      )}
+      <mesh castShadow position={[0, 0.02, 0]} scale={1 - crack * 0.3}>
+        <sphereGeometry args={[0.052, 16, 12]} />
+        <meshStandardMaterial color="#8B6848" roughness={0.88} />
+      </mesh>
     </group>
   );
 }
@@ -279,7 +276,12 @@ function Leaves({
   });
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, positions.length]} castShadow>
+    <instancedMesh
+      ref={meshRef}
+      args={[undefined, undefined, positions.length]}
+      castShadow
+      frustumCulled={false}
+    >
       <sphereGeometry args={[0.065, 6, 5]} />
       <meshStandardMaterial color={colors.leaf} roughness={0.85} metalness={0} />
     </instancedMesh>

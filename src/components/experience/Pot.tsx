@@ -13,9 +13,10 @@ export function Pot() {
     if (!mossRef.current) return;
     const m = mossRef.current.material as THREE.MeshStandardMaterial;
     m.emissiveIntensity = 0.015 + Math.sin(clock.elapsedTime * 0.5) * 0.008;
-    // Moss builds as life begins
-    const mossScale = 0.55 + Math.min(1, growth * 2.5) * 0.45;
+    // Keep moss modest until life begins so the seed reads clearly
+    const mossScale = 0.35 + Math.min(1, growth * 3) * 0.65;
     mossRef.current.scale.setScalar(mossScale);
+    m.opacity = 0.55 + Math.min(1, growth * 2) * 0.45;
   });
 
   return (
@@ -36,13 +37,15 @@ export function Pot() {
         <meshStandardMaterial color="#3A2F24" roughness={1} />
       </mesh>
       {/* Moss mound — quieter at seed stage */}
-      <mesh ref={mossRef} castShadow position={[0, 0.04, 0]}>
+      <mesh ref={mossRef} castShadow position={[0, 0.035, 0]}>
         <sphereGeometry args={[0.22, 24, 16, 0, Math.PI * 2, 0, Math.PI * 0.42]} />
         <meshStandardMaterial
           color="#4A6B3A"
           roughness={0.95}
           emissive="#2A3F20"
           emissiveIntensity={0.015}
+          transparent
+          opacity={0.55}
         />
       </mesh>
       {[

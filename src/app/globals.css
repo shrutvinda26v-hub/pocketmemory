@@ -482,6 +482,11 @@ body {
   left: 2rem;
   bottom: 7.5rem;
   max-width: 26rem;
+  pointer-events: none;
+}
+
+.finale-cta .cta-button {
+  pointer-events: auto;
 }
 
 .finale-cta h2 {
@@ -520,17 +525,23 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  z-index: 20;
+  pointer-events: auto;
 }
 
 .season-controls {
   display: flex;
   gap: 0.35rem;
+  pointer-events: auto;
+  isolation: isolate;
 }
 
 .season-controls button,
 .sound-toggle {
-  background: color-mix(in srgb, var(--bg) 70%, transparent);
-  border: 1px solid color-mix(in srgb, var(--ink) 15%, transparent);
+  position: relative;
+  z-index: 21;
+  background: color-mix(in srgb, var(--bg) 85%, white);
+  border: 1px solid color-mix(in srgb, var(--ink) 18%, transparent);
   color: var(--ink-soft);
   font-family: var(--font-ui);
   font-size: 0.62rem;
@@ -539,6 +550,7 @@ body {
   padding: 0.55rem 0.75rem;
   cursor: pointer;
   transition: color 0.4s ease, border-color 0.4s ease, background 0.4s ease;
+  pointer-events: auto;
 }
 
 .season-controls button.active,

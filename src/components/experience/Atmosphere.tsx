@@ -69,7 +69,7 @@ export function AmbientParticles() {
   });
 
   return (
-    <instancedMesh ref={mesh} args={[undefined, undefined, count]}>
+    <instancedMesh ref={mesh} args={[undefined, undefined, count]} frustumCulled={false}>
       <sphereGeometry args={[0.03, 6, 4]} />
       <meshStandardMaterial
         color={golden.fireflies ? "#E8C96A" : config.particleColor}

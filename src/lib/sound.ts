@@ -29,16 +29,16 @@ type SeasonChimeProfile = {
 };
 
 const SEASON_CHIMES: Record<Season, SeasonChimeProfile> = {
-  // Soft sakura / glass — bright, delicate, hopeful
-  spring: {
-    notes: [523.25, 587.33, 659.25, 783.99, 880.0, 1046.5], // C5–C6 major
-    drone: [130.81, 196.0],
-    intervalMin: 2200,
-    intervalMax: 4200,
-    brightness: 3200,
-    decay: 2.8,
-    volume: 0.045,
-    harmonics: 3,
+  // Soft raindrop / temple tones — cool, watery, calm
+  rain: {
+    notes: [349.23, 392.0, 466.16, 523.25, 587.33, 698.46], // F4–F5 softer
+    drone: [87.31, 130.81],
+    intervalMin: 2600,
+    intervalMax: 4800,
+    brightness: 2200,
+    decay: 3.0,
+    volume: 0.038,
+    harmonics: 2,
   },
   // Warm wooden wind chimes — calm afternoon
   summer: {
@@ -587,11 +587,11 @@ export function useAmbientSound() {
     const strength =
       season === "autumn"
         ? 0.9
-        : season === "spring"
-          ? 0.7
+        : season === "rain"
+          ? 0.85
           : season === "winter"
-            ? 0.35
-            : 0.55;
+            ? 0.4
+            : 0.45;
     engineRef.current.setWindStrength(strength);
     engineRef.current.setSeason(season);
   }, [season]);

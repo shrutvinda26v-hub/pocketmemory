@@ -8,7 +8,7 @@ import { useExperienceStore } from "@/store/useExperienceStore";
 import { ensureSoundOnInteraction, getAmbientEngine } from "@/lib/sound";
 
 const SEASON_KEYS: Record<string, Season> = {
-  "1": "spring",
+  "1": "rain",
   "2": "summer",
   "3": "autumn",
   "4": "winter",

@@ -18,6 +18,7 @@ export function SceneLighting() {
   const fogCol = useRef(new THREE.Color(config.fogColor));
   const targetBg = useRef(new THREE.Color(config.fogColor));
   const sunColor = useRef(new THREE.Color(config.lightColor));
+  const sunPos = useRef(new THREE.Vector3(...config.sunPosition));
   const { scene } = useThree();
 
   useFrame(() => {
@@ -33,13 +34,20 @@ export function SceneLighting() {
     }
 
     if (!sun.current) return;
-    const targetIntensity = config.lightIntensity * golden.intensity * 0.95;
+    const sunBoost = config.sunVisible ? 1.25 : 1;
+    const targetIntensity =
+      config.lightIntensity * golden.intensity * 0.95 * sunBoost;
     sun.current.intensity += (targetIntensity - sun.current.intensity) * 0.04;
     sunColor.current.set(config.lightColor);
     if (golden.colorShift > 0) {
       sunColor.current.lerp(new THREE.Color("#FFB060"), golden.colorShift * 0.45);
     }
+    if (config.sunVisible) {
+      sunColor.current.lerp(new THREE.Color("#FFE8A8"), 0.25);
+    }
     sun.current.color.lerp(sunColor.current, 0.05);
+    sunPos.current.set(...config.sunPosition);
+    sun.current.position.lerp(sunPos.current, 0.04);
   });
 
   return (

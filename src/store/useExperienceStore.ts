@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export type Season = "spring" | "summer" | "autumn" | "winter";
+export type Season = "rain" | "summer" | "autumn" | "winter";
 export type SectionId =
   | "home"
   | "growth"

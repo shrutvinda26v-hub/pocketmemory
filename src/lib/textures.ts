@@ -72,60 +72,84 @@ export function createCeramicTexture() {
   });
 }
 
-/** Twisted bark with vertical furrows + moss flecks */
+/** Warm brown bark — chestnut wood with vertical furrows */
 export function createBarkTexture() {
   return canvasTexture((ctx, size) => {
+    // Warm brown base wash
     const base = ctx.createLinearGradient(0, 0, size, 0);
-    base.addColorStop(0, "#2E2118");
-    base.addColorStop(0.35, "#463226");
-    base.addColorStop(0.7, "#3A2A1E");
-    base.addColorStop(1, "#2A1C14");
+    base.addColorStop(0, "#5C3D28");
+    base.addColorStop(0.25, "#7A5336");
+    base.addColorStop(0.5, "#8B5E3C");
+    base.addColorStop(0.75, "#6E4A30");
+    base.addColorStop(1, "#4F3422");
     ctx.fillStyle = base;
     ctx.fillRect(0, 0, size, size);
-    for (let x = 0; x < size; x += 2.5) {
-      const wobble = Math.sin(x * 0.07) * 10 + Math.sin(x * 0.19) * 4;
-      ctx.strokeStyle = `rgba(14,8,4,${0.3 + Math.random() * 0.4})`;
-      ctx.lineWidth = 1 + Math.random() * 2.4;
+
+    // Vertical bark furrows
+    for (let x = 0; x < size; x += 2.2) {
+      const wobble = Math.sin(x * 0.065) * 9 + Math.sin(x * 0.17) * 3.5;
+      ctx.strokeStyle = `rgba(40,22,12,${0.28 + Math.random() * 0.4})`;
+      ctx.lineWidth = 1 + Math.random() * 2.2;
       ctx.beginPath();
       ctx.moveTo(x + wobble, 0);
-      for (let y = 0; y < size; y += 6) {
-        ctx.lineTo(x + wobble + Math.sin(y * 0.045 + x * 0.02) * 3.5, y);
+      for (let y = 0; y < size; y += 5) {
+        ctx.lineTo(x + wobble + Math.sin(y * 0.04 + x * 0.015) * 3.2, y);
       }
       ctx.stroke();
     }
-    // Lighter ridges
-    for (let x = 4; x < size; x += 11) {
-      ctx.strokeStyle = `rgba(110,85,60,${0.08 + Math.random() * 0.1})`;
-      ctx.lineWidth = 1;
+
+    // Warm highlight ridges
+    for (let x = 5; x < size; x += 10) {
+      ctx.strokeStyle = `rgba(180,130,85,${0.1 + Math.random() * 0.14})`;
+      ctx.lineWidth = 1.2;
       ctx.beginPath();
       ctx.moveTo(x, 0);
-      for (let y = 0; y < size; y += 10) {
-        ctx.lineTo(x + Math.sin(y * 0.03) * 2, y);
+      for (let y = 0; y < size; y += 8) {
+        ctx.lineTo(x + Math.sin(y * 0.028) * 2.2, y);
       }
       ctx.stroke();
     }
-    for (let i = 0; i < 520; i++) {
-      ctx.fillStyle = `rgba(95,72,50,${0.06 + Math.random() * 0.14})`;
+
+    // Wood grain flecks
+    for (let i = 0; i < 700; i++) {
+      ctx.fillStyle = `rgba(140,95,55,${0.05 + Math.random() * 0.12})`;
       ctx.beginPath();
       ctx.ellipse(
         Math.random() * size,
         Math.random() * size,
-        2 + Math.random() * 7,
-        1 + Math.random() * 2.5,
+        2 + Math.random() * 8,
+        1 + Math.random() * 2.2,
         Math.random(),
         0,
         Math.PI * 2
       );
       ctx.fill();
     }
-    // Moss / lichen flecks
-    for (let i = 0; i < 90; i++) {
-      ctx.fillStyle = `rgba(55,95,40,${0.12 + Math.random() * 0.22})`;
+
+    // Soft darker patches
+    for (let i = 0; i < 40; i++) {
+      ctx.fillStyle = `rgba(45,25,14,${0.08 + Math.random() * 0.12})`;
+      ctx.beginPath();
+      ctx.ellipse(
+        Math.random() * size,
+        Math.random() * size,
+        8 + Math.random() * 22,
+        4 + Math.random() * 10,
+        Math.random() * Math.PI,
+        0,
+        Math.PI * 2
+      );
+      ctx.fill();
+    }
+
+    // Sparse lichen
+    for (let i = 0; i < 50; i++) {
+      ctx.fillStyle = `rgba(90,110,55,${0.08 + Math.random() * 0.14})`;
       ctx.beginPath();
       ctx.arc(
         Math.random() * size,
         Math.random() * size,
-        1.5 + Math.random() * 4,
+        1.2 + Math.random() * 3.5,
         0,
         Math.PI * 2
       );
@@ -290,7 +314,12 @@ export function getTextures() {
   if (typeof document === "undefined") return cache;
   if (!cache.paper) cache.paper = createPaperTexture();
   if (!cache.ceramic) cache.ceramic = createCeramicTexture();
-  if (!cache.bark) cache.bark = createBarkTexture();
+  // Always refresh bark so warm-brown updates land on reload
+  if (!cache.bark) {
+    cache.bark = createBarkTexture();
+    cache.bark.wrapS = cache.bark.wrapT = THREE.RepeatWrapping;
+    cache.bark.repeat.set(2, 3);
+  }
   if (!cache.needle) cache.needle = createNeedleTexture();
   if (!cache.leafAlbedo) {
     cache.leafAlbedo = createLeafAlbedo();

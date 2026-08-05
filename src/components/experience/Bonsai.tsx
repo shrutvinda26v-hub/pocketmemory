@@ -34,7 +34,7 @@ function buildLimbs(): Limb[] {
       new THREE.Vector3(0.0, 1.78, 0),
     ],
     radius: 0.105,
-    appearAt: 0.08,
+    appearAt: 0.05,
     sway: 0.0015,
   };
 
@@ -303,56 +303,118 @@ function TubeLimb({
   index: number;
   barkMap?: THREE.Texture;
 }) {
+  const meshRef = useRef<THREE.Mesh>(null);
   const pivot = useRef<THREE.Group>(null);
   const eased = useRef(0);
-  const visible = growth >= limb.appearAt - 0.08;
+  const lastReveal = useRef(-1);
+  const tubularSegments = Math.max(48, limb.points.length * 14);
+  const radialSegments = 12;
 
-  const geometry = useMemo(
-    () =>
-      createTaperedTube(
-        limb.points,
-        limb.radius,
-        Math.max(48, limb.points.length * 14),
-        12
-      ),
-    [limb]
-  );
+  const { geometry, restPositions, tipPositions } = useMemo(() => {
+    const geo = createTaperedTube(
+      limb.points,
+      limb.radius,
+      tubularSegments,
+      radialSegments
+    );
+    const rest = Float32Array.from(
+      geo.attributes.position.array as Float32Array
+    );
+    const vertsPerRing = radialSegments + 1;
+    const tips: number[] = [];
+    for (let i = 0; i <= tubularSegments; i++) {
+      let cx = 0;
+      let cy = 0;
+      let cz = 0;
+      for (let j = 0; j < vertsPerRing; j++) {
+        const idx = (i * vertsPerRing + j) * 3;
+        cx += rest[idx];
+        cy += rest[idx + 1];
+        cz += rest[idx + 2];
+      }
+      tips.push(cx / vertsPerRing, cy / vertsPerRing, cz / vertsPerRing);
+    }
+    return { geometry: geo, restPositions: rest, tipPositions: tips };
+  }, [limb, tubularSegments, radialSegments]);
 
   useFrame((_, dt) => {
-    if (!pivot.current) return;
-    // Soft ease — growth feels like living wood, not a pop-in
-    eased.current += (growth - eased.current) * Math.min(1, dt * 1.35);
+    if (!pivot.current || !meshRef.current) return;
+    eased.current += (growth - eased.current) * Math.min(1, dt * 1.5);
+
+    // Grow from nothing → full length along the stem
     const raw = smoothstep(
-      limb.appearAt - 0.1,
-      limb.appearAt + 0.18,
+      limb.appearAt - 0.02,
+      limb.appearAt + 0.22,
       eased.current
     );
-    // Ease-out cubic for natural extension
-    const reveal = 1 - Math.pow(1 - raw, 2.4);
+    const reveal = 1 - Math.pow(1 - raw, 2.6);
+
+    const posAttr = meshRef.current.geometry.attributes
+      .position as THREE.BufferAttribute;
+    const arr = posAttr.array as Float32Array;
+    const vertsPerRing = radialSegments + 1;
+    const grown = reveal * tubularSegments;
+    const tipRing = Math.min(tubularSegments, Math.floor(grown));
+    const frac = grown - tipRing;
+
+    const tipIdx = tipRing * 3;
+    const nextTip = Math.min(tubularSegments, tipRing + 1) * 3;
+    const tipX =
+      tipPositions[tipIdx] * (1 - frac) + tipPositions[nextTip] * frac;
+    const tipY =
+      tipPositions[tipIdx + 1] * (1 - frac) + tipPositions[nextTip + 1] * frac;
+    const tipZ =
+      tipPositions[tipIdx + 2] * (1 - frac) + tipPositions[nextTip + 2] * frac;
+
+    // Thin green shoot → full woody radius as it extends
+    const radiusGrow = 0.12 + reveal * 0.88;
+
+    for (let i = 0; i <= tubularSegments; i++) {
+      for (let j = 0; j < vertsPerRing; j++) {
+        const idx = (i * vertsPerRing + j) * 3;
+        const cx = tipPositions[i * 3];
+        const cy = tipPositions[i * 3 + 1];
+        const cz = tipPositions[i * 3 + 2];
+        if (i < tipRing || (i === tipRing && frac <= 0 && reveal > 0.001)) {
+          arr[idx] = cx + (restPositions[idx] - cx) * radiusGrow;
+          arr[idx + 1] = cy + (restPositions[idx + 1] - cy) * radiusGrow;
+          arr[idx + 2] = cz + (restPositions[idx + 2] - cz) * radiusGrow;
+        } else if (i === tipRing) {
+          const rx = cx + (restPositions[idx] - cx) * radiusGrow;
+          const ry = cy + (restPositions[idx + 1] - cy) * radiusGrow;
+          const rz = cz + (restPositions[idx + 2] - cz) * radiusGrow;
+          arr[idx] = rx * (1 - frac) + tipX * frac;
+          arr[idx + 1] = ry * (1 - frac) + tipY * frac;
+          arr[idx + 2] = rz * (1 - frac) + tipZ * frac;
+        } else {
+          arr[idx] = tipX;
+          arr[idx + 1] = tipY;
+          arr[idx + 2] = tipZ;
+        }
+      }
+    }
+    posAttr.needsUpdate = true;
+    if (Math.abs(reveal - lastReveal.current) > 0.002) {
+      meshRef.current.geometry.computeVertexNormals();
+      lastReveal.current = reveal;
+    }
+
     const t = performance.now() * 0.001;
     const sway =
-      Math.sin(t * 0.55 + index) * limb.sway * reveal + wind.x * limb.sway * 0.9;
+      Math.sin(t * 0.55 + index) * limb.sway * reveal +
+      wind.x * limb.sway * 0.9;
     pivot.current.rotation.z = sway;
     pivot.current.rotation.x = wind.y * limb.sway * 0.35;
-    // Stretch slightly along growth, then settle to full form
-    const stretch = 0.72 + reveal * 0.28;
-    const fatten = 0.55 + reveal * 0.45;
-    pivot.current.scale.set(
-      Math.max(0.001, fatten),
-      Math.max(0.001, stretch),
-      Math.max(0.001, fatten)
-    );
+    pivot.current.visible = reveal > 0.002;
   });
-
-  if (!visible) return null;
 
   return (
     <group ref={pivot}>
-      <mesh geometry={geometry} castShadow receiveShadow>
+      <mesh ref={meshRef} geometry={geometry} castShadow receiveShadow>
         <meshStandardMaterial
           map={barkMap}
-          color={barkMap ? "#cfc4b6" : index === 0 ? "#3F2E22" : "#4A3728"}
-          roughness={0.98}
+          color="#c4a07a"
+          roughness={0.9}
           metalness={0}
         />
       </mesh>
@@ -390,10 +452,11 @@ function NaturalCanopy({
   const flowX = useRef<Float32Array | null>(null);
   const flowZ = useRef<Float32Array | null>(null);
   const leafGeo = useMemo(() => createLeafGeometry(), []);
+  const hoverTarget = useRef(new THREE.Vector3());
   const localHover = useRef(new THREE.Vector3());
-  const prevHover = useRef(new THREE.Vector3());
-  const hoverFlow = useRef(new THREE.Vector3());
+  const hoverFlow = useRef(new THREE.Vector3(0, 0, 0));
   const hasHover = useRef(false);
+  const hoverAmount = useRef(0); // global soft on/off
 
   const leaves = useMemo(() => {
     const items: {
@@ -492,36 +555,17 @@ function NaturalCanopy({
       ? (performance.now() - leafRipple.at) / 1000
       : 99;
 
-    if (hoverPoint) {
-      const nx = hoverPoint.x - 0.85;
-      const ny = hoverPoint.y + 0.92;
-      const nz = hoverPoint.z;
-      if (hasHover.current) {
-        hoverFlow.current.set(
-          nx - prevHover.current.x,
-          ny - prevHover.current.y,
-          nz - prevHover.current.z
-        );
-      }
-      prevHover.current.set(nx, ny, nz);
-      localHover.current.set(nx, ny, nz);
-      hasHover.current = true;
+    // Smooth the hover point so motion never jitters between leaf instances
+    if (hasHover.current) {
+      hoverAmount.current += (1 - hoverAmount.current) * Math.min(1, clampedDt * 6);
+      localHover.current.lerp(hoverTarget.current, Math.min(1, clampedDt * 10));
     } else {
-      hasHover.current = false;
-      hoverFlow.current.multiplyScalar(0.9);
+      hoverAmount.current += (0 - hoverAmount.current) * Math.min(1, clampedDt * 3.5);
+      hoverFlow.current.multiplyScalar(0.88);
     }
-
-    // Soft pointer velocity for trailing flow
-    const flowLen =
-      Math.sqrt(
-        hoverFlow.current.x ** 2 +
-          hoverFlow.current.y ** 2 +
-          hoverFlow.current.z ** 2
-      ) + 1e-5;
 
     for (let i = 0; i < leaves.length; i++) {
       const n = leaves[i];
-      // Longer unfurl window — growth looks gradual
       const s = smoothstep(n.appearAt, n.appearAt + 0.16, g);
       const unfurl = 1 - Math.pow(1 - s, 2.2);
 
@@ -529,80 +573,70 @@ function NaturalCanopy({
       let dx = 0;
       let dy = 0;
       let dz = 0;
-      if (hasHover.current && s > 0.01) {
+      if (hoverAmount.current > 0.02 && s > 0.01) {
         dx = n.pos.x - localHover.current.x;
         dy = n.pos.y - localHover.current.y;
         dz = n.pos.z - localHover.current.z;
-        const d2 = dx * dx + dy * dy * 1.2 + dz * dz;
-        // Wider soft field so a brush of the hand moves a whole pad
-        target = Math.exp(-d2 / (2 * 0.16 * 0.16));
+        const d2 = dx * dx + dy * dy * 1.15 + dz * dz;
+        // Soft wide falloff — like air pressure from a fingertip
+        const sigma = 0.22;
+        target = Math.exp(-d2 / (2 * sigma * sigma)) * hoverAmount.current;
       }
 
-      // Softer spring — leaves settle into a flowing motion
-      const force = (target - hs[i]) * 22 - hv[i] * 7.5;
+      // Heavily damped spring — slow, leafy inertia
+      const force = (target - hs[i]) * 14 - hv[i] * 9;
       hv[i] += force * clampedDt;
       hs[i] += hv[i] * clampedDt;
-      if (hs[i] < 0.001 && target < 0.001) {
-        hs[i] = 0;
-        hv[i] = 0;
-      }
+      hs[i] = Math.max(0, Math.min(1.2, hs[i]));
 
       if (s < 0.01) {
         dummy.scale.setScalar(0);
       } else {
-        const h = Math.min(1, Math.max(0, hs[i]));
+        const h = hs[i];
 
         let ripple = 0;
         if (rippleAge < 1.4 && rippleId >= 0) {
           const d = n.pos.distanceTo(leaves[rippleId].pos);
-          const wave = rippleAge * 1.7 - d * 3.2;
-          if (wave > 0 && wave < 1.3) {
-            ripple = Math.sin(wave * Math.PI) * 0.06 * (1 - rippleAge / 1.4);
+          const wave = rippleAge * 1.6 - d * 2.8;
+          if (wave > 0 && wave < 1.2) {
+            ripple = Math.sin(wave * Math.PI) * 0.035 * (1 - rippleAge / 1.4);
           }
         }
 
-        // Idle breeze
+        // Always-on gentle breeze
         const breeze =
-          Math.sin(t * 0.9 + n.seed * 0.27) * 0.012 + wind.x * 0.032;
+          Math.sin(t * 0.7 + n.seed * 0.31) * 0.01 + wind.x * 0.028;
         const bob =
-          Math.cos(t * 0.75 + n.seed * 0.21) * 0.009 + wind.y * 0.012;
+          Math.cos(t * 0.55 + n.seed * 0.19) * 0.007 + wind.y * 0.01;
 
-        // Radial part + tangential swirl + pointer-drag flow
+        // Natural response: mostly lean/rotate, slight part
         let pushX = 0;
         let pushY = 0;
         let pushZ = 0;
-        if (h > 0.015) {
+        if (h > 0.01) {
           const len = Math.sqrt(dx * dx + dy * dy + dz * dz) + 1e-4;
           const rx = dx / len;
           const ry = dy / len;
           const rz = dz / len;
-          // Tangential swirl (flow around the hand)
-          const tx = -rz;
-          const tz = rx;
-          const swirl =
-            Math.sin(t * 3.2 + n.seed + h * 4) * h * 0.085;
-          const part = h * 0.16;
-          // Drag trail in mouse direction
-          const drag = h * Math.min(1.8, flowLen * 14);
 
-          const targetFx =
-            rx * part +
-            tx * swirl +
-            (hoverFlow.current.x / flowLen) * drag * 0.12;
-          const targetFz =
-            rz * part +
-            tz * swirl +
-            (hoverFlow.current.z / flowLen) * drag * 0.12;
+          // Gentle parting — never dramatic
+          const part = h * 0.07;
+          // Soft secondary flutter while under the hand
+          const flutter =
+            Math.sin(t * 5.5 + n.seed * 2.1) * h * 0.012;
 
-          fx[i] += (targetFx - fx[i]) * Math.min(1, clampedDt * 8);
-          fz[i] += (targetFz - fz[i]) * Math.min(1, clampedDt * 8);
+          const targetFx = rx * part + flutter;
+          const targetFz = rz * part + Math.cos(t * 4.8 + n.seed) * h * 0.01;
+
+          fx[i] += (targetFx - fx[i]) * Math.min(1, clampedDt * 5);
+          fz[i] += (targetFz - fz[i]) * Math.min(1, clampedDt * 5);
 
           pushX = fx[i];
-          pushY = ry * part * 0.4 + h * 0.04 + Math.sin(t * 4 + n.seed) * h * 0.03;
+          pushY = ry * part * 0.35 + h * 0.018;
           pushZ = fz[i];
         } else {
-          fx[i] *= 0.92;
-          fz[i] *= 0.92;
+          fx[i] *= 0.94;
+          fz[i] *= 0.94;
           pushX = fx[i];
           pushZ = fz[i];
         }
@@ -613,27 +647,31 @@ function NaturalCanopy({
           n.pos.z + pushZ
         );
 
+        // Leaf tip leans away from the hand — primary natural cue
         tmpOut.copy(n.outward);
-        tmpOut.x += wind.x * 0.4 + breeze * 9 + pushX * 2.5;
-        tmpOut.y += 0.2 + h * 0.45;
-        tmpOut.z += wind.y * 0.25 + pushZ * 2.5;
+        tmpOut.x += wind.x * 0.3 + breeze * 6;
+        tmpOut.y += 0.25;
+        tmpOut.z += wind.y * 0.2;
+        if (h > 0.01) {
+          tmpOut.x += dx * h * 0.9;
+          tmpOut.y += 0.15 * h;
+          tmpOut.z += dz * h * 0.9;
+        }
         tmpOut.normalize();
         quat.setFromUnitVectors(tmpUp, tmpOut);
         dummy.quaternion.copy(quat);
-        // Flowing twist while hovered
         dummy.rotateOnAxis(
           tmpUp,
-          n.twist + h * 0.55 + Math.sin(t * 2.8 + n.seed) * h * 0.5
+          n.twist + Math.sin(t * 1.8 + n.seed) * h * 0.25
         );
         dummy.rotateX(
-          n.tilt * 0.35 +
-            Math.sin(t * 0.45 + n.seed) * 0.08 +
-            h * 0.35 +
-            (1 - unfurl) * 1.1
+          n.tilt * 0.3 +
+            Math.sin(t * 0.4 + n.seed) * 0.06 +
+            h * 0.55 +
+            (1 - unfurl) * 1.05
         );
 
-        // Unfurl from folded strip → full blade
-        const sc = n.scale * unfurl * (1 + h * 0.1 + ripple * 1.8);
+        const sc = n.scale * unfurl * (1 + h * 0.04 + ripple);
         dummy.scale.set(
           sc * (0.35 + unfurl * 0.65) * (0.9 + n.hue * 0.15),
           sc,
@@ -644,8 +682,8 @@ function NaturalCanopy({
       dummy.updateMatrix();
       meshRef.current.setMatrixAt(i, dummy.matrix);
 
-      const h = hs[i];
-      if (h > 0.2) color.copy(cHover);
+      // Keep color calm — tiny lift only
+      if (hs[i] > 0.35) color.copy(cHover);
       else if (n.under) color.copy(cShadow);
       else if (n.hue > 0.62) color.copy(cSecondary);
       else if (n.hue < 0.22) color.copy(cSunlit);
@@ -663,7 +701,13 @@ function NaturalCanopy({
     e.stopPropagation();
     if (e.instanceId == null) return;
     setHoveredLeaf(e.instanceId);
+    // World → store; local target updated each move for smooth field
     setHoverPoint({ x: e.point.x, y: e.point.y, z: e.point.z });
+    hoverTarget.current.set(e.point.x - 0.85, e.point.y + 0.92, e.point.z);
+    if (!hasHover.current) {
+      localHover.current.copy(hoverTarget.current);
+    }
+    hasHover.current = true;
     document.body.style.cursor = "pointer";
     ensureSoundOnInteraction();
     getAmbientEngine().playLeafRustle();
@@ -672,6 +716,7 @@ function NaturalCanopy({
   const clearHover = () => {
     setHoveredLeaf(null);
     setHoverPoint(null);
+    hasHover.current = false;
     document.body.style.cursor = "auto";
   };
 

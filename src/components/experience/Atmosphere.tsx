@@ -86,9 +86,9 @@ export function AmbientParticles() {
   );
 }
 
-/** Dense natural snowfall — clearly visible flakes */
+/** Soft snowfall — light enough that the bonsai stays visible */
 export function Snowfall() {
-  const count = 420;
+  const count = 120;
   const mesh = useRef<THREE.InstancedMesh>(null);
   const season = useExperienceStore((s) => s.season);
   const wind = useExperienceStore((s) => s.wind);
@@ -98,13 +98,13 @@ export function Snowfall() {
   const flakes = useMemo(
     () =>
       Array.from({ length: count }, (_, i) => ({
-        x: 0.85 + (hash(i) - 0.5) * 5.2,
-        y: hash(i + 3) * 4.5,
-        z: (hash(i + 7) - 0.3) * 3.2,
-        speed: 0.22 + hash(i + 11) * 0.4,
-        drift: 0.25 + hash(i + 13) * 0.4,
-        size: 0.025 + hash(i + 17) * 0.055,
-        spin: 0.5 + hash(i + 19) * 2,
+        x: 0.85 + (hash(i) - 0.5) * 4.8,
+        y: hash(i + 3) * 4.2,
+        z: (hash(i + 7) - 0.35) * 2.6,
+        speed: 0.12 + hash(i + 11) * 0.18,
+        drift: 0.18 + hash(i + 13) * 0.28,
+        size: 0.012 + hash(i + 17) * 0.018,
+        spin: 0.3 + hash(i + 19) * 1.2,
         phase: hash(i + 23) * Math.PI * 2,
       })),
     []
@@ -127,18 +127,18 @@ export function Snowfall() {
       const f = flakes[i];
       f.y -= f.speed * dt;
       if (f.y < -1.3) {
-        f.y = 3.4 + hash(i + Math.floor(t * 3)) * 0.6;
-        f.x = 0.85 + (hash(i * 5 + Math.floor(t * 2)) - 0.5) * 4.5;
+        f.y = 3.2 + hash(i + Math.floor(t * 2)) * 0.5;
+        f.x = 0.85 + (hash(i * 5 + Math.floor(t)) - 0.5) * 4.8;
       }
-      const sway = Math.sin(t * 0.7 + f.phase) * f.drift + wind.x * 0.5;
+      const sway = Math.sin(t * 0.55 + f.phase) * f.drift + wind.x * 0.35;
       dummy.position.set(
         f.x + sway,
         f.y,
-        f.z + Math.cos(t * 0.45 + f.phase) * f.drift * 0.5
+        f.z + Math.cos(t * 0.4 + f.phase) * f.drift * 0.4
       );
-      dummy.rotation.set(t * f.spin * 0.25, t * 0.15 + f.phase, 0);
-      const sc = f.size * 36;
-      dummy.scale.set(sc, sc * 0.75, sc);
+      dummy.rotation.set(t * f.spin * 0.2, t * 0.12 + f.phase, 0);
+      const sc = f.size * 14;
+      dummy.scale.set(sc, sc * 0.85, sc);
       dummy.updateMatrix();
       mesh.current.setMatrixAt(i, dummy.matrix);
     }
@@ -152,20 +152,20 @@ export function Snowfall() {
       frustumCulled={false}
       raycast={() => null}
     >
-      <sphereGeometry args={[1, 7, 5]} />
+      <sphereGeometry args={[1, 6, 4]} />
       <meshBasicMaterial
-        color="#FFFFFF"
+        color="#F8FBFF"
         transparent
-        opacity={0.95}
+        opacity={0.72}
         depthWrite={false}
       />
     </instancedMesh>
   );
 }
 
-/** Monsoon rain — dense visible streaks across the scene */
+/** Gentle drizzle — slow, sparse, natural */
 export function Rainfall() {
-  const count = 650;
+  const count = 140;
   const mesh = useRef<THREE.InstancedMesh>(null);
   const season = useExperienceStore((s) => s.season);
   const wind = useExperienceStore((s) => s.wind);
@@ -175,11 +175,11 @@ export function Rainfall() {
   const drops = useMemo(
     () =>
       Array.from({ length: count }, (_, i) => ({
-        x: 0.85 + (hash(i + 1) - 0.5) * 6.2,
-        y: hash(i + 5) * 5.8,
-        z: (hash(i + 9) - 0.15) * 3.6,
-        speed: 5.2 + hash(i + 15) * 4,
-        len: 0.1 + hash(i + 21) * 0.16,
+        x: 0.85 + (hash(i + 1) - 0.5) * 5.2,
+        y: hash(i + 5) * 5.2,
+        z: (hash(i + 9) - 0.2) * 2.8,
+        speed: 1.15 + hash(i + 15) * 0.85,
+        len: 0.035 + hash(i + 21) * 0.045,
         phase: hash(i + 27),
       })),
     []
@@ -197,20 +197,20 @@ export function Rainfall() {
       return;
     }
 
-    const windX = 0.15 + wind.x * 0.7;
+    const windX = 0.04 + wind.x * 0.25;
     for (let i = 0; i < count; i++) {
       const d = drops[i];
       d.y -= d.speed * dt;
-      d.x += windX * dt * 2.2;
-      if (d.y < -1.6) {
-        d.y = 3.6 + d.phase * 0.8;
-        d.x = 0.85 + (hash(i + Math.floor(performance.now() * 0.02)) - 0.5) * 5.5;
-        d.z = (hash(i + 40 + Math.floor(performance.now() * 0.01)) - 0.2) * 3.2;
+      d.x += windX * dt * 0.9;
+      if (d.y < -1.5) {
+        d.y = 3.4 + d.phase * 0.7;
+        d.x = 0.85 + (hash(i + Math.floor(performance.now() * 0.008)) - 0.5) * 5.2;
+        d.z = (hash(i + 40 + Math.floor(performance.now() * 0.005)) - 0.2) * 2.8;
       }
 
       dummy.position.set(d.x, d.y, d.z);
-      dummy.rotation.set(0.18, 0, -0.5 - windX * 0.45);
-      dummy.scale.set(0.75, d.len * 70, 0.75);
+      dummy.rotation.set(0.08, 0, -0.18 - windX * 0.2);
+      dummy.scale.set(0.28, d.len * 38, 0.28);
       dummy.updateMatrix();
       mesh.current.setMatrixAt(i, dummy.matrix);
     }
@@ -224,38 +224,60 @@ export function Rainfall() {
       frustumCulled={false}
       raycast={() => null}
     >
-      <cylinderGeometry args={[0.008, 0.003, 1, 4]} />
+      <cylinderGeometry args={[0.0035, 0.0018, 1, 4]} />
       <meshBasicMaterial
-        color="#C5D8E8"
+        color="#A8BCC8"
         transparent
-        opacity={0.85}
+        opacity={0.45}
         depthWrite={false}
       />
     </instancedMesh>
   );
 }
 
-/** Autumn — falling leaves */
+function createFallingLeafGeometry() {
+  const shape = new THREE.Shape();
+  shape.moveTo(0, -0.95);
+  shape.bezierCurveTo(0.14, -0.72, 0.55, -0.2, 0.48, 0.22);
+  shape.bezierCurveTo(0.4, 0.58, 0.15, 0.9, 0, 1.05);
+  shape.bezierCurveTo(-0.15, 0.9, -0.4, 0.58, -0.48, 0.22);
+  shape.bezierCurveTo(-0.55, -0.2, -0.14, -0.72, 0, -0.95);
+  const geo = new THREE.ShapeGeometry(shape, 12);
+  const pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i);
+    const y = pos.getY(i);
+    pos.setZ(i, (1 - y * y) * 0.06 + Math.abs(x) * 0.03);
+  }
+  pos.needsUpdate = true;
+  geo.computeVertexNormals();
+  return geo;
+}
+
+/** Autumn — natural tumbling leaf blades */
 export function AutumnLeaves() {
-  const count = 140;
+  const count = 55;
   const mesh = useRef<THREE.InstancedMesh>(null);
   const season = useExperienceStore((s) => s.season);
   const wind = useExperienceStore((s) => s.wind);
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const color = useMemo(() => new THREE.Color(), []);
+  const leafGeo = useMemo(() => createFallingLeafGeometry(), []);
   const enabled = season === "autumn";
 
   const leaves = useMemo(
     () =>
       Array.from({ length: count }, (_, i) => ({
-        x: 0.85 + (hash(i) - 0.5) * 3.5,
-        y: hash(i + 2) * 3.5,
-        z: (hash(i + 4) - 0.3) * 2.2,
-        speed: 0.15 + hash(i + 6) * 0.25,
-        spin: hash(i + 8) * 3,
+        x: 0.85 + (hash(i) - 0.5) * 3.2,
+        y: hash(i + 2) * 3.4,
+        z: (hash(i + 4) - 0.3) * 2.0,
+        speed: 0.08 + hash(i + 6) * 0.14,
+        spin: 0.4 + hash(i + 8) * 1.6,
+        wobble: 0.6 + hash(i + 9) * 1.1,
         phase: hash(i + 10) * Math.PI * 2,
         hue: hash(i + 12),
-        size: 0.035 + hash(i + 14) * 0.04,
+        size: 0.028 + hash(i + 14) * 0.032,
+        tilt: hash(i + 16) * Math.PI,
       })),
     []
   );
@@ -276,22 +298,32 @@ export function AutumnLeaves() {
     for (let i = 0; i < count; i++) {
       const L = leaves[i];
       L.y -= L.speed * dt;
-      if (L.y < -1.2) {
-        L.y = 2.8 + hash(i + Math.floor(t)) * 0.5;
-        L.x = 0.85 + (hash(i * 2 + Math.floor(t)) - 0.5) * 3.5;
+      if (L.y < -1.15) {
+        L.y = 2.6 + hash(i + Math.floor(t)) * 0.45;
+        L.x = 0.85 + (hash(i * 2 + Math.floor(t)) - 0.5) * 3.2;
       }
+      // Flutter: side-to-side drift + gentle tumble (not a rigid spin)
+      const flutter = Math.sin(t * L.wobble + L.phase);
+      const drift = Math.sin(t * 0.55 + L.phase) * 0.42 + wind.x * 0.45;
       dummy.position.set(
-        L.x + Math.sin(t * 0.8 + L.phase) * 0.35 + wind.x * 0.4,
+        L.x + drift + flutter * 0.12,
         L.y,
-        L.z + Math.cos(t * 0.6 + L.phase) * 0.2
+        L.z + Math.cos(t * 0.45 + L.phase) * 0.18
       );
-      dummy.rotation.set(t * L.spin * 0.4, t * 0.5 + L.phase, t * L.spin * 0.25);
-      dummy.scale.set(L.size * 2.2, L.size * 0.5, L.size * 1.4);
+      dummy.rotation.set(
+        L.tilt + Math.sin(t * L.spin * 0.35 + L.phase) * 0.9,
+        t * L.spin * 0.22 + L.phase,
+        Math.sin(t * L.wobble * 0.8 + L.phase) * 1.1
+      );
+      const sc = L.size * 1.15;
+      dummy.scale.set(sc, sc * 1.15, sc * 0.35);
       dummy.updateMatrix();
       mesh.current.setMatrixAt(i, dummy.matrix);
-      if (L.hue > 0.55) color.set("#C8903A");
-      else if (L.hue > 0.3) color.set("#B85A2E");
-      else color.set("#D4A04A");
+
+      if (L.hue > 0.66) color.set("#C4782A");
+      else if (L.hue > 0.4) color.set("#B04A28");
+      else if (L.hue > 0.2) color.set("#D4A04A");
+      else color.set("#8B3A22");
       mesh.current.setColorAt(i, color);
     }
     mesh.current.instanceMatrix.needsUpdate = true;
@@ -301,12 +333,16 @@ export function AutumnLeaves() {
   return (
     <instancedMesh
       ref={mesh}
-      args={[undefined, undefined, count]}
+      args={[leafGeo, undefined, count]}
       frustumCulled={false}
       raycast={() => null}
     >
-      <sphereGeometry args={[1, 6, 4]} />
-      <meshStandardMaterial roughness={0.85} metalness={0} />
+      <meshStandardMaterial
+        roughness={0.9}
+        metalness={0}
+        side={THREE.DoubleSide}
+        flatShading={false}
+      />
     </instancedMesh>
   );
 }

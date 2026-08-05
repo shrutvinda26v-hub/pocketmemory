@@ -23,19 +23,19 @@ export interface SeasonPalette {
 }
 
 export const SEASON_CONFIG: Record<Season, SeasonPalette> = {
-  // Monsoon / rainy — cool grey-green, soft light
+  // Soft drizzle — cool grey-green, gentle light
   rain: {
     leaf: "#4A7A52",
     leafSecondary: "#6B9A68",
-    lightIntensity: 0.75,
+    lightIntensity: 0.85,
     lightColor: "#D8E0E6",
-    ambientIntensity: 0.55,
+    ambientIntensity: 0.58,
     sunPosition: [2, 5, 3],
     fogColor: "#D8E0E4",
     bg: "#DCE4E8",
     paper: "#E2E8EC",
     particleColor: "#A8C0D0",
-    windStrength: 0.85,
+    windStrength: 0.35,
     blossomEnabled: false,
     fireflyEnabled: false,
     snowEnabled: false,
@@ -79,17 +79,18 @@ export const SEASON_CONFIG: Record<Season, SeasonPalette> = {
     sunVisible: false,
   },
   winter: {
-    leaf: "#5A6A58",
-    leafSecondary: "#7A8A76",
-    lightIntensity: 0.8,
+    // Evergreen canopy — stays clearly readable against snow light
+    leaf: "#2F4A34",
+    leafSecondary: "#4A6B48",
+    lightIntensity: 1.05,
     lightColor: "#E8EEF5",
-    ambientIntensity: 0.42,
+    ambientIntensity: 0.58,
     sunPosition: [2, 5, 4],
-    fogColor: "#E4EAF0",
-    bg: "#E6ECF2",
-    paper: "#EAEFF4",
+    fogColor: "#D8E0E8",
+    bg: "#DCE4EC",
+    paper: "#E2E8F0",
     particleColor: "#FFFFFF",
-    windStrength: 0.4,
+    windStrength: 0.35,
     blossomEnabled: false,
     fireflyEnabled: false,
     snowEnabled: true,

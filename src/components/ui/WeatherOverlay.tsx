@@ -12,45 +12,52 @@ function seeded(i: number) {
 export function WeatherOverlay() {
   const season = useExperienceStore((s) => s.season);
 
+  // Soft drizzle — sparse, slow, short streaks
   const rainDrops = useMemo(
     () =>
-      Array.from({ length: 80 }, (_, i) => ({
+      Array.from({ length: 28 }, (_, i) => ({
         left: `${seeded(i) * 100}%`,
-        delay: `${seeded(i + 3) * -2.2}s`,
-        duration: `${0.55 + seeded(i + 7) * 0.55}s`,
-        height: `${14 + seeded(i + 11) * 22}px`,
-        opacity: 0.35 + seeded(i + 13) * 0.45,
+        delay: `${seeded(i + 3) * -6}s`,
+        duration: `${2.4 + seeded(i + 7) * 2.2}s`,
+        height: `${8 + seeded(i + 11) * 10}px`,
+        opacity: 0.22 + seeded(i + 13) * 0.28,
       })),
     []
   );
 
+  // Light snow — keeps the tree readable
   const snowFlakes = useMemo(
     () =>
-      Array.from({ length: 55 }, (_, i) => ({
+      Array.from({ length: 32 }, (_, i) => ({
         left: `${seeded(i + 20) * 100}%`,
-        delay: `${seeded(i + 23) * -8}s`,
-        duration: `${4.5 + seeded(i + 27) * 5}s`,
-        size: `${4 + seeded(i + 29) * 8}px`,
-        opacity: 0.55 + seeded(i + 31) * 0.4,
-        drift: `${-30 + seeded(i + 33) * 60}px`,
+        delay: `${seeded(i + 23) * -10}s`,
+        duration: `${7 + seeded(i + 27) * 6}s`,
+        size: `${2.5 + seeded(i + 29) * 4}px`,
+        opacity: 0.4 + seeded(i + 31) * 0.35,
+        drift: `${-24 + seeded(i + 33) * 48}px`,
       })),
     []
   );
 
+  // Leaf-shaped autumn bits with midrib feel
   const autumnBits = useMemo(
     () =>
-      Array.from({ length: 28 }, (_, i) => ({
+      Array.from({ length: 18 }, (_, i) => ({
         left: `${seeded(i + 40) * 100}%`,
-        delay: `${seeded(i + 43) * -10}s`,
-        duration: `${5 + seeded(i + 47) * 6}s`,
-        size: `${10 + seeded(i + 49) * 14}px`,
+        delay: `${seeded(i + 43) * -12}s`,
+        duration: `${7 + seeded(i + 47) * 7}s`,
+        w: `${12 + seeded(i + 49) * 10}px`,
+        h: `${18 + seeded(i + 50) * 14}px`,
         color:
-          seeded(i + 51) > 0.55
-            ? "#C8903A"
-            : seeded(i + 51) > 0.3
-              ? "#B85A2E"
-              : "#D4A04A",
-        rotate: `${seeded(i + 53) * 360}deg`,
+          seeded(i + 51) > 0.66
+            ? "#C4782A"
+            : seeded(i + 51) > 0.4
+              ? "#B04A28"
+              : seeded(i + 51) > 0.2
+                ? "#D4A04A"
+                : "#8B3A22",
+        spin: `${180 + seeded(i + 53) * 280}deg`,
+        sway: `${20 + seeded(i + 55) * 40}px`,
       })),
     []
   );
@@ -109,15 +116,16 @@ export function WeatherOverlay() {
           {autumnBits.map((l, i) => (
             <span
               key={`a-${i}`}
-              className="autumn-bit"
+              className="autumn-leaf"
               style={{
                 left: l.left,
-                width: l.size,
-                height: `calc(${l.size} * 0.65)`,
+                width: l.w,
+                height: l.h,
                 background: l.color,
                 animationDelay: l.delay,
                 animationDuration: l.duration,
-                ["--spin" as string]: l.rotate,
+                ["--spin" as string]: l.spin,
+                ["--sway" as string]: l.sway,
               }}
             />
           ))}
@@ -126,7 +134,7 @@ export function WeatherOverlay() {
       )}
 
       <div className="season-badge">
-        {season === "rain" && "Rainy season"}
+        {season === "rain" && "Soft drizzle"}
         {season === "summer" && "Summer sun"}
         {season === "autumn" && "Autumn leaves"}
         {season === "winter" && "Winter snow"}

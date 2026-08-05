@@ -206,11 +206,27 @@ function buildPads(): FoliarPad[] {
   return [...cores, ...under];
 }
 
-/** Flat oval leaf card — reads more like real foliage than spheres */
+/** Organic teardrop leaf blade (tip +Y, stem −Y) */
 function createLeafGeometry() {
-  const geo = new THREE.SphereGeometry(1, 8, 6);
-  geo.scale(1.15, 0.28, 0.72);
+  const shape = new THREE.Shape();
+  shape.moveTo(0, -0.95);
+  shape.bezierCurveTo(0.12, -0.75, 0.52, -0.25, 0.46, 0.2);
+  shape.bezierCurveTo(0.38, 0.55, 0.14, 0.88, 0, 1.0);
+  shape.bezierCurveTo(-0.14, 0.88, -0.38, 0.55, -0.46, 0.2);
+  shape.bezierCurveTo(-0.52, -0.25, -0.12, -0.75, 0, -0.95);
+
+  const geo = new THREE.ShapeGeometry(shape, 14);
+  // Gentle cup / curl so leaves aren't perfectly flat cards
+  const pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i);
+    const y = pos.getY(i);
+    const cup = (1 - y * y) * 0.08 + Math.abs(x) * 0.04;
+    pos.setZ(i, cup);
+  }
+  pos.needsUpdate = true;
   geo.computeVertexNormals();
+  geo.scale(0.55, 0.62, 1);
   return geo;
 }
 
@@ -319,16 +335,17 @@ function TubeLimb({
       <mesh geometry={geometry} castShadow receiveShadow>
         <meshStandardMaterial
           map={barkMap}
-          color={barkMap ? "#e8ddd0" : index === 0 ? "#3F2E22" : "#4A3728"}
-          roughness={0.96}
-          metalness={0.01}
+          color={barkMap ? "#d8cfc4" : index === 0 ? "#3F2E22" : "#4A3728"}
+          roughness={0.97}
+          metalness={0}
         />
       </mesh>
     </group>
   );
 }
 
-function NeedleCanopy({
+
+function NaturalCanopy({
   pads,
   growth,
   wind,
@@ -338,54 +355,72 @@ function NeedleCanopy({
   wind: { x: number; y: number };
 }) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
-  const tipRef = useRef<THREE.InstancedMesh>(null);
   const season = useExperienceStore((s) => s.season);
-  const hoveredLeaf = useExperienceStore((s) => s.hoveredLeaf);
+  const hoverPoint = useExperienceStore((s) => s.hoverPoint);
   const leafRipple = useExperienceStore((s) => s.leafRipple);
-  const cursor = useExperienceStore((s) => s.cursor);
   const setHoveredLeaf = useExperienceStore((s) => s.setHoveredLeaf);
+  const setHoverPoint = useExperienceStore((s) => s.setHoverPoint);
   const triggerLeafRipple = useExperienceStore((s) => s.triggerLeafRipple);
   const colors = SEASON_CONFIG[season];
+  const textures = useMemo(() => getTextures(), []);
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const color = useMemo(() => new THREE.Color(), []);
+  const tmpUp = useMemo(() => new THREE.Vector3(0, 1, 0), []);
+  const tmpOut = useMemo(() => new THREE.Vector3(), []);
+  const quat = useMemo(() => new THREE.Quaternion(), []);
   const eased = useRef(0);
-  const hoverStrength = useRef<Float32Array | null>(null);
+  const hoverStr = useRef<Float32Array | null>(null);
+  const hoverVel = useRef<Float32Array | null>(null);
   const leafGeo = useMemo(() => createLeafGeometry(), []);
-  const tipGeo = useMemo(() => new THREE.ConeGeometry(0.28, 1.15, 5), []);
+  const localHover = useRef(new THREE.Vector3());
+  const hasHover = useRef(false);
 
-  const needles = useMemo(() => {
+  const leaves = useMemo(() => {
     const items: {
       pos: THREE.Vector3;
+      outward: THREE.Vector3;
       appearAt: number;
       scale: number;
       hue: number;
       seed: number;
-      layer: number;
+      under: boolean;
+      tilt: number;
+      twist: number;
     }[] = [];
     let id = 0;
-    for (let p = 0; p < pads.length; p++) {
-      const pad = pads[p];
+    for (const pad of pads) {
       const isUnder = !!pad.understory;
       for (let i = 0; i < pad.density; i++) {
         const u = hash(id + 1);
         const v = hash(id + 2);
         const w = hash(id + 3);
         const theta = u * Math.PI * 2;
-        // Flattened cloud-pad distribution (bonsai silhouette)
         const phi = Math.acos(2 * v - 1);
-        const r = Math.pow(w, 0.32) * pad.radius;
-        const yScale = isUnder ? 0.28 : 0.38;
+        const r = Math.pow(w, 0.28) * pad.radius;
+        const yScale = isUnder ? 0.26 : 0.36;
+        const pos = new THREE.Vector3(
+          pad.center.x + Math.sin(phi) * Math.cos(theta) * r,
+          pad.center.y + Math.cos(phi) * r * yScale,
+          pad.center.z + Math.sin(phi) * Math.sin(theta) * r * 0.9
+        );
+        const outward = pos.clone().sub(pad.center);
+        if (outward.lengthSq() < 1e-6) outward.set(0, 1, 0);
+        else outward.normalize();
+        outward.y += 0.35;
+        outward.normalize();
+
         items.push({
-          pos: new THREE.Vector3(
-            pad.center.x + Math.sin(phi) * Math.cos(theta) * r,
-            pad.center.y + Math.cos(phi) * r * yScale,
-            pad.center.z + Math.sin(phi) * Math.sin(theta) * r * 0.88
-          ),
+          pos,
+          outward,
           appearAt: pad.appearAt + (i / pad.density) * 0.12,
-          scale: (isUnder ? 0.038 : 0.045) + hash(id + 4) * (isUnder ? 0.05 : 0.07),
-          hue: isUnder ? hash(id + 5) * 0.4 : hash(id + 5),
+          scale:
+            (isUnder ? 0.055 : 0.065) +
+            hash(id + 4) * (isUnder ? 0.04 : 0.055),
+          hue: hash(id + 5),
           seed: id,
-          layer: isUnder ? 0 : 1,
+          under: isUnder,
+          tilt: (hash(id + 6) - 0.5) * 0.7,
+          twist: hash(id + 7) * Math.PI * 2,
         });
         id++;
       }
@@ -393,8 +428,9 @@ function NeedleCanopy({
     return items;
   }, [pads]);
 
-  if (!hoverStrength.current || hoverStrength.current.length !== needles.length) {
-    hoverStrength.current = new Float32Array(needles.length);
+  if (!hoverStr.current || hoverStr.current.length !== leaves.length) {
+    hoverStr.current = new Float32Array(leaves.length);
+    hoverVel.current = new Float32Array(leaves.length);
   }
 
   const cPrimary = useMemo(() => new THREE.Color(colors.leaf), [colors.leaf]);
@@ -402,141 +438,163 @@ function NeedleCanopy({
     () => new THREE.Color(colors.leafSecondary),
     [colors.leafSecondary]
   );
-  const cHighlight = useMemo(() => {
+  const cSunlit = useMemo(() => {
     const c = new THREE.Color(colors.leafSecondary);
-    c.offsetHSL(0.02, 0.12, 0.18);
+    c.offsetHSL(0.01, 0.05, 0.08);
     return c;
   }, [colors.leafSecondary]);
   const cShadow = useMemo(() => {
     const c = new THREE.Color(colors.leaf);
-    c.offsetHSL(-0.02, -0.05, -0.18);
+    c.offsetHSL(-0.015, -0.04, -0.14);
     return c;
   }, [colors.leaf]);
+  const cHover = useMemo(() => {
+    const c = new THREE.Color(colors.leafSecondary);
+    c.offsetHSL(0.03, 0.08, 0.12);
+    return c;
+  }, [colors.leafSecondary]);
 
   useFrame(({ clock }, dt) => {
     if (!meshRef.current) return;
-    eased.current += (growth - eased.current) * Math.min(1, dt * 2.2);
+    const clampedDt = Math.min(dt, 0.05);
+    eased.current += (growth - eased.current) * Math.min(1, clampedDt * 2.2);
     const g = eased.current;
     const t = clock.elapsedTime;
-    const hs = hoverStrength.current!;
+    const hs = hoverStr.current!;
+    const hv = hoverVel.current!;
     const rippleId = leafRipple?.id ?? -1;
-    const rippleAge = leafRipple ? (performance.now() - leafRipple.at) / 1000 : 99;
-    // Soft magnetic field from pointer (normalized -1..1 → canopy space)
-    const magX = cursor.x * 0.55;
-    const magY = cursor.y * 0.35;
+    const rippleAge = leafRipple
+      ? (performance.now() - leafRipple.at) / 1000
+      : 99;
 
-    for (let i = 0; i < needles.length; i++) {
-      const targetHover =
-        hoveredLeaf === null
-          ? 0
-          : hoveredLeaf === i
-            ? 1
-            : needles[i].pos.distanceTo(needles[hoveredLeaf].pos) < 0.22
-              ? 0.85
-              : needles[i].pos.distanceTo(needles[hoveredLeaf].pos) < 0.42
-                ? 0.45
-                : needles[i].pos.distanceTo(needles[hoveredLeaf].pos) < 0.65
-                  ? 0.18
-                  : 0;
-      hs[i] += (targetHover - hs[i]) * Math.min(1, dt * 12);
+    if (hoverPoint) {
+      localHover.current.set(
+        hoverPoint.x - 0.85,
+        hoverPoint.y + 0.92,
+        hoverPoint.z
+      );
+      hasHover.current = true;
+    } else {
+      hasHover.current = false;
+    }
 
-      const n = needles[i];
+    for (let i = 0; i < leaves.length; i++) {
+      const n = leaves[i];
       const s = smoothstep(n.appearAt, n.appearAt + 0.1, g);
+
+      let target = 0;
+      if (hasHover.current && s > 0.01) {
+        const dx = n.pos.x - localHover.current.x;
+        const dy = n.pos.y - localHover.current.y;
+        const dz = n.pos.z - localHover.current.z;
+        const d2 = dx * dx + dy * dy * 1.4 + dz * dz;
+        target = Math.exp(-d2 / (2 * 0.09 * 0.09));
+      }
+
+      const force = (target - hs[i]) * 38 - hv[i] * 11;
+      hv[i] += force * clampedDt;
+      hs[i] += hv[i] * clampedDt;
+      if (hs[i] < 0.001 && target < 0.001) {
+        hs[i] = 0;
+        hv[i] = 0;
+      }
+
       if (s < 0.01) {
         dummy.scale.setScalar(0);
       } else {
+        const h = Math.min(1, Math.max(0, hs[i]));
+
         let ripple = 0;
-        if (rippleAge < 1.35 && rippleId >= 0) {
-          const d = n.pos.distanceTo(needles[rippleId].pos);
-          const wave = rippleAge * 2.1 - d * 3.6;
-          if (wave > 0 && wave < 1.35) {
-            ripple = Math.sin(wave * Math.PI) * 0.1 * (1 - rippleAge / 1.35);
+        if (rippleAge < 1.1 && rippleId >= 0) {
+          const d = n.pos.distanceTo(leaves[rippleId].pos);
+          const wave = rippleAge * 1.9 - d * 4.2;
+          if (wave > 0 && wave < 1.1) {
+            ripple = Math.sin(wave * Math.PI) * 0.045 * (1 - rippleAge / 1.1);
           }
         }
 
-        const h = hs[i];
-        // Cursor magnetism — nearby leaves lean toward pointer
-        const toMagX = magX - n.pos.x;
-        const toMagY = magY + 1.1 - n.pos.y;
-        const magDist = Math.sqrt(toMagX * toMagX + toMagY * toMagY) + 0.001;
-        const magFall = Math.max(0, 1 - magDist / 0.9) * 0.04 * (hoveredLeaf === null ? 1 : 0.35);
-
-        const sway =
-          Math.sin(t * 1.05 + n.seed * 0.3) * 0.014 +
-          wind.x * 0.05 +
-          h * 0.09 +
-          ripple * 1.5 +
-          toMagX * magFall;
+        const breeze =
+          Math.sin(t * 0.85 + n.seed * 0.27) * 0.01 + wind.x * 0.028;
         const bob =
-          Math.cos(t * 0.9 + n.seed * 0.25) * 0.009 +
-          wind.y * 0.014 +
-          h * 0.12 +
-          ripple * 1.35 +
-          toMagY * magFall * 0.6;
+          Math.cos(t * 0.7 + n.seed * 0.21) * 0.007 + wind.y * 0.01;
+
         let pushX = 0;
+        let pushY = 0;
         let pushZ = 0;
-        if (hoveredLeaf !== null && h > 0.05) {
-          const dx = n.pos.x - needles[hoveredLeaf].pos.x;
-          const dz = n.pos.z - needles[hoveredLeaf].pos.z;
-          pushX = dx * h * 0.42;
-          pushZ = dz * h * 0.42;
+        if (h > 0.02 && hasHover.current) {
+          let dx = n.pos.x - localHover.current.x;
+          let dy = n.pos.y - localHover.current.y;
+          let dz = n.pos.z - localHover.current.z;
+          const len = Math.sqrt(dx * dx + dy * dy + dz * dz) + 1e-4;
+          dx /= len;
+          dy /= len;
+          dz /= len;
+          const part = h * 0.12;
+          pushX = dx * part;
+          pushY = dy * part * 0.45 + h * 0.028;
+          pushZ = dz * part;
         }
-        dummy.position.set(n.pos.x + sway + pushX, n.pos.y + bob, n.pos.z + pushZ);
-        const sc = n.scale * s * (1 + h * 0.85 + ripple * 4);
-        dummy.scale.set(sc * 1.55, sc * 0.55, sc * 1.35);
-        dummy.rotation.set(
-          Math.sin(t * 0.3 + n.seed) * 0.22 + h * 1.05 + wind.y * 0.15,
-          n.seed * 0.7 + h * 0.75,
-          Math.cos(t * 0.25 + n.seed) * 0.2 + wind.x * 0.16 + h * 1.1
+
+        dummy.position.set(
+          n.pos.x + breeze + pushX,
+          n.pos.y + bob + pushY + ripple,
+          n.pos.z + pushZ
+        );
+
+        tmpOut.copy(n.outward);
+        tmpOut.x += wind.x * 0.35 + breeze * 8;
+        tmpOut.y += 0.15 + h * 0.25;
+        tmpOut.z += wind.y * 0.2;
+        if (h > 0.02 && hasHover.current) {
+          tmpOut.x += (n.pos.x - localHover.current.x) * h * 1.8;
+          tmpOut.z += (n.pos.z - localHover.current.z) * h * 1.8;
+        }
+        tmpOut.normalize();
+        quat.setFromUnitVectors(tmpUp, tmpOut);
+        dummy.quaternion.copy(quat);
+        dummy.rotateOnAxis(tmpUp, n.twist + h * 0.35);
+        dummy.rotateX(n.tilt * 0.4 + Math.sin(t * 0.4 + n.seed) * 0.06);
+
+        const sc = n.scale * s * (1 + h * 0.12 + ripple * 2.2);
+        dummy.scale.set(
+          sc * (0.85 + n.hue * 0.2),
+          sc,
+          sc * (0.75 + n.hue * 0.15)
         );
       }
+
       dummy.updateMatrix();
       meshRef.current.setMatrixAt(i, dummy.matrix);
 
-      if (hs[i] > 0.2) color.copy(cHighlight);
-      else if (n.layer === 0) color.copy(cShadow);
-      else color.copy(n.hue > 0.55 ? cSecondary : cPrimary);
+      const h = hs[i];
+      if (h > 0.25) color.copy(cHover);
+      else if (n.under) color.copy(cShadow);
+      else if (n.hue > 0.62) color.copy(cSecondary);
+      else if (n.hue < 0.22) color.copy(cSunlit);
+      else color.copy(cPrimary);
+      color.offsetHSL(0, (n.hue - 0.5) * 0.04, (hash(n.seed + 9) - 0.5) * 0.06);
       meshRef.current.setColorAt(i, color);
-
-      if (tipRef.current && i % 3 === 0) {
-        const tipIdx = Math.floor(i / 3);
-        if (s < 0.01) {
-          dummy.scale.setScalar(0);
-        } else {
-          const tipScale = n.scale * 0.38 * s * (1 + hs[i] * 0.65);
-          dummy.position.set(
-            n.pos.x + wind.x * 0.025 + (hoveredLeaf !== null ? pushOffset(n, needles, hoveredLeaf, hs[i]).x : 0),
-            n.pos.y + 0.022 + hs[i] * 0.035,
-            n.pos.z + (hoveredLeaf !== null ? pushOffset(n, needles, hoveredLeaf, hs[i]).z : 0)
-          );
-          dummy.scale.set(tipScale * 0.45, tipScale * 1.55, tipScale * 0.45);
-          dummy.rotation.set(0.45 + hs[i] * 0.4, n.seed, wind.x * 0.25 + hs[i] * 0.5);
-        }
-        dummy.updateMatrix();
-        tipRef.current.setMatrixAt(tipIdx, dummy.matrix);
-        color.copy(cSecondary);
-        tipRef.current.setColorAt(tipIdx, color);
-      }
     }
+
     meshRef.current.instanceMatrix.needsUpdate = true;
     if (meshRef.current.instanceColor)
       meshRef.current.instanceColor.needsUpdate = true;
-    if (tipRef.current) {
-      tipRef.current.instanceMatrix.needsUpdate = true;
-      if (tipRef.current.instanceColor)
-        tipRef.current.instanceColor.needsUpdate = true;
-    }
   });
-
-  const tipCount = Math.ceil(needles.length / 3);
 
   const onLeafMove = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
     if (e.instanceId == null) return;
     setHoveredLeaf(e.instanceId);
+    setHoverPoint({ x: e.point.x, y: e.point.y, z: e.point.z });
     document.body.style.cursor = "pointer";
     ensureSoundOnInteraction();
     getAmbientEngine().playLeafRustle();
+  };
+
+  const clearHover = () => {
+    setHoveredLeaf(null);
+    setHoverPoint(null);
+    document.body.style.cursor = "auto";
   };
 
   const onLeafClick = (e: ThreeEvent<MouseEvent>) => {
@@ -545,8 +603,7 @@ function NeedleCanopy({
     ensureSoundOnInteraction();
     getAmbientEngine().playInteractionChime();
     getAmbientEngine().playLeafRustle();
-    const n = needles[e.instanceId];
-    // World offset matches Bonsai group placement
+    const n = leaves[e.instanceId];
     triggerLeafRipple(e.instanceId, {
       x: n.pos.x + 0.85,
       y: n.pos.y - 0.92,
@@ -555,50 +612,28 @@ function NeedleCanopy({
   };
 
   return (
-    <>
-      <instancedMesh
-        ref={meshRef}
-        args={[leafGeo, undefined, needles.length]}
-        castShadow
-        frustumCulled={false}
-        onPointerMove={onLeafMove}
-        onPointerOut={() => {
-          setHoveredLeaf(null);
-          document.body.style.cursor = "auto";
-        }}
-        onClick={onLeafClick}
-      >
-        <meshStandardMaterial
-          roughness={0.68}
-          metalness={0}
-          flatShading
-          emissive="#2A4A28"
-          emissiveIntensity={0.1}
-          side={THREE.DoubleSide}
-        />
-      </instancedMesh>
-      <instancedMesh
-        ref={tipRef}
-        args={[tipGeo, undefined, tipCount]}
-        frustumCulled={false}
-        raycast={() => null}
-      >
-        <meshStandardMaterial roughness={0.65} metalness={0} />
-      </instancedMesh>
-    </>
+    <instancedMesh
+      ref={meshRef}
+      args={[leafGeo, undefined, leaves.length]}
+      castShadow
+      frustumCulled={false}
+      onPointerMove={onLeafMove}
+      onPointerOut={clearHover}
+      onClick={onLeafClick}
+    >
+      <meshStandardMaterial
+        map={textures.leafAlbedo}
+        alphaMap={textures.leafAlpha}
+        color="#ffffff"
+        transparent
+        alphaTest={0.28}
+        roughness={0.82}
+        metalness={0}
+        side={THREE.DoubleSide}
+        depthWrite
+      />
+    </instancedMesh>
   );
-}
-
-function pushOffset(
-  n: { pos: THREE.Vector3 },
-  needles: { pos: THREE.Vector3 }[],
-  hoveredLeaf: number,
-  h: number
-) {
-  if (h < 0.05) return { x: 0, z: 0 };
-  const dx = n.pos.x - needles[hoveredLeaf].pos.x;
-  const dz = n.pos.z - needles[hoveredLeaf].pos.z;
-  return { x: dx * h * 0.42, z: dz * h * 0.42 };
 }
 
 function Seed({ growth }: { growth: number }) {
@@ -617,7 +652,7 @@ function Seed({ growth }: { growth: number }) {
     <group ref={ref} position={[0, 0.11, 0]} scale={1 - hide * 0.45}>
       <mesh castShadow position={[0, 0.02, 0]} scale={1 - crack * 0.85}>
         <sphereGeometry args={[0.06, 24, 18]} />
-        <meshStandardMaterial color="#8B6848" roughness={0.88} />
+        <meshStandardMaterial color="#8B6848" roughness={0.9} />
       </mesh>
       <mesh
         castShadow
@@ -658,15 +693,15 @@ function Sprout({ growth }: { growth: number }) {
     <group ref={ref} position={[0, 0.08, 0]} scale={[s, s, s]}>
       <mesh castShadow position={[0, 0.11, 0]}>
         <cylinderGeometry args={[0.006, 0.01, 0.22, 6]} />
-        <meshStandardMaterial color="#4F7A3E" roughness={0.8} />
+        <meshStandardMaterial color="#4F7A3E" roughness={0.85} />
       </mesh>
-      <mesh castShadow position={[0.04, 0.2, 0]} rotation={[0, 0, -0.75]}>
-        <sphereGeometry args={[0.036, 8, 6]} />
-        <meshStandardMaterial color="#6B9A4E" roughness={0.7} />
+      <mesh castShadow position={[0.04, 0.2, 0]} rotation={[0.2, 0.3, -0.85]} scale={0.09}>
+        <sphereGeometry args={[1, 8, 6]} />
+        <meshStandardMaterial color="#6B9A4E" roughness={0.8} />
       </mesh>
-      <mesh castShadow position={[-0.034, 0.17, 0.012]} rotation={[0, 0, 0.55]}>
-        <sphereGeometry args={[0.03, 8, 6]} />
-        <meshStandardMaterial color="#5E8E42" roughness={0.7} />
+      <mesh castShadow position={[-0.034, 0.17, 0.012]} rotation={[0.15, -0.2, 0.7]} scale={0.075}>
+        <sphereGeometry args={[1, 8, 6]} />
+        <meshStandardMaterial color="#5E8E42" roughness={0.8} />
       </mesh>
     </group>
   );
@@ -707,6 +742,7 @@ function Moss({ growth }: { growth: number }) {
     [0.02, 0.02, -0.06, 0.042],
     [-0.08, 0.022, -0.03, 0.032],
     [0.1, 0.018, -0.02, 0.028],
+    [0.0, 0.035, 0.09, 0.03],
   ] as const;
   return (
     <group>
@@ -715,14 +751,13 @@ function Moss({ growth }: { growth: number }) {
           key={i}
           castShadow
           position={[c[0], c[1], c[2]]}
-          scale={show}
-          rotation={[0.4, i * 0.7, 0.2]}
+          scale={[show * 1.1, show * 0.55, show * 1.1]}
+          rotation={[0.35, i * 0.7, 0.15]}
         >
-          <sphereGeometry args={[c[3], 8, 6]} />
+          <sphereGeometry args={[c[3], 10, 8]} />
           <meshStandardMaterial
-            color={i % 2 ? "#3F6B38" : "#4A7A42"}
-            roughness={1}
-            flatShading
+            color={i % 2 ? "#3A6234" : "#4A7540"}
+            roughness={0.98}
           />
         </mesh>
       ))}
@@ -759,7 +794,7 @@ export function Bonsai() {
           barkMap={textures.bark}
         />
       ))}
-      <NeedleCanopy pads={pads} growth={growth} wind={wind} />
+      <NaturalCanopy pads={pads} growth={growth} wind={wind} />
     </group>
   );
 }

@@ -38,17 +38,13 @@ export function Pot() {
           roughness={0.8}
         />
       </mesh>
-      <mesh receiveShadow position={[0, 0.028, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[0.32, 40]} />
-        <meshStandardMaterial color="#3A2F24" roughness={1} />
-      </mesh>
       <mesh ref={mossRef} castShadow position={[0, 0.032, 0]}>
         <sphereGeometry args={[0.2, 28, 18, 0, Math.PI * 2, 0, Math.PI * 0.42]} />
         <meshStandardMaterial
-          color="#4A6B3A"
-          roughness={0.95}
-          emissive="#2A3F20"
-          emissiveIntensity={0.012}
+          color="#3F6236"
+          roughness={0.98}
+          emissive="#24351C"
+          emissiveIntensity={0.01}
           transparent
           opacity={0.5}
         />
@@ -56,17 +52,23 @@ export function Pot() {
       {[
         [0.11, 0.04, 0.07],
         [-0.09, 0.038, -0.05],
+        [0.02, 0.036, 0.12],
+        [-0.14, 0.035, 0.04],
       ].map((p, i) => (
         <mesh
           key={i}
           castShadow
           position={p as [number, number, number]}
-          scale={0.65 + Math.min(1, growth) * 0.35}
+          scale={[0.7 + Math.min(1, growth) * 0.3, 0.4, 0.7]}
         >
-          <sphereGeometry args={[0.04, 12, 10]} />
-          <meshStandardMaterial color="#5A7A45" roughness={1} />
+          <sphereGeometry args={[0.045, 14, 10]} />
+          <meshStandardMaterial color={i % 2 ? "#4A6E3E" : "#3A5C32"} roughness={1} />
         </mesh>
       ))}
+      <mesh receiveShadow position={[0, 0.028, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[0.32, 40]} />
+        <meshStandardMaterial color="#2E261E" roughness={1} />
+      </mesh>
       <mesh receiveShadow position={[0, -0.18, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <circleGeometry args={[0.5, 64]} />
         <meshStandardMaterial color="#D4C8B4" roughness={0.94} />

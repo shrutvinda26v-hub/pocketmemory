@@ -151,7 +151,6 @@ export function createNeedleTexture() {
       ctx.lineTo(cx + Math.cos(ang) * len, cy + Math.sin(ang) * len);
       ctx.stroke();
     }
-    // Core
     const core = ctx.createRadialGradient(cx, cy, 2, cx, cy, size * 0.18);
     core.addColorStop(0, "rgba(55,95,45,0.85)");
     core.addColorStop(1, "rgba(55,95,45,0)");
@@ -162,11 +161,129 @@ export function createNeedleTexture() {
   }, 256);
 }
 
+/** Organic leaf albedo — neutral so instance colors tint seasons cleanly */
+export function createLeafAlbedo() {
+  return canvasTexture((ctx, size) => {
+    ctx.clearRect(0, 0, size, size);
+    const cx = size / 2;
+    const leaf = new Path2D();
+    leaf.moveTo(cx, size * 0.92);
+    leaf.bezierCurveTo(
+      size * 0.62,
+      size * 0.78,
+      size * 0.88,
+      size * 0.42,
+      size * 0.72,
+      size * 0.22
+    );
+    leaf.bezierCurveTo(size * 0.58, size * 0.08, size * 0.52, size * 0.04, cx, size * 0.04);
+    leaf.bezierCurveTo(
+      size * 0.48,
+      size * 0.04,
+      size * 0.42,
+      size * 0.08,
+      size * 0.28,
+      size * 0.22
+    );
+    leaf.bezierCurveTo(
+      size * 0.12,
+      size * 0.42,
+      size * 0.38,
+      size * 0.78,
+      cx,
+      size * 0.92
+    );
+    leaf.closePath();
+
+    const fill = ctx.createLinearGradient(cx, size * 0.05, cx, size * 0.9);
+    fill.addColorStop(0, "#f2f5ef");
+    fill.addColorStop(0.4, "#e4ebde");
+    fill.addColorStop(0.75, "#d0dac8");
+    fill.addColorStop(1, "#b8c4b0");
+    ctx.fillStyle = fill;
+    ctx.fill(leaf);
+
+    ctx.strokeStyle = "rgba(40,55,30,0.28)";
+    ctx.lineWidth = size * 0.016;
+    ctx.beginPath();
+    ctx.moveTo(cx, size * 0.88);
+    ctx.quadraticCurveTo(cx + size * 0.01, size * 0.5, cx, size * 0.1);
+    ctx.stroke();
+
+    for (let i = 0; i < 7; i++) {
+      const t = 0.2 + i * 0.09;
+      const y = size * (0.85 - t * 0.7);
+      const spread = size * (0.08 + t * 0.18);
+      ctx.strokeStyle = `rgba(50,70,40,${0.1 + (1 - t) * 0.1})`;
+      ctx.lineWidth = size * 0.007;
+      ctx.beginPath();
+      ctx.moveTo(cx, y);
+      ctx.quadraticCurveTo(cx + spread * 0.4, y - size * 0.04, cx + spread, y - size * 0.08);
+      ctx.moveTo(cx, y);
+      ctx.quadraticCurveTo(cx - spread * 0.4, y - size * 0.04, cx - spread, y - size * 0.08);
+      ctx.stroke();
+    }
+
+    for (let i = 0; i < 280; i++) {
+      ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.08})`;
+      ctx.fillRect(Math.random() * size, Math.random() * size, 1.2, 1.2);
+    }
+  }, 256);
+}
+
+export function createLeafAlpha() {
+  return canvasTexture((ctx, size) => {
+    ctx.clearRect(0, 0, size, size);
+    const cx = size / 2;
+    const leaf = new Path2D();
+    leaf.moveTo(cx, size * 0.92);
+    leaf.bezierCurveTo(
+      size * 0.62,
+      size * 0.78,
+      size * 0.88,
+      size * 0.42,
+      size * 0.72,
+      size * 0.22
+    );
+    leaf.bezierCurveTo(size * 0.58, size * 0.08, size * 0.52, size * 0.04, cx, size * 0.04);
+    leaf.bezierCurveTo(
+      size * 0.48,
+      size * 0.04,
+      size * 0.42,
+      size * 0.08,
+      size * 0.28,
+      size * 0.22
+    );
+    leaf.bezierCurveTo(
+      size * 0.12,
+      size * 0.42,
+      size * 0.38,
+      size * 0.78,
+      cx,
+      size * 0.92
+    );
+    leaf.closePath();
+
+    // Soft feathered edge via blur-like radial falloff drawn solid then edge fade
+    ctx.fillStyle = "#fff";
+    ctx.fill(leaf);
+    ctx.globalCompositeOperation = "destination-in";
+    const soft = ctx.createRadialGradient(cx, size * 0.5, size * 0.12, cx, size * 0.5, size * 0.48);
+    soft.addColorStop(0, "rgba(255,255,255,1)");
+    soft.addColorStop(0.72, "rgba(255,255,255,1)");
+    soft.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = soft;
+    ctx.fillRect(0, 0, size, size);
+  }, 256);
+}
+
 let cache: {
   paper?: THREE.Texture;
   ceramic?: THREE.Texture;
   bark?: THREE.Texture;
   needle?: THREE.Texture;
+  leafAlbedo?: THREE.Texture;
+  leafAlpha?: THREE.Texture;
 } = {};
 
 export function getTextures() {
@@ -175,5 +292,13 @@ export function getTextures() {
   if (!cache.ceramic) cache.ceramic = createCeramicTexture();
   if (!cache.bark) cache.bark = createBarkTexture();
   if (!cache.needle) cache.needle = createNeedleTexture();
+  if (!cache.leafAlbedo) {
+    cache.leafAlbedo = createLeafAlbedo();
+    cache.leafAlbedo.wrapS = cache.leafAlbedo.wrapT = THREE.ClampToEdgeWrapping;
+  }
+  if (!cache.leafAlpha) {
+    cache.leafAlpha = createLeafAlpha();
+    cache.leafAlpha.wrapS = cache.leafAlpha.wrapT = THREE.ClampToEdgeWrapping;
+  }
   return cache;
 }

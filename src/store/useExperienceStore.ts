@@ -25,6 +25,7 @@ interface ExperienceState {
   activeMilestone: string | null;
   cameraPush: number;
   hoveredLeaf: number | null;
+  hoverPoint: { x: number; y: number; z: number } | null;
   leafRipple: {
     id: number;
     at: number;
@@ -45,6 +46,7 @@ interface ExperienceState {
   setActiveTestimonial: (id: string | null) => void;
   setActiveMilestone: (id: string | null) => void;
   setHoveredLeaf: (id: number | null) => void;
+  setHoverPoint: (p: { x: number; y: number; z: number } | null) => void;
   triggerLeafRipple: (
     id: number,
     pos?: { x: number; y: number; z: number }
@@ -94,6 +96,7 @@ export const useExperienceStore = create<ExperienceState>((set) => ({
   activeMilestone: null,
   cameraPush: 0,
   hoveredLeaf: null,
+  hoverPoint: null,
   leafRipple: null,
   setProgress: (progress) =>
     set({
@@ -114,6 +117,7 @@ export const useExperienceStore = create<ExperienceState>((set) => ({
   setActiveTestimonial: (activeTestimonial) => set({ activeTestimonial }),
   setActiveMilestone: (activeMilestone) => set({ activeMilestone }),
   setHoveredLeaf: (hoveredLeaf) => set({ hoveredLeaf }),
+  setHoverPoint: (hoverPoint) => set({ hoverPoint }),
   triggerLeafRipple: (id, pos) =>
     set({
       leafRipple: {

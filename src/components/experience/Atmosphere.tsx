@@ -88,7 +88,7 @@ export function AmbientParticles() {
 
 /** Dense natural snowfall — clearly visible flakes */
 export function Snowfall() {
-  const count = 320;
+  const count = 420;
   const mesh = useRef<THREE.InstancedMesh>(null);
   const season = useExperienceStore((s) => s.season);
   const wind = useExperienceStore((s) => s.wind);
@@ -98,12 +98,12 @@ export function Snowfall() {
   const flakes = useMemo(
     () =>
       Array.from({ length: count }, (_, i) => ({
-        x: 0.85 + (hash(i) - 0.5) * 4.5,
-        y: hash(i + 3) * 4.2,
-        z: (hash(i + 7) - 0.3) * 2.8,
-        speed: 0.18 + hash(i + 11) * 0.35,
-        drift: 0.2 + hash(i + 13) * 0.35,
-        size: 0.018 + hash(i + 17) * 0.04,
+        x: 0.85 + (hash(i) - 0.5) * 5.2,
+        y: hash(i + 3) * 4.5,
+        z: (hash(i + 7) - 0.3) * 3.2,
+        speed: 0.22 + hash(i + 11) * 0.4,
+        drift: 0.25 + hash(i + 13) * 0.4,
+        size: 0.025 + hash(i + 17) * 0.055,
         spin: 0.5 + hash(i + 19) * 2,
         phase: hash(i + 23) * Math.PI * 2,
       })),
@@ -137,8 +137,8 @@ export function Snowfall() {
         f.z + Math.cos(t * 0.45 + f.phase) * f.drift * 0.5
       );
       dummy.rotation.set(t * f.spin * 0.25, t * 0.15 + f.phase, 0);
-      const sc = f.size * 28;
-      dummy.scale.set(sc, sc * 0.7, sc);
+      const sc = f.size * 36;
+      dummy.scale.set(sc, sc * 0.75, sc);
       dummy.updateMatrix();
       mesh.current.setMatrixAt(i, dummy.matrix);
     }
@@ -156,7 +156,7 @@ export function Snowfall() {
       <meshBasicMaterial
         color="#FFFFFF"
         transparent
-        opacity={0.92}
+        opacity={0.95}
         depthWrite={false}
       />
     </instancedMesh>
@@ -165,7 +165,7 @@ export function Snowfall() {
 
 /** Monsoon rain — dense visible streaks across the scene */
 export function Rainfall() {
-  const count = 450;
+  const count = 650;
   const mesh = useRef<THREE.InstancedMesh>(null);
   const season = useExperienceStore((s) => s.season);
   const wind = useExperienceStore((s) => s.wind);
@@ -175,11 +175,11 @@ export function Rainfall() {
   const drops = useMemo(
     () =>
       Array.from({ length: count }, (_, i) => ({
-        x: 0.85 + (hash(i + 1) - 0.5) * 5.5,
-        y: hash(i + 5) * 5.5,
-        z: (hash(i + 9) - 0.2) * 3.2,
-        speed: 4.5 + hash(i + 15) * 3.5,
-        len: 0.08 + hash(i + 21) * 0.12,
+        x: 0.85 + (hash(i + 1) - 0.5) * 6.2,
+        y: hash(i + 5) * 5.8,
+        z: (hash(i + 9) - 0.15) * 3.6,
+        speed: 5.2 + hash(i + 15) * 4,
+        len: 0.1 + hash(i + 21) * 0.16,
         phase: hash(i + 27),
       })),
     []
@@ -209,8 +209,8 @@ export function Rainfall() {
       }
 
       dummy.position.set(d.x, d.y, d.z);
-      dummy.rotation.set(0.15, 0, -0.45 - windX * 0.4);
-      dummy.scale.set(0.55, d.len * 55, 0.55);
+      dummy.rotation.set(0.18, 0, -0.5 - windX * 0.45);
+      dummy.scale.set(0.75, d.len * 70, 0.75);
       dummy.updateMatrix();
       mesh.current.setMatrixAt(i, dummy.matrix);
     }
@@ -224,11 +224,11 @@ export function Rainfall() {
       frustumCulled={false}
       raycast={() => null}
     >
-      <cylinderGeometry args={[0.006, 0.0025, 1, 4]} />
+      <cylinderGeometry args={[0.008, 0.003, 1, 4]} />
       <meshBasicMaterial
-        color="#B0C4D4"
+        color="#C5D8E8"
         transparent
-        opacity={0.7}
+        opacity={0.85}
         depthWrite={false}
       />
     </instancedMesh>
@@ -237,7 +237,7 @@ export function Rainfall() {
 
 /** Autumn — falling leaves */
 export function AutumnLeaves() {
-  const count = 90;
+  const count = 140;
   const mesh = useRef<THREE.InstancedMesh>(null);
   const season = useExperienceStore((s) => s.season);
   const wind = useExperienceStore((s) => s.wind);
@@ -286,7 +286,7 @@ export function AutumnLeaves() {
         L.z + Math.cos(t * 0.6 + L.phase) * 0.2
       );
       dummy.rotation.set(t * L.spin * 0.4, t * 0.5 + L.phase, t * L.spin * 0.25);
-      dummy.scale.set(L.size * 1.4, L.size * 0.35, L.size);
+      dummy.scale.set(L.size * 2.2, L.size * 0.5, L.size * 1.4);
       dummy.updateMatrix();
       mesh.current.setMatrixAt(i, dummy.matrix);
       if (L.hue > 0.55) color.set("#C8903A");
@@ -325,42 +325,42 @@ export function SummerSun() {
     show.current += ((enabled ? 1 : 0) - show.current) * Math.min(1, dt * 1.8);
     group.current.visible = show.current > 0.02;
     const s = show.current;
-    group.current.scale.setScalar(0.7 + s * 0.5);
+    group.current.scale.setScalar(0.85 + s * 0.55);
     if (core.current) {
       const m = core.current.material as THREE.MeshBasicMaterial;
       m.opacity = s;
     }
     if (glow.current) {
       const m = glow.current.material as THREE.MeshBasicMaterial;
-      m.opacity = s * 0.45;
+      m.opacity = s * 0.55;
     }
   });
 
   return (
-    <group ref={group} position={[2.15, 2.35, -1.5]}>
+    <group ref={group} position={[2.0, 2.2, -0.9]}>
       <mesh ref={core}>
-        <sphereGeometry args={[0.55, 28, 22]} />
+        <sphereGeometry args={[0.7, 28, 22]} />
         <meshBasicMaterial color="#FFE566" transparent opacity={1} />
       </mesh>
-      <mesh ref={glow} scale={2.4}>
-        <sphereGeometry args={[0.55, 20, 16]} />
+      <mesh ref={glow} scale={2.5}>
+        <sphereGeometry args={[0.7, 20, 16]} />
         <meshBasicMaterial
           color="#FFC040"
           transparent
-          opacity={0.45}
+          opacity={0.55}
           depthWrite={false}
         />
       </mesh>
-      <mesh scale={3.8}>
-        <sphereGeometry args={[0.55, 16, 12]} />
+      <mesh scale={4.2}>
+        <sphereGeometry args={[0.7, 16, 12]} />
         <meshBasicMaterial
           color="#FFD080"
           transparent
-          opacity={0.18}
+          opacity={0.22}
           depthWrite={false}
         />
       </mesh>
-      <pointLight color="#FFD090" intensity={enabled ? 1.6 : 0} distance={22} decay={2} />
+      <pointLight color="#FFD090" intensity={enabled ? 2.2 : 0} distance={28} decay={2} />
     </group>
   );
 }

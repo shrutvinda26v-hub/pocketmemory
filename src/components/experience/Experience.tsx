@@ -18,6 +18,7 @@ import {
   SeasonControls,
   SoundToggle,
 } from "@/components/ui/Panels";
+import { WeatherOverlay } from "@/components/ui/WeatherOverlay";
 import { LoadingGate, useSeasonHotkeys } from "@/components/ui/Loading";
 
 export function Experience() {
@@ -68,6 +69,7 @@ export function Experience() {
         <div className="intro-veil" aria-hidden />
         <div className="paper-grain" aria-hidden />
         <Scene />
+        <WeatherOverlay />
         <div className="ui-layer">
           <Navigation />
           <HeroCopy />
@@ -82,7 +84,7 @@ export function Experience() {
             <SoundToggle />
           </div>
           <p className="season-hint" aria-hidden>
-            Keys 1–4 seasons · click leaves · Chimes
+            Rainy · Summer · Autumn · Winter — tap to switch
           </p>
         </div>
         <div className="scroll-track" aria-hidden>

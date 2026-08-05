@@ -159,6 +159,15 @@ export function SeasonControls() {
           type="button"
           className={season === s.id ? "active" : ""}
           aria-pressed={season === s.id}
+          title={
+            s.id === "rain"
+              ? "Natural monsoon rain"
+              : s.id === "summer"
+                ? "Bright summer sun"
+                : s.id === "autumn"
+                  ? "Falling autumn leaves"
+                  : "Soft winter snow"
+          }
           onPointerDown={(e) => {
             e.preventDefault();
             e.stopPropagation();

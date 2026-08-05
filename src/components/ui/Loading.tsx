@@ -5,6 +5,7 @@ import { useProgress } from "@react-three/drei";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Season } from "@/store/useExperienceStore";
 import { useExperienceStore } from "@/store/useExperienceStore";
+import { ensureSoundOnInteraction, getAmbientEngine } from "@/lib/sound";
 
 const SEASON_KEYS: Record<string, Season> = {
   "1": "spring",
@@ -22,7 +23,11 @@ export function useSeasonHotkeys() {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)
         return;
       const season = SEASON_KEYS[e.key];
-      if (season) setSeason(season);
+      if (season) {
+        setSeason(season);
+        ensureSoundOnInteraction();
+        getAmbientEngine().playSeasonChange(season);
+      }
       if (e.key.toLowerCase() === "m") toggleSound();
     };
     window.addEventListener("keydown", onKey);

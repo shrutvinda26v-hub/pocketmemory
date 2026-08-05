@@ -163,15 +163,15 @@ export function SeasonControls() {
             e.preventDefault();
             e.stopPropagation();
             ensureSoundOnInteraction();
-            getAmbientEngine().playSeasonChange();
             setSeason(s.id);
+            getAmbientEngine().playSeasonChange(s.id);
           }}
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
             ensureSoundOnInteraction();
-            getAmbientEngine().playSeasonChange();
             setSeason(s.id);
+            getAmbientEngine().playSeasonChange(s.id);
           }}
         >
           {s.label}
@@ -197,14 +197,14 @@ export function SoundToggle() {
         }
       }}
       aria-pressed={soundEnabled}
-      aria-label={soundEnabled ? "Mute music" : "Enable soothing music"}
+      aria-label={soundEnabled ? "Mute chimes" : "Enable soothing chimes"}
     >
       <span className="sound-waves" aria-hidden>
         <i />
         <i />
         <i />
       </span>
-      {soundEnabled ? "Music on" : "Play music"}
+      {soundEnabled ? "Chimes on" : "Play chimes"}
     </button>
   );
 }

@@ -124,7 +124,7 @@ export const navItems = [
 ] as const;
 
 export const seasons = [
-  { id: "rain" as const, label: "Rain" },
+  { id: "rain" as const, label: "Rainy" },
   { id: "summer" as const, label: "Summer" },
   { id: "autumn" as const, label: "Autumn" },
   { id: "winter" as const, label: "Winter" },

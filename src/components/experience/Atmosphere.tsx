@@ -6,9 +6,14 @@ import * as THREE from "three";
 import { useExperienceStore } from "@/store/useExperienceStore";
 import { SEASON_CONFIG, goldenHourBoost } from "@/lib/seasons";
 
-/** Soft dust / autumn leaves — shared ambient motes */
+function hash(i: number) {
+  const x = Math.sin(i * 127.1 + 311.7) * 43758.5453;
+  return x - Math.floor(x);
+}
+
+/** Soft dust / fireflies when no heavy weather */
 export function AmbientParticles() {
-  const count = 50;
+  const count = 40;
   const mesh = useRef<THREE.InstancedMesh>(null);
   const season = useExperienceStore((s) => s.season);
   const progress = useExperienceStore((s) => s.progress);
@@ -20,9 +25,9 @@ export function AmbientParticles() {
   const seeds = useMemo(
     () =>
       Array.from({ length: count }, (_, i) => ({
-        x: (Math.sin(i * 12.9) * 0.5 + 0.5) * 4 - 2,
-        y: (Math.sin(i * 78.2) * 0.5 + 0.5) * 2.5,
-        z: (Math.sin(i * 45.1) * 0.5 + 0.5) * 2 - 1,
+        x: 0.2 + hash(i) * 2.2,
+        y: hash(i + 2) * 2.2,
+        z: (hash(i + 4) - 0.5) * 1.8,
         speed: 0.1 + (i % 7) * 0.03,
         phase: i * 0.4,
         kind: i % 3,
@@ -32,7 +37,6 @@ export function AmbientParticles() {
 
   useFrame(({ clock }) => {
     if (!mesh.current) return;
-    // Hide when rain/snow systems own the weather
     if (config.rainEnabled || config.snowEnabled) {
       for (let i = 0; i < count; i++) {
         dummy.scale.setScalar(0);
@@ -48,27 +52,19 @@ export function AmbientParticles() {
       const s = seeds[i];
       let x = s.x + Math.sin(t * s.speed + s.phase) * 0.3 + wind.x * 0.4;
       let y = s.y;
-      let z = s.z + Math.cos(t * s.speed * 0.7 + s.phase) * 0.2;
+      let z = s.z;
       let scale = 0;
 
       if (golden.fireflies && s.kind === 0) {
         y = s.y + Math.sin(t * 2 + s.phase) * 0.15;
-        scale = 0.35 + Math.sin(t * 4 + s.phase) * 0.15;
-      } else if (progress > 0.75 && s.kind === 1) {
-        y = ((s.y - t * 0.08 * s.speed) % 2.2 + 2.2) % 2.2;
-        x += Math.sin(t + s.phase) * 0.2;
-        scale = season === "autumn" || progress > 0.78 ? 0.55 : 0.25;
-      } else if (config.blossomEnabled && s.kind === 2) {
-        y = (s.y + t * 0.05) % 2.2;
-        scale = 0.4;
-      } else if (progress > 0.1) {
-        scale = 0.15;
+        scale = 0.45 + Math.sin(t * 4 + s.phase) * 0.2;
+      } else if (progress > 0.1 && !config.sunVisible) {
+        scale = 0.12;
         y = s.y + Math.sin(t * 0.4 + s.phase) * 0.1;
       }
 
-      dummy.position.set(x, y - 0.5, z);
+      dummy.position.set(x, y - 0.3, z);
       dummy.scale.setScalar(scale);
-      dummy.rotation.set(t * 0.2 + i, t * 0.1, 0);
       dummy.updateMatrix();
       mesh.current.setMatrixAt(i, dummy.matrix);
     }
@@ -76,7 +72,7 @@ export function AmbientParticles() {
   });
 
   return (
-    <instancedMesh ref={mesh} args={[undefined, undefined, count]} frustumCulled={false}>
+    <instancedMesh ref={mesh} args={[undefined, undefined, count]} frustumCulled={false} raycast={() => null}>
       <sphereGeometry args={[0.03, 6, 4]} />
       <meshStandardMaterial
         color={golden.fireflies ? "#E8C96A" : config.particleColor}
@@ -84,31 +80,31 @@ export function AmbientParticles() {
         emissiveIntensity={golden.fireflies ? 0.8 : 0}
         transparent
         opacity={0.85}
-        roughness={0.5}
+        depthWrite={false}
       />
     </instancedMesh>
   );
 }
 
-/** Natural snowfall — soft drifting flakes */
+/** Dense natural snowfall — clearly visible flakes */
 export function Snowfall() {
-  const count = 180;
+  const count = 320;
   const mesh = useRef<THREE.InstancedMesh>(null);
   const season = useExperienceStore((s) => s.season);
   const wind = useExperienceStore((s) => s.wind);
   const dummy = useMemo(() => new THREE.Object3D(), []);
-  const enabled = SEASON_CONFIG[season].snowEnabled;
+  const enabled = season === "winter";
 
   const flakes = useMemo(
     () =>
       Array.from({ length: count }, (_, i) => ({
-        x: (hash(i) - 0.5) * 5.5,
-        y: hash(i + 3) * 4.5,
-        z: (hash(i + 7) - 0.5) * 3.5 - 0.2,
-        speed: 0.12 + hash(i + 11) * 0.22,
-        drift: 0.15 + hash(i + 13) * 0.25,
-        size: 0.012 + hash(i + 17) * 0.028,
-        spin: hash(i + 19) * 2,
+        x: 0.85 + (hash(i) - 0.5) * 4.5,
+        y: hash(i + 3) * 4.2,
+        z: (hash(i + 7) - 0.3) * 2.8,
+        speed: 0.18 + hash(i + 11) * 0.35,
+        drift: 0.2 + hash(i + 13) * 0.35,
+        size: 0.018 + hash(i + 17) * 0.04,
+        spin: 0.5 + hash(i + 19) * 2,
         phase: hash(i + 23) * Math.PI * 2,
       })),
     []
@@ -129,20 +125,20 @@ export function Snowfall() {
     const t = clock.elapsedTime;
     for (let i = 0; i < count; i++) {
       const f = flakes[i];
-      f.y -= f.speed * dt * 0.85;
-      if (f.y < -1.2) {
-        f.y = 3.2 + hash(i + Math.floor(t)) * 0.8;
-        f.x = (hash(i * 3 + Math.floor(t * 2)) - 0.5) * 5.5;
+      f.y -= f.speed * dt;
+      if (f.y < -1.3) {
+        f.y = 3.4 + hash(i + Math.floor(t * 3)) * 0.6;
+        f.x = 0.85 + (hash(i * 5 + Math.floor(t * 2)) - 0.5) * 4.5;
       }
-      const sway =
-        Math.sin(t * 0.6 + f.phase) * f.drift + wind.x * 0.35;
+      const sway = Math.sin(t * 0.7 + f.phase) * f.drift + wind.x * 0.5;
       dummy.position.set(
         f.x + sway,
         f.y,
-        f.z + Math.cos(t * 0.4 + f.phase) * f.drift * 0.4
+        f.z + Math.cos(t * 0.45 + f.phase) * f.drift * 0.5
       );
-      dummy.rotation.set(t * f.spin * 0.3, t * 0.2 + f.phase, t * f.spin * 0.15);
-      dummy.scale.setScalar(f.size * 22);
+      dummy.rotation.set(t * f.spin * 0.25, t * 0.15 + f.phase, 0);
+      const sc = f.size * 28;
+      dummy.scale.set(sc, sc * 0.7, sc);
       dummy.updateMatrix();
       mesh.current.setMatrixAt(i, dummy.matrix);
     }
@@ -156,37 +152,34 @@ export function Snowfall() {
       frustumCulled={false}
       raycast={() => null}
     >
-      <sphereGeometry args={[1, 6, 5]} />
-      <meshStandardMaterial
-        color="#F8FBFF"
-        emissive="#E8F0F8"
-        emissiveIntensity={0.15}
+      <sphereGeometry args={[1, 7, 5]} />
+      <meshBasicMaterial
+        color="#FFFFFF"
         transparent
-        opacity={0.88}
+        opacity={0.92}
         depthWrite={false}
-        roughness={1}
       />
     </instancedMesh>
   );
 }
 
-/** Soft monsoon rain — thin streaks falling with wind */
+/** Monsoon rain — dense visible streaks across the scene */
 export function Rainfall() {
-  const count = 220;
+  const count = 450;
   const mesh = useRef<THREE.InstancedMesh>(null);
   const season = useExperienceStore((s) => s.season);
   const wind = useExperienceStore((s) => s.wind);
   const dummy = useMemo(() => new THREE.Object3D(), []);
-  const enabled = SEASON_CONFIG[season].rainEnabled;
+  const enabled = season === "rain";
 
   const drops = useMemo(
     () =>
       Array.from({ length: count }, (_, i) => ({
-        x: (hash(i + 1) - 0.5) * 6,
-        y: hash(i + 5) * 5,
-        z: (hash(i + 9) - 0.5) * 4,
-        speed: 2.8 + hash(i + 15) * 2.2,
-        len: 0.04 + hash(i + 21) * 0.06,
+        x: 0.85 + (hash(i + 1) - 0.5) * 5.5,
+        y: hash(i + 5) * 5.5,
+        z: (hash(i + 9) - 0.2) * 3.2,
+        speed: 4.5 + hash(i + 15) * 3.5,
+        len: 0.08 + hash(i + 21) * 0.12,
         phase: hash(i + 27),
       })),
     []
@@ -204,22 +197,20 @@ export function Rainfall() {
       return;
     }
 
-    const windX = wind.x * 0.55 + 0.08;
+    const windX = 0.15 + wind.x * 0.7;
     for (let i = 0; i < count; i++) {
       const d = drops[i];
       d.y -= d.speed * dt;
-      d.x += windX * dt * 1.4;
-      if (d.y < -1.4) {
-        d.y = 3.4 + d.phase;
-        d.x = (hash(i + Math.floor(performance.now() * 0.01)) - 0.5) * 6;
+      d.x += windX * dt * 2.2;
+      if (d.y < -1.6) {
+        d.y = 3.6 + d.phase * 0.8;
+        d.x = 0.85 + (hash(i + Math.floor(performance.now() * 0.02)) - 0.5) * 5.5;
+        d.z = (hash(i + 40 + Math.floor(performance.now() * 0.01)) - 0.2) * 3.2;
       }
-      if (d.x > 3.2) d.x = -3.2;
-      if (d.x < -3.2) d.x = 3.2;
 
       dummy.position.set(d.x, d.y, d.z);
-      // Tilt with wind — natural streak angle
-      dummy.rotation.set(0, 0, -0.35 - windX * 0.5);
-      dummy.scale.set(0.35, d.len * 28, 0.35);
+      dummy.rotation.set(0.15, 0, -0.45 - windX * 0.4);
+      dummy.scale.set(0.55, d.len * 55, 0.55);
       dummy.updateMatrix();
       mesh.current.setMatrixAt(i, dummy.matrix);
     }
@@ -233,73 +224,145 @@ export function Rainfall() {
       frustumCulled={false}
       raycast={() => null}
     >
-      <cylinderGeometry args={[0.004, 0.002, 1, 4]} />
+      <cylinderGeometry args={[0.006, 0.0025, 1, 4]} />
       <meshBasicMaterial
-        color="#9BB0C0"
+        color="#B0C4D4"
         transparent
-        opacity={0.45}
+        opacity={0.7}
         depthWrite={false}
       />
     </instancedMesh>
   );
 }
 
-/** Bright summer sun disc high in the sky */
-export function SummerSun() {
+/** Autumn — falling leaves */
+export function AutumnLeaves() {
+  const count = 90;
+  const mesh = useRef<THREE.InstancedMesh>(null);
   const season = useExperienceStore((s) => s.season);
-  const group = useRef<THREE.Group>(null);
-  const glow = useRef<THREE.Mesh>(null);
-  const show = useRef(0);
-  const config = SEASON_CONFIG[season];
+  const wind = useExperienceStore((s) => s.wind);
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const color = useMemo(() => new THREE.Color(), []);
+  const enabled = season === "autumn";
 
-  useFrame((_, dt) => {
-    if (!group.current) return;
-    show.current += ((config.sunVisible ? 1 : 0) - show.current) * Math.min(1, dt * 1.4);
-    group.current.visible = show.current > 0.02;
-    group.current.scale.setScalar(0.55 + show.current * 0.45);
-    const mats = group.current.children;
-    mats.forEach((c) => {
-      if (c instanceof THREE.Mesh) {
-        const m = c.material as THREE.MeshStandardMaterial;
-        if (m.opacity !== undefined) m.opacity = show.current * (c === glow.current ? 0.35 : 1);
-        if (m.emissiveIntensity !== undefined)
-          m.emissiveIntensity = show.current * (c === glow.current ? 0.6 : 1.4);
+  const leaves = useMemo(
+    () =>
+      Array.from({ length: count }, (_, i) => ({
+        x: 0.85 + (hash(i) - 0.5) * 3.5,
+        y: hash(i + 2) * 3.5,
+        z: (hash(i + 4) - 0.3) * 2.2,
+        speed: 0.15 + hash(i + 6) * 0.25,
+        spin: hash(i + 8) * 3,
+        phase: hash(i + 10) * Math.PI * 2,
+        hue: hash(i + 12),
+        size: 0.035 + hash(i + 14) * 0.04,
+      })),
+    []
+  );
+
+  useFrame(({ clock }, dt) => {
+    if (!mesh.current) return;
+    if (!enabled) {
+      for (let i = 0; i < count; i++) {
+        dummy.scale.setScalar(0);
+        dummy.updateMatrix();
+        mesh.current.setMatrixAt(i, dummy.matrix);
       }
-    });
+      mesh.current.instanceMatrix.needsUpdate = true;
+      return;
+    }
+
+    const t = clock.elapsedTime;
+    for (let i = 0; i < count; i++) {
+      const L = leaves[i];
+      L.y -= L.speed * dt;
+      if (L.y < -1.2) {
+        L.y = 2.8 + hash(i + Math.floor(t)) * 0.5;
+        L.x = 0.85 + (hash(i * 2 + Math.floor(t)) - 0.5) * 3.5;
+      }
+      dummy.position.set(
+        L.x + Math.sin(t * 0.8 + L.phase) * 0.35 + wind.x * 0.4,
+        L.y,
+        L.z + Math.cos(t * 0.6 + L.phase) * 0.2
+      );
+      dummy.rotation.set(t * L.spin * 0.4, t * 0.5 + L.phase, t * L.spin * 0.25);
+      dummy.scale.set(L.size * 1.4, L.size * 0.35, L.size);
+      dummy.updateMatrix();
+      mesh.current.setMatrixAt(i, dummy.matrix);
+      if (L.hue > 0.55) color.set("#C8903A");
+      else if (L.hue > 0.3) color.set("#B85A2E");
+      else color.set("#D4A04A");
+      mesh.current.setColorAt(i, color);
+    }
+    mesh.current.instanceMatrix.needsUpdate = true;
+    if (mesh.current.instanceColor) mesh.current.instanceColor.needsUpdate = true;
   });
 
   return (
-    <group ref={group} position={[2.8, 3.2, -3.5]}>
-      <mesh>
-        <sphereGeometry args={[0.38, 24, 20]} />
-        <meshStandardMaterial
-          color="#FFE7A0"
-          emissive="#FFC050"
-          emissiveIntensity={1.4}
-          roughness={0.35}
-          transparent
-          opacity={1}
-        />
-      </mesh>
-      <mesh ref={glow} scale={2.1}>
-        <sphereGeometry args={[0.38, 16, 12]} />
-        <meshStandardMaterial
-          color="#FFD070"
-          emissive="#FFB040"
-          emissiveIntensity={0.6}
-          transparent
-          opacity={0.35}
-          depthWrite={false}
-        />
-      </mesh>
-      <pointLight color="#FFD090" intensity={1.1} distance={18} decay={2} />
-    </group>
+    <instancedMesh
+      ref={mesh}
+      args={[undefined, undefined, count]}
+      frustumCulled={false}
+      raycast={() => null}
+    >
+      <sphereGeometry args={[1, 6, 4]} />
+      <meshStandardMaterial roughness={0.85} metalness={0} />
+    </instancedMesh>
   );
 }
 
-function hash(i: number) {
-  const x = Math.sin(i * 127.1 + 311.7) * 43758.5453;
-  return x - Math.floor(x);
+/** Bright summer sun — in front of the paper wall so it's visible */
+export function SummerSun() {
+  const season = useExperienceStore((s) => s.season);
+  const group = useRef<THREE.Group>(null);
+  const core = useRef<THREE.Mesh>(null);
+  const glow = useRef<THREE.Mesh>(null);
+  const show = useRef(0);
+  const enabled = season === "summer";
+
+  useFrame((_, dt) => {
+    if (!group.current) return;
+    show.current += ((enabled ? 1 : 0) - show.current) * Math.min(1, dt * 1.8);
+    group.current.visible = show.current > 0.02;
+    const s = show.current;
+    group.current.scale.setScalar(0.7 + s * 0.5);
+    if (core.current) {
+      const m = core.current.material as THREE.MeshBasicMaterial;
+      m.opacity = s;
+    }
+    if (glow.current) {
+      const m = glow.current.material as THREE.MeshBasicMaterial;
+      m.opacity = s * 0.45;
+    }
+  });
+
+  return (
+    <group ref={group} position={[2.15, 2.35, -1.5]}>
+      <mesh ref={core}>
+        <sphereGeometry args={[0.55, 28, 22]} />
+        <meshBasicMaterial color="#FFE566" transparent opacity={1} />
+      </mesh>
+      <mesh ref={glow} scale={2.4}>
+        <sphereGeometry args={[0.55, 20, 16]} />
+        <meshBasicMaterial
+          color="#FFC040"
+          transparent
+          opacity={0.45}
+          depthWrite={false}
+        />
+      </mesh>
+      <mesh scale={3.8}>
+        <sphereGeometry args={[0.55, 16, 12]} />
+        <meshBasicMaterial
+          color="#FFD080"
+          transparent
+          opacity={0.18}
+          depthWrite={false}
+        />
+      </mesh>
+      <pointLight color="#FFD090" intensity={enabled ? 1.6 : 0} distance={22} decay={2} />
+    </group>
+  );
 }
 
 export function Lanterns() {
@@ -362,9 +425,7 @@ export function Butterfly() {
   const wingL = useRef<THREE.Mesh>(null);
   const wingR = useRef<THREE.Mesh>(null);
   const show = useRef(0);
-  // Hide butterfly in heavy weather
-  const weatherOk =
-    !SEASON_CONFIG[season].rainEnabled && !SEASON_CONFIG[season].snowEnabled;
+  const weatherOk = season === "summer" || season === "autumn";
 
   useFrame(({ clock }) => {
     if (!group.current) return;

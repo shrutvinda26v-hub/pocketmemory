@@ -15,6 +15,7 @@ import {
   Butterfly,
   Snowfall,
   Rainfall,
+  AutumnLeaves,
   SummerSun,
 } from "./Atmosphere";
 import { LeafSparkles } from "./LeafFX";
@@ -42,6 +43,7 @@ function SceneContent() {
       <AmbientParticles />
       <Snowfall />
       <Rainfall />
+      <AutumnLeaves />
       <SummerSun />
       <Lanterns />
       <Butterfly />

@@ -96,7 +96,7 @@ export const useExperienceStore = create<ExperienceState>((set) => ({
   progress: 0,
   growth: 0,
   section: "home",
-  season: "summer",
+  season: "rain",
   soundEnabled: false,
   isIdle: false,
   cursor: { x: 0, y: 0 },

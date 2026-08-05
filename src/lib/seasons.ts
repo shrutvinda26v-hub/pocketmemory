@@ -7,7 +7,12 @@ export interface SeasonPalette {
   lightColor: string;
   ambientIntensity: number;
   sunPosition: [number, number, number];
+  /** Scene clear / fog / paper wash */
   fogColor: string;
+  /** CSS page background */
+  bg: string;
+  /** Paper wall tint */
+  paper: string;
   particleColor: string;
   windStrength: number;
   blossomEnabled: boolean;
@@ -16,15 +21,16 @@ export interface SeasonPalette {
 }
 
 export const SEASON_CONFIG: Record<Season, SeasonPalette> = {
-  // Brighter seasonal leaf hues so canopy reads clearly against paper
   spring: {
     leaf: "#6B9A52",
     leafSecondary: "#A8C478",
     lightIntensity: 1.15,
-    lightColor: "#FFF5E6",
+    lightColor: "#FFF5E8",
     ambientIntensity: 0.55,
     sunPosition: [4, 6, 2],
-    fogColor: "#F5F0E8",
+    fogColor: "#F6EBE4",
+    bg: "#F7EDE6",
+    paper: "#F8F0EA",
     particleColor: "#F2C4D0",
     windStrength: 0.7,
     blossomEnabled: true,
@@ -38,7 +44,9 @@ export const SEASON_CONFIG: Record<Season, SeasonPalette> = {
     lightColor: "#FFF8EE",
     ambientIntensity: 0.48,
     sunPosition: [5, 7, 3],
-    fogColor: "#F5F0E8",
+    fogColor: "#F3EEDF",
+    bg: "#F5F0E4",
+    paper: "#F6F1E6",
     particleColor: "#A8C686",
     windStrength: 0.55,
     blossomEnabled: false,
@@ -52,7 +60,9 @@ export const SEASON_CONFIG: Record<Season, SeasonPalette> = {
     lightColor: "#FFE4C4",
     ambientIntensity: 0.45,
     sunPosition: [3, 4, 2],
-    fogColor: "#EDE4D6",
+    fogColor: "#EBDCC8",
+    bg: "#EFE0CC",
+    paper: "#F2E4D0",
     particleColor: "#C4893A",
     windStrength: 0.9,
     blossomEnabled: false,
@@ -66,7 +76,9 @@ export const SEASON_CONFIG: Record<Season, SeasonPalette> = {
     lightColor: "#E8EEF5",
     ambientIntensity: 0.4,
     sunPosition: [2, 5, 4],
-    fogColor: "#E8E4DC",
+    fogColor: "#E4EAF0",
+    bg: "#E6ECF2",
+    paper: "#EAEFF4",
     particleColor: "#FFFFFF",
     windStrength: 0.35,
     blossomEnabled: false,
@@ -76,7 +88,6 @@ export const SEASON_CONFIG: Record<Season, SeasonPalette> = {
 };
 
 export function goldenHourBoost(progress: number) {
-  // Final section warms the light
   const t = Math.max(0, (progress - 0.88) / 0.12);
   return {
     intensity: 1 + t * 0.25,

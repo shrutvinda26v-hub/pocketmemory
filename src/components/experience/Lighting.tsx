@@ -14,21 +14,36 @@ export function SceneLighting() {
   const config = SEASON_CONFIG[season];
   const golden = goldenHourBoost(progress);
   const sun = useRef<THREE.DirectionalLight>(null);
+  const bg = useRef(new THREE.Color(config.fogColor));
+  const fogCol = useRef(new THREE.Color(config.fogColor));
+  const targetBg = useRef(new THREE.Color(config.fogColor));
+  const sunColor = useRef(new THREE.Color(config.lightColor));
+  const { scene } = useThree();
 
   useFrame(() => {
+    targetBg.current.set(config.fogColor);
+    if (golden.colorShift > 0) {
+      targetBg.current.lerp(new THREE.Color("#F5D4A8"), golden.colorShift * 0.35);
+    }
+    bg.current.lerp(targetBg.current, 0.04);
+    fogCol.current.lerp(targetBg.current, 0.04);
+    scene.background = bg.current;
+    if (scene.fog && scene.fog instanceof THREE.Fog) {
+      scene.fog.color.copy(fogCol.current);
+    }
+
     if (!sun.current) return;
     const targetIntensity = config.lightIntensity * golden.intensity * 0.95;
     sun.current.intensity += (targetIntensity - sun.current.intensity) * 0.04;
-    const c = new THREE.Color(config.lightColor);
+    sunColor.current.set(config.lightColor);
     if (golden.colorShift > 0) {
-      c.lerp(new THREE.Color("#FFB060"), golden.colorShift * 0.45);
+      sunColor.current.lerp(new THREE.Color("#FFB060"), golden.colorShift * 0.45);
     }
-    sun.current.color.lerp(c, 0.05);
+    sun.current.color.lerp(sunColor.current, 0.05);
   });
 
   return (
     <>
-      <color attach="background" args={[config.fogColor]} />
       <fog attach="fog" args={[config.fogColor, 7, 18]} />
       <ambientLight intensity={config.ambientIntensity * 0.85} color="#F5F0E8" />
       <directionalLight
@@ -86,12 +101,23 @@ export function CameraRig() {
 
 export function PaperWall() {
   const textures = useMemo(() => getTextures(), []);
+  const season = useExperienceStore((s) => s.season);
+  const mat = useRef<THREE.MeshStandardMaterial>(null);
+  const color = useRef(new THREE.Color(SEASON_CONFIG[season].paper));
+
+  useFrame(() => {
+    if (!mat.current) return;
+    color.current.lerp(new THREE.Color(SEASON_CONFIG[season].paper), 0.04);
+    mat.current.color.copy(color.current);
+  });
+
   return (
     <mesh position={[0.6, 0.5, -2.2]} receiveShadow>
       <planeGeometry args={[14, 9]} />
       <meshStandardMaterial
+        ref={mat}
         map={textures.paper}
-        color="#F5F0E8"
+        color={SEASON_CONFIG[season].paper}
         roughness={0.98}
         metalness={0}
       />

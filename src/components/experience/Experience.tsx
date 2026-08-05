@@ -5,6 +5,8 @@ import gsap from "gsap";
 import { useLenis } from "@/hooks/useLenis";
 import { useCursorWind } from "@/hooks/useCursorWind";
 import { useAmbientSound } from "@/lib/sound";
+import { SEASON_CONFIG } from "@/lib/seasons";
+import { useExperienceStore } from "@/store/useExperienceStore";
 import { Scene } from "@/components/experience/Scene";
 import { Navigation, HeroCopy, SectionCopy } from "@/components/ui/Navigation";
 import {
@@ -24,6 +26,7 @@ export function Experience() {
   useAmbientSound();
   useSeasonHotkeys();
   const [ready, setReady] = useState(false);
+  const season = useExperienceStore((s) => s.season);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -52,8 +55,15 @@ export function Experience() {
     return () => ctx.revert();
   }, []);
 
+  // Soft page wash follows the season
+  useEffect(() => {
+    const { bg } = SEASON_CONFIG[season];
+    document.documentElement.style.setProperty("--bg", bg);
+    document.body.dataset.season = season;
+  }, [season]);
+
   return (
-    <div className={`experience ${ready ? "is-ready" : ""}`}>
+    <div className={`experience ${ready ? "is-ready" : ""}`} data-season={season}>
       <LoadingGate>
         <div className="intro-veil" aria-hidden />
         <div className="paper-grain" aria-hidden />
@@ -72,7 +82,7 @@ export function Experience() {
             <SoundToggle />
           </div>
           <p className="season-hint" aria-hidden>
-            Keys 1–4 seasons · click leaves · Music
+            Keys 1–4 seasons · click leaves · Chimes
           </p>
         </div>
         <div className="scroll-track" aria-hidden>

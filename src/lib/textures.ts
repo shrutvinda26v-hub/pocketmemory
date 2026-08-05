@@ -72,37 +72,66 @@ export function createCeramicTexture() {
   });
 }
 
-/** Twisted bark with vertical furrows */
+/** Twisted bark with vertical furrows + moss flecks */
 export function createBarkTexture() {
   return canvasTexture((ctx, size) => {
-    ctx.fillStyle = "#3F2E22";
+    const base = ctx.createLinearGradient(0, 0, size, 0);
+    base.addColorStop(0, "#2E2118");
+    base.addColorStop(0.35, "#463226");
+    base.addColorStop(0.7, "#3A2A1E");
+    base.addColorStop(1, "#2A1C14");
+    ctx.fillStyle = base;
     ctx.fillRect(0, 0, size, size);
-    for (let x = 0; x < size; x += 3) {
-      const wobble = Math.sin(x * 0.08) * 8;
-      ctx.strokeStyle = `rgba(20,12,8,${0.25 + Math.random() * 0.35})`;
-      ctx.lineWidth = 1 + Math.random() * 2;
+    for (let x = 0; x < size; x += 2.5) {
+      const wobble = Math.sin(x * 0.07) * 10 + Math.sin(x * 0.19) * 4;
+      ctx.strokeStyle = `rgba(14,8,4,${0.3 + Math.random() * 0.4})`;
+      ctx.lineWidth = 1 + Math.random() * 2.4;
       ctx.beginPath();
       ctx.moveTo(x + wobble, 0);
-      for (let y = 0; y < size; y += 8) {
-        ctx.lineTo(x + wobble + Math.sin(y * 0.05 + x) * 3, y);
+      for (let y = 0; y < size; y += 6) {
+        ctx.lineTo(x + wobble + Math.sin(y * 0.045 + x * 0.02) * 3.5, y);
       }
       ctx.stroke();
     }
-    for (let i = 0; i < 400; i++) {
-      ctx.fillStyle = `rgba(90,70,50,${0.08 + Math.random() * 0.12})`;
+    // Lighter ridges
+    for (let x = 4; x < size; x += 11) {
+      ctx.strokeStyle = `rgba(110,85,60,${0.08 + Math.random() * 0.1})`;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      for (let y = 0; y < size; y += 10) {
+        ctx.lineTo(x + Math.sin(y * 0.03) * 2, y);
+      }
+      ctx.stroke();
+    }
+    for (let i = 0; i < 520; i++) {
+      ctx.fillStyle = `rgba(95,72,50,${0.06 + Math.random() * 0.14})`;
       ctx.beginPath();
       ctx.ellipse(
         Math.random() * size,
         Math.random() * size,
-        2 + Math.random() * 6,
-        1 + Math.random() * 2,
+        2 + Math.random() * 7,
+        1 + Math.random() * 2.5,
         Math.random(),
         0,
         Math.PI * 2
       );
       ctx.fill();
     }
-  });
+    // Moss / lichen flecks
+    for (let i = 0; i < 90; i++) {
+      ctx.fillStyle = `rgba(55,95,40,${0.12 + Math.random() * 0.22})`;
+      ctx.beginPath();
+      ctx.arc(
+        Math.random() * size,
+        Math.random() * size,
+        1.5 + Math.random() * 4,
+        0,
+        Math.PI * 2
+      );
+      ctx.fill();
+    }
+  }, 1024);
 }
 
 /** Soft alpha needle card */

@@ -175,23 +175,43 @@ type FoliarPad = {
   radius: number;
   appearAt: number;
   density: number;
+  understory?: boolean;
 };
 
 function buildPads(): FoliarPad[] {
-  return [
-    { center: new THREE.Vector3(0.62, 1.02, 0.12), radius: 0.34, appearAt: 0.34, density: 90 },
-    { center: new THREE.Vector3(-0.55, 1.14, -0.1), radius: 0.32, appearAt: 0.38, density: 85 },
-    { center: new THREE.Vector3(0.42, 1.42, -0.22), radius: 0.3, appearAt: 0.46, density: 80 },
-    { center: new THREE.Vector3(-0.4, 1.46, 0.22), radius: 0.28, appearAt: 0.5, density: 75 },
-    { center: new THREE.Vector3(0.1, 1.82, 0.02), radius: 0.32, appearAt: 0.58, density: 95 },
-    { center: new THREE.Vector3(-0.08, 1.85, -0.02), radius: 0.26, appearAt: 0.62, density: 60 },
-    { center: new THREE.Vector3(0.36, 0.6, -0.12), radius: 0.22, appearAt: 0.4, density: 55 },
-    { center: new THREE.Vector3(-0.34, 0.64, 0.1), radius: 0.2, appearAt: 0.42, density: 50 },
-    { center: new THREE.Vector3(0.78, 1.12, 0.04), radius: 0.18, appearAt: 0.66, density: 45 },
-    { center: new THREE.Vector3(-0.72, 1.24, -0.02), radius: 0.18, appearAt: 0.68, density: 45 },
-    { center: new THREE.Vector3(0.55, 1.52, -0.1), radius: 0.17, appearAt: 0.7, density: 38 },
-    { center: new THREE.Vector3(-0.5, 1.55, 0.08), radius: 0.17, appearAt: 0.72, density: 38 },
+  // Cloud-pruned bonsai pads: dense outer shells + soft understory layers
+  const cores: FoliarPad[] = [
+    { center: new THREE.Vector3(0.62, 1.02, 0.12), radius: 0.36, appearAt: 0.34, density: 140 },
+    { center: new THREE.Vector3(-0.55, 1.14, -0.1), radius: 0.34, appearAt: 0.38, density: 130 },
+    { center: new THREE.Vector3(0.42, 1.42, -0.22), radius: 0.32, appearAt: 0.46, density: 120 },
+    { center: new THREE.Vector3(-0.4, 1.46, 0.22), radius: 0.3, appearAt: 0.5, density: 115 },
+    { center: new THREE.Vector3(0.1, 1.82, 0.02), radius: 0.34, appearAt: 0.58, density: 150 },
+    { center: new THREE.Vector3(-0.08, 1.88, -0.02), radius: 0.28, appearAt: 0.62, density: 95 },
+    { center: new THREE.Vector3(0.36, 0.6, -0.12), radius: 0.24, appearAt: 0.4, density: 80 },
+    { center: new THREE.Vector3(-0.34, 0.64, 0.1), radius: 0.22, appearAt: 0.42, density: 75 },
+    { center: new THREE.Vector3(0.78, 1.12, 0.04), radius: 0.2, appearAt: 0.66, density: 70 },
+    { center: new THREE.Vector3(-0.72, 1.24, -0.02), radius: 0.2, appearAt: 0.68, density: 70 },
+    { center: new THREE.Vector3(0.55, 1.52, -0.1), radius: 0.19, appearAt: 0.7, density: 58 },
+    { center: new THREE.Vector3(-0.5, 1.55, 0.08), radius: 0.19, appearAt: 0.72, density: 58 },
+    { center: new THREE.Vector3(0.22, 1.15, 0.18), radius: 0.16, appearAt: 0.55, density: 42 },
+    { center: new THREE.Vector3(-0.18, 1.2, -0.16), radius: 0.15, appearAt: 0.56, density: 40 },
   ];
+  const under: FoliarPad[] = cores.map((p, i) => ({
+    center: p.center.clone().add(new THREE.Vector3(0, -0.06 - (i % 3) * 0.01, 0)),
+    radius: p.radius * 0.78,
+    appearAt: p.appearAt + 0.02,
+    density: Math.floor(p.density * 0.35),
+    understory: true,
+  }));
+  return [...cores, ...under];
+}
+
+/** Flat oval leaf card — reads more like real foliage than spheres */
+function createLeafGeometry() {
+  const geo = new THREE.SphereGeometry(1, 8, 6);
+  geo.scale(1.15, 0.28, 0.72);
+  geo.computeVertexNormals();
+  return geo;
 }
 
 function hash(i: number) {
@@ -270,8 +290,8 @@ function TubeLimb({
       createTaperedTube(
         limb.points,
         limb.radius,
-        Math.max(24, limb.points.length * 10),
-        7
+        Math.max(32, limb.points.length * 12),
+        10
       ),
     [limb]
   );
@@ -299,9 +319,9 @@ function TubeLimb({
       <mesh geometry={geometry} castShadow receiveShadow>
         <meshStandardMaterial
           map={barkMap}
-          color={barkMap ? "#ffffff" : index === 0 ? "#3F2E22" : "#4A3728"}
-          roughness={0.94}
-          metalness={0.02}
+          color={barkMap ? "#e8ddd0" : index === 0 ? "#3F2E22" : "#4A3728"}
+          roughness={0.96}
+          metalness={0.01}
         />
       </mesh>
     </group>
@@ -322,6 +342,7 @@ function NeedleCanopy({
   const season = useExperienceStore((s) => s.season);
   const hoveredLeaf = useExperienceStore((s) => s.hoveredLeaf);
   const leafRipple = useExperienceStore((s) => s.leafRipple);
+  const cursor = useExperienceStore((s) => s.cursor);
   const setHoveredLeaf = useExperienceStore((s) => s.setHoveredLeaf);
   const triggerLeafRipple = useExperienceStore((s) => s.triggerLeafRipple);
   const colors = SEASON_CONFIG[season];
@@ -329,6 +350,8 @@ function NeedleCanopy({
   const color = useMemo(() => new THREE.Color(), []);
   const eased = useRef(0);
   const hoverStrength = useRef<Float32Array | null>(null);
+  const leafGeo = useMemo(() => createLeafGeometry(), []);
+  const tipGeo = useMemo(() => new THREE.ConeGeometry(0.28, 1.15, 5), []);
 
   const needles = useMemo(() => {
     const items: {
@@ -337,26 +360,32 @@ function NeedleCanopy({
       scale: number;
       hue: number;
       seed: number;
+      layer: number;
     }[] = [];
     let id = 0;
-    for (const pad of pads) {
+    for (let p = 0; p < pads.length; p++) {
+      const pad = pads[p];
+      const isUnder = !!pad.understory;
       for (let i = 0; i < pad.density; i++) {
         const u = hash(id + 1);
         const v = hash(id + 2);
         const w = hash(id + 3);
         const theta = u * Math.PI * 2;
+        // Flattened cloud-pad distribution (bonsai silhouette)
         const phi = Math.acos(2 * v - 1);
-        const r = Math.pow(w, 0.38) * pad.radius;
+        const r = Math.pow(w, 0.32) * pad.radius;
+        const yScale = isUnder ? 0.28 : 0.38;
         items.push({
           pos: new THREE.Vector3(
             pad.center.x + Math.sin(phi) * Math.cos(theta) * r,
-            pad.center.y + Math.cos(phi) * r * 0.4,
-            pad.center.z + Math.sin(phi) * Math.sin(theta) * r * 0.9
+            pad.center.y + Math.cos(phi) * r * yScale,
+            pad.center.z + Math.sin(phi) * Math.sin(theta) * r * 0.88
           ),
-          appearAt: pad.appearAt + (i / pad.density) * 0.14,
-          scale: 0.05 + hash(id + 4) * 0.075,
-          hue: hash(id + 5),
+          appearAt: pad.appearAt + (i / pad.density) * 0.12,
+          scale: (isUnder ? 0.038 : 0.045) + hash(id + 4) * (isUnder ? 0.05 : 0.07),
+          hue: isUnder ? hash(id + 5) * 0.4 : hash(id + 5),
           seed: id,
+          layer: isUnder ? 0 : 1,
         });
         id++;
       }
@@ -375,9 +404,14 @@ function NeedleCanopy({
   );
   const cHighlight = useMemo(() => {
     const c = new THREE.Color(colors.leafSecondary);
-    c.offsetHSL(0.02, 0.1, 0.12);
+    c.offsetHSL(0.02, 0.12, 0.18);
     return c;
   }, [colors.leafSecondary]);
+  const cShadow = useMemo(() => {
+    const c = new THREE.Color(colors.leaf);
+    c.offsetHSL(-0.02, -0.05, -0.18);
+    return c;
+  }, [colors.leaf]);
 
   useFrame(({ clock }, dt) => {
     if (!meshRef.current) return;
@@ -387,6 +421,9 @@ function NeedleCanopy({
     const hs = hoverStrength.current!;
     const rippleId = leafRipple?.id ?? -1;
     const rippleAge = leafRipple ? (performance.now() - leafRipple.at) / 1000 : 99;
+    // Soft magnetic field from pointer (normalized -1..1 → canopy space)
+    const magX = cursor.x * 0.55;
+    const magY = cursor.y * 0.35;
 
     for (let i = 0; i < needles.length; i++) {
       const targetHover =
@@ -394,12 +431,14 @@ function NeedleCanopy({
           ? 0
           : hoveredLeaf === i
             ? 1
-            : needles[i].pos.distanceTo(needles[hoveredLeaf].pos) < 0.28
-              ? 0.75
-              : needles[i].pos.distanceTo(needles[hoveredLeaf].pos) < 0.5
-                ? 0.35
-                : 0;
-      hs[i] += (targetHover - hs[i]) * Math.min(1, dt * 10);
+            : needles[i].pos.distanceTo(needles[hoveredLeaf].pos) < 0.22
+              ? 0.85
+              : needles[i].pos.distanceTo(needles[hoveredLeaf].pos) < 0.42
+                ? 0.45
+                : needles[i].pos.distanceTo(needles[hoveredLeaf].pos) < 0.65
+                  ? 0.18
+                  : 0;
+      hs[i] += (targetHover - hs[i]) * Math.min(1, dt * 12);
 
       const n = needles[i];
       const s = smoothstep(n.appearAt, n.appearAt + 0.1, g);
@@ -407,67 +446,76 @@ function NeedleCanopy({
         dummy.scale.setScalar(0);
       } else {
         let ripple = 0;
-        if (rippleAge < 1.2 && rippleId >= 0) {
+        if (rippleAge < 1.35 && rippleId >= 0) {
           const d = n.pos.distanceTo(needles[rippleId].pos);
-          const wave = rippleAge * 1.8 - d * 4;
-          if (wave > 0 && wave < 1.2) {
-            ripple = Math.sin(wave * Math.PI) * 0.08 * (1 - rippleAge / 1.2);
+          const wave = rippleAge * 2.1 - d * 3.6;
+          if (wave > 0 && wave < 1.35) {
+            ripple = Math.sin(wave * Math.PI) * 0.1 * (1 - rippleAge / 1.35);
           }
         }
 
         const h = hs[i];
+        // Cursor magnetism — nearby leaves lean toward pointer
+        const toMagX = magX - n.pos.x;
+        const toMagY = magY + 1.1 - n.pos.y;
+        const magDist = Math.sqrt(toMagX * toMagX + toMagY * toMagY) + 0.001;
+        const magFall = Math.max(0, 1 - magDist / 0.9) * 0.04 * (hoveredLeaf === null ? 1 : 0.35);
+
         const sway =
-          Math.sin(t * 1.05 + n.seed * 0.3) * 0.016 +
-          wind.x * 0.045 +
-          h * 0.08 +
-          ripple * 1.4;
+          Math.sin(t * 1.05 + n.seed * 0.3) * 0.014 +
+          wind.x * 0.05 +
+          h * 0.09 +
+          ripple * 1.5 +
+          toMagX * magFall;
         const bob =
-          Math.cos(t * 0.9 + n.seed * 0.25) * 0.01 +
-          wind.y * 0.012 +
-          h * 0.1 +
-          ripple * 1.2;
-        // Push leaves outward from hover point
+          Math.cos(t * 0.9 + n.seed * 0.25) * 0.009 +
+          wind.y * 0.014 +
+          h * 0.12 +
+          ripple * 1.35 +
+          toMagY * magFall * 0.6;
         let pushX = 0;
         let pushZ = 0;
         if (hoveredLeaf !== null && h > 0.05) {
           const dx = n.pos.x - needles[hoveredLeaf].pos.x;
           const dz = n.pos.z - needles[hoveredLeaf].pos.z;
-          pushX = dx * h * 0.35;
-          pushZ = dz * h * 0.35;
+          pushX = dx * h * 0.42;
+          pushZ = dz * h * 0.42;
         }
         dummy.position.set(n.pos.x + sway + pushX, n.pos.y + bob, n.pos.z + pushZ);
-        const sc = n.scale * s * (1 + h * 0.7 + ripple * 3.5);
-        dummy.scale.set(sc * 1.45, sc * 0.5, sc * 1.25);
+        const sc = n.scale * s * (1 + h * 0.85 + ripple * 4);
+        dummy.scale.set(sc * 1.55, sc * 0.55, sc * 1.35);
         dummy.rotation.set(
-          Math.sin(t * 0.3 + n.seed) * 0.2 + h * 0.85,
-          n.seed * 0.7 + h * 0.6,
-          Math.cos(t * 0.25 + n.seed) * 0.18 + wind.x * 0.12 + h * 0.9
+          Math.sin(t * 0.3 + n.seed) * 0.22 + h * 1.05 + wind.y * 0.15,
+          n.seed * 0.7 + h * 0.75,
+          Math.cos(t * 0.25 + n.seed) * 0.2 + wind.x * 0.16 + h * 1.1
         );
       }
       dummy.updateMatrix();
       meshRef.current.setMatrixAt(i, dummy.matrix);
 
-      if (hs[i] > 0.15) color.copy(cHighlight);
+      if (hs[i] > 0.2) color.copy(cHighlight);
+      else if (n.layer === 0) color.copy(cShadow);
       else color.copy(n.hue > 0.55 ? cSecondary : cPrimary);
       meshRef.current.setColorAt(i, color);
 
       if (tipRef.current && i % 3 === 0) {
+        const tipIdx = Math.floor(i / 3);
         if (s < 0.01) {
           dummy.scale.setScalar(0);
         } else {
-          const tipScale = n.scale * 0.35 * s * (1 + hs[i] * 0.5);
+          const tipScale = n.scale * 0.38 * s * (1 + hs[i] * 0.65);
           dummy.position.set(
-            n.pos.x + wind.x * 0.02,
-            n.pos.y + 0.02 + hs[i] * 0.02,
-            n.pos.z
+            n.pos.x + wind.x * 0.025 + (hoveredLeaf !== null ? pushOffset(n, needles, hoveredLeaf, hs[i]).x : 0),
+            n.pos.y + 0.022 + hs[i] * 0.035,
+            n.pos.z + (hoveredLeaf !== null ? pushOffset(n, needles, hoveredLeaf, hs[i]).z : 0)
           );
-          dummy.scale.set(tipScale * 0.5, tipScale * 1.4, tipScale * 0.5);
-          dummy.rotation.set(0.4, n.seed, wind.x * 0.2);
+          dummy.scale.set(tipScale * 0.45, tipScale * 1.55, tipScale * 0.45);
+          dummy.rotation.set(0.45 + hs[i] * 0.4, n.seed, wind.x * 0.25 + hs[i] * 0.5);
         }
         dummy.updateMatrix();
-        tipRef.current.setMatrixAt(Math.floor(i / 3), dummy.matrix);
+        tipRef.current.setMatrixAt(tipIdx, dummy.matrix);
         color.copy(cSecondary);
-        tipRef.current.setColorAt(Math.floor(i / 3), color);
+        tipRef.current.setColorAt(tipIdx, color);
       }
     }
     meshRef.current.instanceMatrix.needsUpdate = true;
@@ -497,14 +545,20 @@ function NeedleCanopy({
     ensureSoundOnInteraction();
     getAmbientEngine().playInteractionChime();
     getAmbientEngine().playLeafRustle();
-    triggerLeafRipple(e.instanceId);
+    const n = needles[e.instanceId];
+    // World offset matches Bonsai group placement
+    triggerLeafRipple(e.instanceId, {
+      x: n.pos.x + 0.85,
+      y: n.pos.y - 0.92,
+      z: n.pos.z,
+    });
   };
 
   return (
     <>
       <instancedMesh
         ref={meshRef}
-        args={[undefined, undefined, needles.length]}
+        args={[leafGeo, undefined, needles.length]}
         castShadow
         frustumCulled={false}
         onPointerMove={onLeafMove}
@@ -514,26 +568,37 @@ function NeedleCanopy({
         }}
         onClick={onLeafClick}
       >
-        <icosahedronGeometry args={[1, 1]} />
         <meshStandardMaterial
-          roughness={0.72}
+          roughness={0.68}
           metalness={0}
           flatShading
           emissive="#2A4A28"
-          emissiveIntensity={0.08}
+          emissiveIntensity={0.1}
+          side={THREE.DoubleSide}
         />
       </instancedMesh>
       <instancedMesh
         ref={tipRef}
-        args={[undefined, undefined, tipCount]}
+        args={[tipGeo, undefined, tipCount]}
         frustumCulled={false}
         raycast={() => null}
       >
-        <coneGeometry args={[0.35, 1.2, 5]} />
-        <meshStandardMaterial roughness={0.7} metalness={0} />
+        <meshStandardMaterial roughness={0.65} metalness={0} />
       </instancedMesh>
     </>
   );
+}
+
+function pushOffset(
+  n: { pos: THREE.Vector3 },
+  needles: { pos: THREE.Vector3 }[],
+  hoveredLeaf: number,
+  h: number
+) {
+  if (h < 0.05) return { x: 0, z: 0 };
+  const dx = n.pos.x - needles[hoveredLeaf].pos.x;
+  const dz = n.pos.z - needles[hoveredLeaf].pos.z;
+  return { x: dx * h * 0.42, z: dz * h * 0.42 };
 }
 
 function Seed({ growth }: { growth: number }) {
@@ -633,6 +698,38 @@ function Roots({ growth }: { growth: number }) {
   );
 }
 
+function Moss({ growth }: { growth: number }) {
+  const show = smoothstep(0.25, 0.45, growth);
+  if (show < 0.01) return null;
+  const clumps = [
+    [0.06, 0.03, 0.05, 0.045],
+    [-0.05, 0.025, 0.07, 0.038],
+    [0.02, 0.02, -0.06, 0.042],
+    [-0.08, 0.022, -0.03, 0.032],
+    [0.1, 0.018, -0.02, 0.028],
+  ] as const;
+  return (
+    <group>
+      {clumps.map((c, i) => (
+        <mesh
+          key={i}
+          castShadow
+          position={[c[0], c[1], c[2]]}
+          scale={show}
+          rotation={[0.4, i * 0.7, 0.2]}
+        >
+          <sphereGeometry args={[c[3], 8, 6]} />
+          <meshStandardMaterial
+            color={i % 2 ? "#3F6B38" : "#4A7A42"}
+            roughness={1}
+            flatShading
+          />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
 export function Bonsai() {
   const growth = useExperienceStore((s) => s.growth);
   const wind = useExperienceStore((s) => s.wind);
@@ -651,6 +748,7 @@ export function Bonsai() {
       <Seed growth={growth} />
       <Sprout growth={growth} />
       <Roots growth={growth} />
+      <Moss growth={growth} />
       {limbs.map((limb, i) => (
         <TubeLimb
           key={i}

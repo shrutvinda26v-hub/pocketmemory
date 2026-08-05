@@ -33,9 +33,9 @@ function buildLimbs(): Limb[] {
       new THREE.Vector3(0.02, 1.62, 0.01),
       new THREE.Vector3(0.0, 1.78, 0),
     ],
-    radius: 0.082,
-    appearAt: 0.1,
-    sway: 0.001,
+    radius: 0.105,
+    appearAt: 0.08,
+    sway: 0.0015,
   };
 
   const arms: Limb[] = [
@@ -46,8 +46,8 @@ function buildLimbs(): Limb[] {
         new THREE.Vector3(0.58, 0.94, 0.2),
         new THREE.Vector3(0.78, 1.06, 0.12),
       ],
-      radius: 0.03,
-      appearAt: 0.28,
+      radius: 0.036,
+      appearAt: 0.26,
       sway: 0.01,
     },
     {
@@ -57,8 +57,8 @@ function buildLimbs(): Limb[] {
         new THREE.Vector3(-0.52, 1.04, -0.2),
         new THREE.Vector3(-0.7, 1.2, -0.1),
       ],
-      radius: 0.028,
-      appearAt: 0.32,
+      radius: 0.034,
+      appearAt: 0.3,
       sway: 0.011,
     },
     {
@@ -68,8 +68,8 @@ function buildLimbs(): Limb[] {
         new THREE.Vector3(0.44, 1.4, -0.3),
         new THREE.Vector3(0.52, 1.55, -0.2),
       ],
-      radius: 0.024,
-      appearAt: 0.4,
+      radius: 0.03,
+      appearAt: 0.38,
       sway: 0.014,
     },
     {
@@ -79,8 +79,8 @@ function buildLimbs(): Limb[] {
         new THREE.Vector3(-0.42, 1.42, 0.3),
         new THREE.Vector3(-0.5, 1.56, 0.18),
       ],
-      radius: 0.022,
-      appearAt: 0.44,
+      radius: 0.028,
+      appearAt: 0.42,
       sway: 0.014,
     },
     {
@@ -90,8 +90,8 @@ function buildLimbs(): Limb[] {
         new THREE.Vector3(0.24, 1.72, 0.06),
         new THREE.Vector3(0.16, 1.95, 0.02),
       ],
-      radius: 0.017,
-      appearAt: 0.52,
+      radius: 0.022,
+      appearAt: 0.5,
       sway: 0.016,
     },
     {
@@ -101,8 +101,8 @@ function buildLimbs(): Limb[] {
         new THREE.Vector3(-0.2, 1.74, -0.04),
         new THREE.Vector3(-0.12, 1.96, 0),
       ],
-      radius: 0.016,
-      appearAt: 0.55,
+      radius: 0.02,
+      appearAt: 0.52,
       sway: 0.016,
     },
     {
@@ -111,8 +111,8 @@ function buildLimbs(): Limb[] {
         new THREE.Vector3(0.26, 0.56, -0.1),
         new THREE.Vector3(0.44, 0.6, -0.18),
       ],
-      radius: 0.025,
-      appearAt: 0.35,
+      radius: 0.03,
+      appearAt: 0.33,
       sway: 0.01,
     },
     {
@@ -121,8 +121,8 @@ function buildLimbs(): Limb[] {
         new THREE.Vector3(-0.28, 0.6, 0.12),
         new THREE.Vector3(-0.46, 0.66, 0.16),
       ],
-      radius: 0.023,
-      appearAt: 0.37,
+      radius: 0.028,
+      appearAt: 0.35,
       sway: 0.01,
     },
     {
@@ -179,28 +179,28 @@ type FoliarPad = {
 };
 
 function buildPads(): FoliarPad[] {
-  // Cloud-pruned bonsai pads: dense outer shells + soft understory layers
+  // Cloud-pruned pads — fewer leaves so each blade reads large and natural
   const cores: FoliarPad[] = [
-    { center: new THREE.Vector3(0.62, 1.02, 0.12), radius: 0.36, appearAt: 0.34, density: 140 },
-    { center: new THREE.Vector3(-0.55, 1.14, -0.1), radius: 0.34, appearAt: 0.38, density: 130 },
-    { center: new THREE.Vector3(0.42, 1.42, -0.22), radius: 0.32, appearAt: 0.46, density: 120 },
-    { center: new THREE.Vector3(-0.4, 1.46, 0.22), radius: 0.3, appearAt: 0.5, density: 115 },
-    { center: new THREE.Vector3(0.1, 1.82, 0.02), radius: 0.34, appearAt: 0.58, density: 150 },
-    { center: new THREE.Vector3(-0.08, 1.88, -0.02), radius: 0.28, appearAt: 0.62, density: 95 },
-    { center: new THREE.Vector3(0.36, 0.6, -0.12), radius: 0.24, appearAt: 0.4, density: 80 },
-    { center: new THREE.Vector3(-0.34, 0.64, 0.1), radius: 0.22, appearAt: 0.42, density: 75 },
-    { center: new THREE.Vector3(0.78, 1.12, 0.04), radius: 0.2, appearAt: 0.66, density: 70 },
-    { center: new THREE.Vector3(-0.72, 1.24, -0.02), radius: 0.2, appearAt: 0.68, density: 70 },
-    { center: new THREE.Vector3(0.55, 1.52, -0.1), radius: 0.19, appearAt: 0.7, density: 58 },
-    { center: new THREE.Vector3(-0.5, 1.55, 0.08), radius: 0.19, appearAt: 0.72, density: 58 },
-    { center: new THREE.Vector3(0.22, 1.15, 0.18), radius: 0.16, appearAt: 0.55, density: 42 },
-    { center: new THREE.Vector3(-0.18, 1.2, -0.16), radius: 0.15, appearAt: 0.56, density: 40 },
+    { center: new THREE.Vector3(0.62, 1.02, 0.12), radius: 0.38, appearAt: 0.34, density: 55 },
+    { center: new THREE.Vector3(-0.55, 1.14, -0.1), radius: 0.36, appearAt: 0.38, density: 52 },
+    { center: new THREE.Vector3(0.42, 1.42, -0.22), radius: 0.34, appearAt: 0.46, density: 48 },
+    { center: new THREE.Vector3(-0.4, 1.46, 0.22), radius: 0.32, appearAt: 0.5, density: 46 },
+    { center: new THREE.Vector3(0.1, 1.82, 0.02), radius: 0.36, appearAt: 0.58, density: 58 },
+    { center: new THREE.Vector3(-0.08, 1.88, -0.02), radius: 0.3, appearAt: 0.62, density: 40 },
+    { center: new THREE.Vector3(0.36, 0.6, -0.12), radius: 0.26, appearAt: 0.4, density: 32 },
+    { center: new THREE.Vector3(-0.34, 0.64, 0.1), radius: 0.24, appearAt: 0.42, density: 30 },
+    { center: new THREE.Vector3(0.78, 1.12, 0.04), radius: 0.22, appearAt: 0.66, density: 28 },
+    { center: new THREE.Vector3(-0.72, 1.24, -0.02), radius: 0.22, appearAt: 0.68, density: 28 },
+    { center: new THREE.Vector3(0.55, 1.52, -0.1), radius: 0.2, appearAt: 0.7, density: 24 },
+    { center: new THREE.Vector3(-0.5, 1.55, 0.08), radius: 0.2, appearAt: 0.72, density: 24 },
+    { center: new THREE.Vector3(0.22, 1.15, 0.18), radius: 0.18, appearAt: 0.55, density: 20 },
+    { center: new THREE.Vector3(-0.18, 1.2, -0.16), radius: 0.17, appearAt: 0.56, density: 18 },
   ];
   const under: FoliarPad[] = cores.map((p, i) => ({
-    center: p.center.clone().add(new THREE.Vector3(0, -0.06 - (i % 3) * 0.01, 0)),
-    radius: p.radius * 0.78,
-    appearAt: p.appearAt + 0.02,
-    density: Math.floor(p.density * 0.35),
+    center: p.center.clone().add(new THREE.Vector3(0, -0.07 - (i % 3) * 0.012, 0)),
+    radius: p.radius * 0.72,
+    appearAt: p.appearAt + 0.03,
+    density: Math.floor(p.density * 0.28),
     understory: true,
   }));
   return [...cores, ...under];
@@ -226,7 +226,7 @@ function createLeafGeometry() {
   }
   pos.needsUpdate = true;
   geo.computeVertexNormals();
-  geo.scale(0.55, 0.62, 1);
+  geo.scale(1.05, 1.2, 1.15);
   return geo;
 }
 
@@ -254,7 +254,13 @@ function createTaperedTube(
     const p = curve.getPointAt(t);
     const N = frames.normals[i];
     const B = frames.binormals[i];
-    const r = radius * (1 - t * 0.62) * (0.92 + Math.sin(t * Math.PI * 3) * 0.06);
+    // Natural taper + nebari flare at base + subtle bark ridges
+    let r = radius * (1 - t * 0.58) * (0.94 + Math.sin(t * Math.PI * 2.4) * 0.05);
+    if (t < 0.12) {
+      const flare = 1 - t / 0.12;
+      r *= 1 + flare * flare * 0.95;
+    }
+    r *= 1 + Math.sin(t * Math.PI * 7.5) * 0.035;
 
     for (let j = 0; j <= radialSegments; j++) {
       const v = j / radialSegments;
@@ -306,26 +312,36 @@ function TubeLimb({
       createTaperedTube(
         limb.points,
         limb.radius,
-        Math.max(32, limb.points.length * 12),
-        10
+        Math.max(48, limb.points.length * 14),
+        12
       ),
     [limb]
   );
 
   useFrame((_, dt) => {
     if (!pivot.current) return;
-    eased.current += (growth - eased.current) * Math.min(1, dt * 2.2);
-    const reveal = smoothstep(
-      limb.appearAt - 0.08,
-      limb.appearAt + 0.12,
+    // Soft ease — growth feels like living wood, not a pop-in
+    eased.current += (growth - eased.current) * Math.min(1, dt * 1.35);
+    const raw = smoothstep(
+      limb.appearAt - 0.1,
+      limb.appearAt + 0.18,
       eased.current
     );
+    // Ease-out cubic for natural extension
+    const reveal = 1 - Math.pow(1 - raw, 2.4);
     const t = performance.now() * 0.001;
     const sway =
-      Math.sin(t * 0.65 + index) * limb.sway * reveal + wind.x * limb.sway * 0.85;
+      Math.sin(t * 0.55 + index) * limb.sway * reveal + wind.x * limb.sway * 0.9;
     pivot.current.rotation.z = sway;
-    pivot.current.rotation.x = wind.y * limb.sway * 0.3;
-    pivot.current.scale.setScalar(Math.max(0.001, reveal));
+    pivot.current.rotation.x = wind.y * limb.sway * 0.35;
+    // Stretch slightly along growth, then settle to full form
+    const stretch = 0.72 + reveal * 0.28;
+    const fatten = 0.55 + reveal * 0.45;
+    pivot.current.scale.set(
+      Math.max(0.001, fatten),
+      Math.max(0.001, stretch),
+      Math.max(0.001, fatten)
+    );
   });
 
   if (!visible) return null;
@@ -335,8 +351,8 @@ function TubeLimb({
       <mesh geometry={geometry} castShadow receiveShadow>
         <meshStandardMaterial
           map={barkMap}
-          color={barkMap ? "#d8cfc4" : index === 0 ? "#3F2E22" : "#4A3728"}
-          roughness={0.97}
+          color={barkMap ? "#cfc4b6" : index === 0 ? "#3F2E22" : "#4A3728"}
+          roughness={0.98}
           metalness={0}
         />
       </mesh>
@@ -371,8 +387,12 @@ function NaturalCanopy({
   const eased = useRef(0);
   const hoverStr = useRef<Float32Array | null>(null);
   const hoverVel = useRef<Float32Array | null>(null);
+  const flowX = useRef<Float32Array | null>(null);
+  const flowZ = useRef<Float32Array | null>(null);
   const leafGeo = useMemo(() => createLeafGeometry(), []);
   const localHover = useRef(new THREE.Vector3());
+  const prevHover = useRef(new THREE.Vector3());
+  const hoverFlow = useRef(new THREE.Vector3());
   const hasHover = useRef(false);
 
   const leaves = useMemo(() => {
@@ -412,14 +432,14 @@ function NaturalCanopy({
         items.push({
           pos,
           outward,
-          appearAt: pad.appearAt + (i / pad.density) * 0.12,
+          appearAt: pad.appearAt + (i / pad.density) * 0.14,
           scale:
-            (isUnder ? 0.055 : 0.065) +
-            hash(id + 4) * (isUnder ? 0.04 : 0.055),
+            (isUnder ? 0.13 : 0.16) +
+            hash(id + 4) * (isUnder ? 0.07 : 0.1),
           hue: hash(id + 5),
           seed: id,
           under: isUnder,
-          tilt: (hash(id + 6) - 0.5) * 0.7,
+          tilt: (hash(id + 6) - 0.5) * 0.55,
           twist: hash(id + 7) * Math.PI * 2,
         });
         id++;
@@ -431,6 +451,8 @@ function NaturalCanopy({
   if (!hoverStr.current || hoverStr.current.length !== leaves.length) {
     hoverStr.current = new Float32Array(leaves.length);
     hoverVel.current = new Float32Array(leaves.length);
+    flowX.current = new Float32Array(leaves.length);
+    flowZ.current = new Float32Array(leaves.length);
   }
 
   const cPrimary = useMemo(() => new THREE.Color(colors.leaf), [colors.leaf]);
@@ -457,41 +479,67 @@ function NaturalCanopy({
   useFrame(({ clock }, dt) => {
     if (!meshRef.current) return;
     const clampedDt = Math.min(dt, 0.05);
-    eased.current += (growth - eased.current) * Math.min(1, clampedDt * 2.2);
+    // Slower canopy ease so leaves unfurl after wood
+    eased.current += (growth - eased.current) * Math.min(1, clampedDt * 1.5);
     const g = eased.current;
     const t = clock.elapsedTime;
     const hs = hoverStr.current!;
     const hv = hoverVel.current!;
+    const fx = flowX.current!;
+    const fz = flowZ.current!;
     const rippleId = leafRipple?.id ?? -1;
     const rippleAge = leafRipple
       ? (performance.now() - leafRipple.at) / 1000
       : 99;
 
     if (hoverPoint) {
-      localHover.current.set(
-        hoverPoint.x - 0.85,
-        hoverPoint.y + 0.92,
-        hoverPoint.z
-      );
+      const nx = hoverPoint.x - 0.85;
+      const ny = hoverPoint.y + 0.92;
+      const nz = hoverPoint.z;
+      if (hasHover.current) {
+        hoverFlow.current.set(
+          nx - prevHover.current.x,
+          ny - prevHover.current.y,
+          nz - prevHover.current.z
+        );
+      }
+      prevHover.current.set(nx, ny, nz);
+      localHover.current.set(nx, ny, nz);
       hasHover.current = true;
     } else {
       hasHover.current = false;
+      hoverFlow.current.multiplyScalar(0.9);
     }
+
+    // Soft pointer velocity for trailing flow
+    const flowLen =
+      Math.sqrt(
+        hoverFlow.current.x ** 2 +
+          hoverFlow.current.y ** 2 +
+          hoverFlow.current.z ** 2
+      ) + 1e-5;
 
     for (let i = 0; i < leaves.length; i++) {
       const n = leaves[i];
-      const s = smoothstep(n.appearAt, n.appearAt + 0.1, g);
+      // Longer unfurl window — growth looks gradual
+      const s = smoothstep(n.appearAt, n.appearAt + 0.16, g);
+      const unfurl = 1 - Math.pow(1 - s, 2.2);
 
       let target = 0;
+      let dx = 0;
+      let dy = 0;
+      let dz = 0;
       if (hasHover.current && s > 0.01) {
-        const dx = n.pos.x - localHover.current.x;
-        const dy = n.pos.y - localHover.current.y;
-        const dz = n.pos.z - localHover.current.z;
-        const d2 = dx * dx + dy * dy * 1.4 + dz * dz;
-        target = Math.exp(-d2 / (2 * 0.09 * 0.09));
+        dx = n.pos.x - localHover.current.x;
+        dy = n.pos.y - localHover.current.y;
+        dz = n.pos.z - localHover.current.z;
+        const d2 = dx * dx + dy * dy * 1.2 + dz * dz;
+        // Wider soft field so a brush of the hand moves a whole pad
+        target = Math.exp(-d2 / (2 * 0.16 * 0.16));
       }
 
-      const force = (target - hs[i]) * 38 - hv[i] * 11;
+      // Softer spring — leaves settle into a flowing motion
+      const force = (target - hs[i]) * 22 - hv[i] * 7.5;
       hv[i] += force * clampedDt;
       hs[i] += hv[i] * clampedDt;
       if (hs[i] < 0.001 && target < 0.001) {
@@ -505,34 +553,58 @@ function NaturalCanopy({
         const h = Math.min(1, Math.max(0, hs[i]));
 
         let ripple = 0;
-        if (rippleAge < 1.1 && rippleId >= 0) {
+        if (rippleAge < 1.4 && rippleId >= 0) {
           const d = n.pos.distanceTo(leaves[rippleId].pos);
-          const wave = rippleAge * 1.9 - d * 4.2;
-          if (wave > 0 && wave < 1.1) {
-            ripple = Math.sin(wave * Math.PI) * 0.045 * (1 - rippleAge / 1.1);
+          const wave = rippleAge * 1.7 - d * 3.2;
+          if (wave > 0 && wave < 1.3) {
+            ripple = Math.sin(wave * Math.PI) * 0.06 * (1 - rippleAge / 1.4);
           }
         }
 
+        // Idle breeze
         const breeze =
-          Math.sin(t * 0.85 + n.seed * 0.27) * 0.01 + wind.x * 0.028;
+          Math.sin(t * 0.9 + n.seed * 0.27) * 0.012 + wind.x * 0.032;
         const bob =
-          Math.cos(t * 0.7 + n.seed * 0.21) * 0.007 + wind.y * 0.01;
+          Math.cos(t * 0.75 + n.seed * 0.21) * 0.009 + wind.y * 0.012;
 
+        // Radial part + tangential swirl + pointer-drag flow
         let pushX = 0;
         let pushY = 0;
         let pushZ = 0;
-        if (h > 0.02 && hasHover.current) {
-          let dx = n.pos.x - localHover.current.x;
-          let dy = n.pos.y - localHover.current.y;
-          let dz = n.pos.z - localHover.current.z;
+        if (h > 0.015) {
           const len = Math.sqrt(dx * dx + dy * dy + dz * dz) + 1e-4;
-          dx /= len;
-          dy /= len;
-          dz /= len;
-          const part = h * 0.12;
-          pushX = dx * part;
-          pushY = dy * part * 0.45 + h * 0.028;
-          pushZ = dz * part;
+          const rx = dx / len;
+          const ry = dy / len;
+          const rz = dz / len;
+          // Tangential swirl (flow around the hand)
+          const tx = -rz;
+          const tz = rx;
+          const swirl =
+            Math.sin(t * 3.2 + n.seed + h * 4) * h * 0.085;
+          const part = h * 0.16;
+          // Drag trail in mouse direction
+          const drag = h * Math.min(1.8, flowLen * 14);
+
+          const targetFx =
+            rx * part +
+            tx * swirl +
+            (hoverFlow.current.x / flowLen) * drag * 0.12;
+          const targetFz =
+            rz * part +
+            tz * swirl +
+            (hoverFlow.current.z / flowLen) * drag * 0.12;
+
+          fx[i] += (targetFx - fx[i]) * Math.min(1, clampedDt * 8);
+          fz[i] += (targetFz - fz[i]) * Math.min(1, clampedDt * 8);
+
+          pushX = fx[i];
+          pushY = ry * part * 0.4 + h * 0.04 + Math.sin(t * 4 + n.seed) * h * 0.03;
+          pushZ = fz[i];
+        } else {
+          fx[i] *= 0.92;
+          fz[i] *= 0.92;
+          pushX = fx[i];
+          pushZ = fz[i];
         }
 
         dummy.position.set(
@@ -542,24 +614,30 @@ function NaturalCanopy({
         );
 
         tmpOut.copy(n.outward);
-        tmpOut.x += wind.x * 0.35 + breeze * 8;
-        tmpOut.y += 0.15 + h * 0.25;
-        tmpOut.z += wind.y * 0.2;
-        if (h > 0.02 && hasHover.current) {
-          tmpOut.x += (n.pos.x - localHover.current.x) * h * 1.8;
-          tmpOut.z += (n.pos.z - localHover.current.z) * h * 1.8;
-        }
+        tmpOut.x += wind.x * 0.4 + breeze * 9 + pushX * 2.5;
+        tmpOut.y += 0.2 + h * 0.45;
+        tmpOut.z += wind.y * 0.25 + pushZ * 2.5;
         tmpOut.normalize();
         quat.setFromUnitVectors(tmpUp, tmpOut);
         dummy.quaternion.copy(quat);
-        dummy.rotateOnAxis(tmpUp, n.twist + h * 0.35);
-        dummy.rotateX(n.tilt * 0.4 + Math.sin(t * 0.4 + n.seed) * 0.06);
+        // Flowing twist while hovered
+        dummy.rotateOnAxis(
+          tmpUp,
+          n.twist + h * 0.55 + Math.sin(t * 2.8 + n.seed) * h * 0.5
+        );
+        dummy.rotateX(
+          n.tilt * 0.35 +
+            Math.sin(t * 0.45 + n.seed) * 0.08 +
+            h * 0.35 +
+            (1 - unfurl) * 1.1
+        );
 
-        const sc = n.scale * s * (1 + h * 0.12 + ripple * 2.2);
+        // Unfurl from folded strip → full blade
+        const sc = n.scale * unfurl * (1 + h * 0.1 + ripple * 1.8);
         dummy.scale.set(
-          sc * (0.85 + n.hue * 0.2),
+          sc * (0.35 + unfurl * 0.65) * (0.9 + n.hue * 0.15),
           sc,
-          sc * (0.75 + n.hue * 0.15)
+          sc * (0.8 + n.hue * 0.12)
         );
       }
 
@@ -567,7 +645,7 @@ function NaturalCanopy({
       meshRef.current.setMatrixAt(i, dummy.matrix);
 
       const h = hs[i];
-      if (h > 0.25) color.copy(cHover);
+      if (h > 0.2) color.copy(cHover);
       else if (n.under) color.copy(cShadow);
       else if (n.hue > 0.62) color.copy(cSecondary);
       else if (n.hue < 0.22) color.copy(cSunlit);
@@ -708,25 +786,39 @@ function Sprout({ growth }: { growth: number }) {
 }
 
 function Roots({ growth }: { growth: number }) {
-  const show = smoothstep(0.2, 0.4, growth);
+  const show = smoothstep(0.18, 0.42, growth);
   if (show < 0.01) return null;
+  // Nebari — surface roots flaring from the trunk base
+  const roots = [
+    [0.12, 0.02, 0.08, 0.85, 0.14],
+    [-0.11, 0.018, 0.1, -0.5, 0.13],
+    [0.08, 0.015, -0.11, 0.35, 0.12],
+    [-0.09, 0.014, -0.09, -1.05, 0.11],
+    [0.15, 0.016, -0.02, 0.15, 0.1],
+    [-0.14, 0.015, 0.02, -1.4, 0.1],
+  ] as const;
   return (
     <group>
-      {[
-        [0.1, 0.02, 0.07, 0.9],
-        [-0.09, 0.015, 0.09, -0.55],
-        [0.05, 0.012, -0.1, 0.3],
-        [-0.06, 0.01, -0.08, -1.1],
-      ].map((r, i) => (
+      {/* Root flare disk */}
+      <mesh
+        castShadow
+        receiveShadow
+        position={[0, 0.012, 0]}
+        scale={[show * 1.15, show * 0.35, show * 1.15]}
+      >
+        <sphereGeometry args={[0.11, 16, 10]} />
+        <meshStandardMaterial color="#3A2A1E" roughness={0.98} />
+      </mesh>
+      {roots.map((r, i) => (
         <mesh
           key={i}
           castShadow
           position={[r[0] * show, r[1], r[2] * show]}
-          rotation={[0.3, r[3], 1.1]}
-          scale={show}
+          rotation={[0.45, r[3], 1.15]}
+          scale={[show, show * 0.9, show]}
         >
-          <cylinderGeometry args={[0.009, 0.016, 0.15, 5]} />
-          <meshStandardMaterial color="#3D2E22" roughness={1} />
+          <cylinderGeometry args={[0.008, 0.022, r[4], 6]} />
+          <meshStandardMaterial color="#35271C" roughness={1} />
         </mesh>
       ))}
     </group>

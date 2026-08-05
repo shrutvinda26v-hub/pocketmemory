@@ -73,12 +73,23 @@ function sectionFromProgress(progress: number): SectionId {
 
 /** Map scroll progress to growth: seed → crack → sprout → mature */
 function growthFromProgress(progress: number): number {
-  // Hold seed briefly, then rapid sprout hook, then steady growth
-  if (progress < 0.02) return 0;
-  if (progress < 0.08) return ((progress - 0.02) / 0.06) * 0.12; // crack + sprout
-  if (progress < 0.28) return 0.12 + ((progress - 0.08) / 0.2) * 0.28;
-  if (progress < 0.9) return 0.4 + ((progress - 0.28) / 0.62) * 0.55;
-  return Math.min(1, 0.95 + ((progress - 0.9) / 0.1) * 0.05);
+  // Gentle organic pacing — hold, unfurl, then steady maturation
+  if (progress < 0.025) return 0;
+  if (progress < 0.1) {
+    const t = (progress - 0.025) / 0.075;
+    return (t * t * (3 - 2 * t)) * 0.14; // ease seed crack + sprout
+  }
+  if (progress < 0.32) {
+    const t = (progress - 0.1) / 0.22;
+    return 0.14 + (t * t * (3 - 2 * t)) * 0.28; // trunk & first limbs
+  }
+  if (progress < 0.92) {
+    const t = (progress - 0.32) / 0.6;
+    // Slight ease-in-out for canopy fill
+    const e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+    return 0.42 + e * 0.53;
+  }
+  return Math.min(1, 0.95 + ((progress - 0.92) / 0.08) * 0.05);
 }
 
 export const useExperienceStore = create<ExperienceState>((set) => ({

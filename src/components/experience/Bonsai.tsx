@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useFrame, type ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
 import { useExperienceStore } from "@/store/useExperienceStore";
@@ -525,19 +525,46 @@ function NaturalCanopy({
   );
   const cSunlit = useMemo(() => {
     const c = new THREE.Color(colors.leafSecondary);
+    if (season === "winter") {
+      c.set("#FFFFFF");
+      return c;
+    }
     c.offsetHSL(0.01, 0.05, 0.08);
     return c;
-  }, [colors.leafSecondary]);
+  }, [colors.leafSecondary, season]);
   const cShadow = useMemo(() => {
     const c = new THREE.Color(colors.leaf);
+    if (season === "winter") {
+      c.set("#DCE2EA");
+      return c;
+    }
     c.offsetHSL(-0.015, -0.04, -0.14);
     return c;
-  }, [colors.leaf]);
+  }, [colors.leaf, season]);
   const cHover = useMemo(() => {
     const c = new THREE.Color(colors.leafSecondary);
+    if (season === "winter") {
+      c.set("#FFFFFF");
+      return c;
+    }
     c.offsetHSL(0.03, 0.08, 0.12);
     return c;
-  }, [colors.leafSecondary]);
+  }, [colors.leafSecondary, season]);
+  const matRef = useRef<THREE.MeshStandardMaterial>(null);
+
+  // Drop green albedo in winter so leaves read pure white / frost
+  useEffect(() => {
+    const mat = matRef.current;
+    if (!mat) return;
+    if (season === "winter") {
+      mat.map = null;
+      mat.roughness = 0.55;
+    } else {
+      mat.map = textures.leafAlbedo ?? null;
+      mat.roughness = 0.82;
+    }
+    mat.needsUpdate = true;
+  }, [season, textures.leafAlbedo]);
 
   useFrame(({ clock }, dt) => {
     if (!meshRef.current) return;
@@ -688,7 +715,12 @@ function NaturalCanopy({
       else if (n.hue > 0.62) color.copy(cSecondary);
       else if (n.hue < 0.22) color.copy(cSunlit);
       else color.copy(cPrimary);
-      color.offsetHSL(0, (n.hue - 0.5) * 0.04, (hash(n.seed + 9) - 0.5) * 0.06);
+      if (season === "winter") {
+        // Pure white / soft frost — value variation only
+        color.offsetHSL(0, 0, (hash(n.seed + 9) - 0.5) * 0.04);
+      } else {
+        color.offsetHSL(0, (n.hue - 0.5) * 0.04, (hash(n.seed + 9) - 0.5) * 0.06);
+      }
       meshRef.current.setColorAt(i, color);
     }
 
@@ -745,12 +777,13 @@ function NaturalCanopy({
       onClick={onLeafClick}
     >
       <meshStandardMaterial
-        map={textures.leafAlbedo}
+        ref={matRef}
+        map={season === "winter" ? undefined : textures.leafAlbedo}
         alphaMap={textures.leafAlpha}
         color="#ffffff"
         transparent
         alphaTest={0.28}
-        roughness={0.82}
+        roughness={season === "winter" ? 0.55 : 0.82}
         metalness={0}
         side={THREE.DoubleSide}
         depthWrite

@@ -86,9 +86,9 @@ export function AmbientParticles() {
   );
 }
 
-/** Soft snowfall — light enough that the bonsai stays visible */
+/** Fine natural snowfall — small soft flakes */
 export function Snowfall() {
-  const count = 120;
+  const count = 200;
   const mesh = useRef<THREE.InstancedMesh>(null);
   const season = useExperienceStore((s) => s.season);
   const wind = useExperienceStore((s) => s.wind);
@@ -98,13 +98,13 @@ export function Snowfall() {
   const flakes = useMemo(
     () =>
       Array.from({ length: count }, (_, i) => ({
-        x: 0.85 + (hash(i) - 0.5) * 4.8,
-        y: hash(i + 3) * 4.2,
-        z: (hash(i + 7) - 0.35) * 2.6,
-        speed: 0.12 + hash(i + 11) * 0.18,
-        drift: 0.18 + hash(i + 13) * 0.28,
-        size: 0.012 + hash(i + 17) * 0.018,
-        spin: 0.3 + hash(i + 19) * 1.2,
+        x: 0.85 + (hash(i) - 0.5) * 5.0,
+        y: hash(i + 3) * 4.4,
+        z: (hash(i + 7) - 0.35) * 2.8,
+        speed: 0.05 + hash(i + 11) * 0.09,
+        drift: 0.12 + hash(i + 13) * 0.22,
+        size: 0.0035 + hash(i + 17) * 0.006,
+        spin: 0.2 + hash(i + 19) * 0.8,
         phase: hash(i + 23) * Math.PI * 2,
       })),
     []
@@ -128,17 +128,21 @@ export function Snowfall() {
       f.y -= f.speed * dt;
       if (f.y < -1.3) {
         f.y = 3.2 + hash(i + Math.floor(t * 2)) * 0.5;
-        f.x = 0.85 + (hash(i * 5 + Math.floor(t)) - 0.5) * 4.8;
+        f.x = 0.85 + (hash(i * 5 + Math.floor(t)) - 0.5) * 5.0;
       }
-      const sway = Math.sin(t * 0.55 + f.phase) * f.drift + wind.x * 0.35;
+      // Soft spiral drift — natural, unhurried
+      const sway =
+        Math.sin(t * 0.4 + f.phase) * f.drift +
+        Math.sin(t * 0.18 + f.phase * 1.7) * f.drift * 0.35 +
+        wind.x * 0.25;
       dummy.position.set(
         f.x + sway,
         f.y,
-        f.z + Math.cos(t * 0.4 + f.phase) * f.drift * 0.4
+        f.z + Math.cos(t * 0.32 + f.phase) * f.drift * 0.35
       );
-      dummy.rotation.set(t * f.spin * 0.2, t * 0.12 + f.phase, 0);
-      const sc = f.size * 14;
-      dummy.scale.set(sc, sc * 0.85, sc);
+      dummy.rotation.set(t * f.spin * 0.15, t * 0.08 + f.phase, 0);
+      const sc = f.size * 7.5;
+      dummy.scale.set(sc, sc * 0.9, sc);
       dummy.updateMatrix();
       mesh.current.setMatrixAt(i, dummy.matrix);
     }
@@ -152,11 +156,11 @@ export function Snowfall() {
       frustumCulled={false}
       raycast={() => null}
     >
-      <sphereGeometry args={[1, 6, 4]} />
+      <sphereGeometry args={[1, 5, 4]} />
       <meshBasicMaterial
-        color="#F8FBFF"
+        color="#F5F8FC"
         transparent
-        opacity={0.72}
+        opacity={0.55}
         depthWrite={false}
       />
     </instancedMesh>

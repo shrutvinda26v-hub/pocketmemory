@@ -25,16 +25,16 @@ export function WeatherOverlay() {
     []
   );
 
-  // Light snow — keeps the tree readable
+  // Fine snow — small, slow, natural
   const snowFlakes = useMemo(
     () =>
-      Array.from({ length: 32 }, (_, i) => ({
+      Array.from({ length: 48 }, (_, i) => ({
         left: `${seeded(i + 20) * 100}%`,
-        delay: `${seeded(i + 23) * -10}s`,
-        duration: `${7 + seeded(i + 27) * 6}s`,
-        size: `${2.5 + seeded(i + 29) * 4}px`,
-        opacity: 0.4 + seeded(i + 31) * 0.35,
-        drift: `${-24 + seeded(i + 33) * 48}px`,
+        delay: `${seeded(i + 23) * -14}s`,
+        duration: `${10 + seeded(i + 27) * 8}s`,
+        size: `${1.2 + seeded(i + 29) * 1.8}px`,
+        opacity: 0.35 + seeded(i + 31) * 0.35,
+        drift: `${-18 + seeded(i + 33) * 36}px`,
       })),
     []
   );

@@ -638,6 +638,22 @@ body {
   gap: 0.5rem;
 }
 
+.sound-toggle:not(.on) {
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  color: var(--accent);
+  animation: music-pulse 2.8s ease-in-out infinite;
+}
+
+@keyframes music-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 0%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent);
+  }
+}
+
 .sound-waves {
   display: inline-flex;
   align-items: flex-end;

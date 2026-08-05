@@ -32,7 +32,7 @@ function createAmbientEngine() {
     if (!ctx) {
       ctx = new AudioContext();
       master = ctx.createGain();
-      master.gain.value = 0.5;
+      master.gain.value = 0.65;
       master.connect(ctx.destination);
 
       birdsGain = ctx.createGain();
@@ -44,7 +44,7 @@ function createAmbientEngine() {
       musicGain.connect(master);
 
       sfxGain = ctx.createGain();
-      sfxGain.gain.value = 0.7;
+      sfxGain.gain.value = 0.95;
       sfxGain.connect(master);
     }
     return true;
@@ -144,7 +144,7 @@ function createAmbientEngine() {
     const now = ctx.currentTime;
     musicGain.gain.cancelScheduledValues(now);
     musicGain.gain.setValueAtTime(musicGain.gain.value, now);
-    musicGain.gain.linearRampToValueAtTime(0.09, now + 2.5);
+    musicGain.gain.linearRampToValueAtTime(0.16, now + 2.0);
 
     // Two slow detuned sines per drone note
     [PAD_NOTES[0], PAD_NOTES[2], PAD_NOTES[3]].forEach((freq, i) => {
@@ -158,7 +158,7 @@ function createAmbientEngine() {
       osc2.type = "sine";
       osc.frequency.value = freq;
       osc2.frequency.value = freq * 1.002;
-      g.gain.value = 0.22 - i * 0.04;
+      g.gain.value = 0.32 - i * 0.05;
       osc.connect(filter);
       osc2.connect(filter);
       filter.connect(g);
@@ -171,7 +171,7 @@ function createAmbientEngine() {
     // Occasional soft melody notes
     musicTimer = setInterval(() => {
       if (!ctx || !musicGain) return;
-      playSoftNote(PAD_NOTES[2 + Math.floor(Math.random() * 4)], 0.018, 1.8);
+      playSoftNote(PAD_NOTES[2 + Math.floor(Math.random() * 4)], 0.028, 2.0);
     }, 7000 + Math.random() * 5000);
   }
 
@@ -287,8 +287,8 @@ function createAmbientEngine() {
       const g = ctx.createGain();
       const now = ctx.currentTime;
       g.gain.setValueAtTime(0, now);
-      g.gain.linearRampToValueAtTime(0.045, now + 0.02);
-      g.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+      g.gain.linearRampToValueAtTime(0.09, now + 0.025);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
       src.connect(filter);
       filter.connect(g);
       g.connect(sfxGain);
@@ -303,8 +303,9 @@ function createAmbientEngine() {
       lastChime = nowMs;
       void ctx.resume();
       const note = PAD_NOTES[3 + Math.floor(Math.random() * 3)];
-      playSoftNote(note, 0.04, 1.4);
-      playSoftNote(note * 1.5, 0.018, 1.1);
+      playSoftNote(note, 0.07, 1.6);
+      playSoftNote(note * 1.5, 0.035, 1.3);
+      playSoftNote(note * 2, 0.02, 1.0);
     },
     playWoodTap() {
       if (!ensure() || !ctx || !sfxGain) return;

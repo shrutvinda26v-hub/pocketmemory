@@ -14,6 +14,7 @@ import {
   Lanterns,
   Butterfly,
 } from "./Atmosphere";
+import { LeafSparkles } from "./LeafFX";
 import {
   SceneLighting,
   CameraRig,
@@ -30,6 +31,7 @@ function SceneContent() {
       <BambooShadows />
       <Pot />
       <Bonsai />
+      <LeafSparkles />
       <ProjectTags />
       <SkillBlossoms />
       <MilestoneBirds />

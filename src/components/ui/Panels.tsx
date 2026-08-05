@@ -189,16 +189,22 @@ export function SoundToggle() {
     <button
       type="button"
       className={`sound-toggle ${soundEnabled ? "on" : ""}`}
-      onClick={() => toggleSound()}
+      onClick={() => {
+        toggleSound();
+        if (!soundEnabled) {
+          ensureSoundOnInteraction();
+          getAmbientEngine().playInteractionChime();
+        }
+      }}
       aria-pressed={soundEnabled}
-      aria-label={soundEnabled ? "Mute ambient sound" : "Enable ambient sound"}
+      aria-label={soundEnabled ? "Mute music" : "Enable soothing music"}
     >
       <span className="sound-waves" aria-hidden>
         <i />
         <i />
         <i />
       </span>
-      {soundEnabled ? "Music on" : "Music"}
+      {soundEnabled ? "Music on" : "Play music"}
     </button>
   );
 }

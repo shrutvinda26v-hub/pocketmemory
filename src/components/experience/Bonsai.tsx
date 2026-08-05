@@ -394,12 +394,12 @@ function NeedleCanopy({
           ? 0
           : hoveredLeaf === i
             ? 1
-            : needles[i].pos.distanceTo(needles[hoveredLeaf].pos) < 0.22
-              ? 0.55
-              : needles[i].pos.distanceTo(needles[hoveredLeaf].pos) < 0.4
-                ? 0.2
+            : needles[i].pos.distanceTo(needles[hoveredLeaf].pos) < 0.28
+              ? 0.75
+              : needles[i].pos.distanceTo(needles[hoveredLeaf].pos) < 0.5
+                ? 0.35
                 : 0;
-      hs[i] += (targetHover - hs[i]) * Math.min(1, dt * 8);
+      hs[i] += (targetHover - hs[i]) * Math.min(1, dt * 10);
 
       const n = needles[i];
       const s = smoothstep(n.appearAt, n.appearAt + 0.1, g);
@@ -419,20 +419,29 @@ function NeedleCanopy({
         const sway =
           Math.sin(t * 1.05 + n.seed * 0.3) * 0.016 +
           wind.x * 0.045 +
-          h * 0.035 +
-          ripple;
+          h * 0.08 +
+          ripple * 1.4;
         const bob =
           Math.cos(t * 0.9 + n.seed * 0.25) * 0.01 +
           wind.y * 0.012 +
-          h * 0.04 +
-          ripple * 0.6;
-        dummy.position.set(n.pos.x + sway, n.pos.y + bob, n.pos.z);
-        const sc = n.scale * s * (1 + h * 0.35 + ripple * 2);
-        dummy.scale.set(sc * 1.35, sc * 0.55, sc * 1.2);
+          h * 0.1 +
+          ripple * 1.2;
+        // Push leaves outward from hover point
+        let pushX = 0;
+        let pushZ = 0;
+        if (hoveredLeaf !== null && h > 0.05) {
+          const dx = n.pos.x - needles[hoveredLeaf].pos.x;
+          const dz = n.pos.z - needles[hoveredLeaf].pos.z;
+          pushX = dx * h * 0.35;
+          pushZ = dz * h * 0.35;
+        }
+        dummy.position.set(n.pos.x + sway + pushX, n.pos.y + bob, n.pos.z + pushZ);
+        const sc = n.scale * s * (1 + h * 0.7 + ripple * 3.5);
+        dummy.scale.set(sc * 1.45, sc * 0.5, sc * 1.25);
         dummy.rotation.set(
-          Math.sin(t * 0.3 + n.seed) * 0.2 + h * 0.4,
-          n.seed * 0.7,
-          Math.cos(t * 0.25 + n.seed) * 0.18 + wind.x * 0.12 + h * 0.5
+          Math.sin(t * 0.3 + n.seed) * 0.2 + h * 0.85,
+          n.seed * 0.7 + h * 0.6,
+          Math.cos(t * 0.25 + n.seed) * 0.18 + wind.x * 0.12 + h * 0.9
         );
       }
       dummy.updateMatrix();
@@ -506,7 +515,13 @@ function NeedleCanopy({
         onClick={onLeafClick}
       >
         <icosahedronGeometry args={[1, 1]} />
-        <meshStandardMaterial roughness={0.78} metalness={0} flatShading />
+        <meshStandardMaterial
+          roughness={0.72}
+          metalness={0}
+          flatShading
+          emissive="#2A4A28"
+          emissiveIntensity={0.08}
+        />
       </instancedMesh>
       <instancedMesh
         ref={tipRef}

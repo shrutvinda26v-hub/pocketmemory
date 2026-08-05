@@ -6,6 +6,7 @@ import * as THREE from "three";
 import { testimonials } from "@/data/content";
 import { useExperienceStore } from "@/store/useExperienceStore";
 import { SEASON_CONFIG } from "@/lib/seasons";
+import { ensureSoundOnInteraction, getAmbientEngine } from "@/lib/sound";
 
 function FloatingLeaf({
   id,
@@ -54,11 +55,15 @@ function FloatingLeaf({
       castShadow
       onClick={(e) => {
         e.stopPropagation();
+        ensureSoundOnInteraction();
+        getAmbientEngine().playInteractionChime();
         setActiveTestimonial(activeTestimonial === id ? null : id);
       }}
       onPointerOver={(e) => {
         e.stopPropagation();
         document.body.style.cursor = "pointer";
+        ensureSoundOnInteraction();
+        getAmbientEngine().playLeafRustle();
       }}
       onPointerOut={() => {
         document.body.style.cursor = "auto";

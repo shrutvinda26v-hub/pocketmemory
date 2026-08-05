@@ -6,6 +6,7 @@ import { Text } from "@react-three/drei";
 import * as THREE from "three";
 import { projects } from "@/data/content";
 import { useExperienceStore } from "@/store/useExperienceStore";
+import { ensureSoundOnInteraction, getAmbientEngine } from "@/lib/sound";
 
 const TAG_ANCHORS: [number, number, number][] = [
   [0.72, 0.95, 0.18],
@@ -61,6 +62,8 @@ function WoodenTag({
           e.stopPropagation();
           hovered.current = true;
           document.body.style.cursor = "pointer";
+          ensureSoundOnInteraction();
+          getAmbientEngine().playLeafRustle();
         }}
         onPointerOut={() => {
           hovered.current = false;
@@ -68,6 +71,8 @@ function WoodenTag({
         }}
         onClick={(e) => {
           e.stopPropagation();
+          ensureSoundOnInteraction();
+          getAmbientEngine().playWoodTap();
           setActiveProject(activeProject === id ? null : id);
         }}
       >

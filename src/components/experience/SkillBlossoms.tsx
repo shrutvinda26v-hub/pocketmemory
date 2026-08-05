@@ -7,6 +7,7 @@ import * as THREE from "three";
 import { skills } from "@/data/content";
 import { useExperienceStore } from "@/store/useExperienceStore";
 import { SEASON_CONFIG } from "@/lib/seasons";
+import { ensureSoundOnInteraction, getAmbientEngine } from "@/lib/sound";
 
 const BLOSSOM_POS: [number, number, number][] = [
   [0.85, 1.0, 0.2],
@@ -70,6 +71,8 @@ function Blossom({
         e.stopPropagation();
         setActiveSkill(id);
         document.body.style.cursor = "pointer";
+        ensureSoundOnInteraction();
+        getAmbientEngine().playBlossomTone();
       }}
       onPointerOut={() => {
         if (activeSkill === id) setActiveSkill(null);
@@ -77,6 +80,8 @@ function Blossom({
       }}
       onClick={(e) => {
         e.stopPropagation();
+        ensureSoundOnInteraction();
+        getAmbientEngine().playInteractionChime();
         setActiveSkill(open ? null : id);
       }}
     >

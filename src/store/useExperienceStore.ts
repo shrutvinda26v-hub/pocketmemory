@@ -24,6 +24,8 @@ interface ExperienceState {
   activeTestimonial: string | null;
   activeMilestone: string | null;
   cameraPush: number;
+  hoveredLeaf: number | null;
+  leafRipple: { id: number; at: number } | null;
   setProgress: (progress: number) => void;
   setSection: (section: SectionId) => void;
   setSeason: (season: Season) => void;
@@ -36,6 +38,8 @@ interface ExperienceState {
   setActiveSkill: (id: string | null) => void;
   setActiveTestimonial: (id: string | null) => void;
   setActiveMilestone: (id: string | null) => void;
+  setHoveredLeaf: (id: number | null) => void;
+  triggerLeafRipple: (id: number) => void;
 }
 
 const SECTION_THRESHOLDS: { id: SectionId; at: number }[] = [
@@ -80,6 +84,8 @@ export const useExperienceStore = create<ExperienceState>((set) => ({
   activeTestimonial: null,
   activeMilestone: null,
   cameraPush: 0,
+  hoveredLeaf: null,
+  leafRipple: null,
   setProgress: (progress) =>
     set({
       progress,
@@ -98,4 +104,6 @@ export const useExperienceStore = create<ExperienceState>((set) => ({
   setActiveSkill: (activeSkill) => set({ activeSkill }),
   setActiveTestimonial: (activeTestimonial) => set({ activeTestimonial }),
   setActiveMilestone: (activeMilestone) => set({ activeMilestone }),
+  setHoveredLeaf: (hoveredLeaf) => set({ hoveredLeaf }),
+  triggerLeafRipple: (id) => set({ leafRipple: { id, at: performance.now() } }),
 }));

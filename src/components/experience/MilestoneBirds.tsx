@@ -6,6 +6,7 @@ import { Text } from "@react-three/drei";
 import * as THREE from "three";
 import { milestones } from "@/data/content";
 import { useExperienceStore } from "@/store/useExperienceStore";
+import { ensureSoundOnInteraction, getAmbientEngine } from "@/lib/sound";
 
 const PERCHES: [number, number, number][] = [
   [0.9, 1.05, 0.15],
@@ -66,11 +67,15 @@ function Bird({
       ref={group}
       onClick={(e) => {
         e.stopPropagation();
+        ensureSoundOnInteraction();
+        getAmbientEngine().playBirdLand();
         setActiveMilestone(open ? null : id);
       }}
       onPointerOver={(e) => {
         e.stopPropagation();
         document.body.style.cursor = "pointer";
+        ensureSoundOnInteraction();
+        getAmbientEngine().playLeafRustle();
       }}
       onPointerOut={() => {
         document.body.style.cursor = "auto";

@@ -72,7 +72,7 @@ export function Experience() {
             <SoundToggle />
           </div>
           <p className="season-hint" aria-hidden>
-            Keys 1–4 seasons · M mute
+            Keys 1–4 seasons · click leaves · Music
           </p>
         </div>
         <div className="scroll-track" aria-hidden>

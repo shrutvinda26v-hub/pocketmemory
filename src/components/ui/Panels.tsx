@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { projects, skills, milestones, testimonials } from "@/data/content";
 import { useExperienceStore } from "@/store/useExperienceStore";
 import { seasons } from "@/data/content";
+import { ensureSoundOnInteraction, getAmbientEngine } from "@/lib/sound";
 
 export function ProjectPanel() {
   const activeProject = useExperienceStore((s) => s.activeProject);
@@ -161,11 +162,15 @@ export function SeasonControls() {
           onPointerDown={(e) => {
             e.preventDefault();
             e.stopPropagation();
+            ensureSoundOnInteraction();
+            getAmbientEngine().playSeasonChange();
             setSeason(s.id);
           }}
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
+            ensureSoundOnInteraction();
+            getAmbientEngine().playSeasonChange();
             setSeason(s.id);
           }}
         >
@@ -193,7 +198,7 @@ export function SoundToggle() {
         <i />
         <i />
       </span>
-      {soundEnabled ? "Sound on" : "Sound"}
+      {soundEnabled ? "Music on" : "Music"}
     </button>
   );
 }

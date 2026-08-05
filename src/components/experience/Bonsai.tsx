@@ -1,11 +1,12 @@
 "use client";
 
 import { useMemo, useRef } from "react";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, type ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
 import { useExperienceStore } from "@/store/useExperienceStore";
 import { SEASON_CONFIG } from "@/lib/seasons";
 import { getTextures } from "@/lib/textures";
+import { ensureSoundOnInteraction, getAmbientEngine } from "@/lib/sound";
 
 export function smoothstep(edge0: number, edge1: number, x: number) {
   const t = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0)));
@@ -178,18 +179,18 @@ type FoliarPad = {
 
 function buildPads(): FoliarPad[] {
   return [
-    { center: new THREE.Vector3(0.62, 1.02, 0.12), radius: 0.32, appearAt: 0.34, density: 70 },
-    { center: new THREE.Vector3(-0.55, 1.14, -0.1), radius: 0.3, appearAt: 0.38, density: 66 },
-    { center: new THREE.Vector3(0.42, 1.42, -0.22), radius: 0.28, appearAt: 0.46, density: 62 },
-    { center: new THREE.Vector3(-0.4, 1.46, 0.22), radius: 0.26, appearAt: 0.5, density: 58 },
-    { center: new THREE.Vector3(0.1, 1.82, 0.02), radius: 0.3, appearAt: 0.58, density: 74 },
-    { center: new THREE.Vector3(-0.08, 1.85, -0.02), radius: 0.24, appearAt: 0.62, density: 48 },
-    { center: new THREE.Vector3(0.36, 0.6, -0.12), radius: 0.2, appearAt: 0.4, density: 42 },
-    { center: new THREE.Vector3(-0.34, 0.64, 0.1), radius: 0.19, appearAt: 0.42, density: 40 },
-    { center: new THREE.Vector3(0.78, 1.12, 0.04), radius: 0.16, appearAt: 0.66, density: 34 },
-    { center: new THREE.Vector3(-0.72, 1.24, -0.02), radius: 0.16, appearAt: 0.68, density: 34 },
-    { center: new THREE.Vector3(0.55, 1.52, -0.1), radius: 0.15, appearAt: 0.7, density: 28 },
-    { center: new THREE.Vector3(-0.5, 1.55, 0.08), radius: 0.15, appearAt: 0.72, density: 28 },
+    { center: new THREE.Vector3(0.62, 1.02, 0.12), radius: 0.34, appearAt: 0.34, density: 90 },
+    { center: new THREE.Vector3(-0.55, 1.14, -0.1), radius: 0.32, appearAt: 0.38, density: 85 },
+    { center: new THREE.Vector3(0.42, 1.42, -0.22), radius: 0.3, appearAt: 0.46, density: 80 },
+    { center: new THREE.Vector3(-0.4, 1.46, 0.22), radius: 0.28, appearAt: 0.5, density: 75 },
+    { center: new THREE.Vector3(0.1, 1.82, 0.02), radius: 0.32, appearAt: 0.58, density: 95 },
+    { center: new THREE.Vector3(-0.08, 1.85, -0.02), radius: 0.26, appearAt: 0.62, density: 60 },
+    { center: new THREE.Vector3(0.36, 0.6, -0.12), radius: 0.22, appearAt: 0.4, density: 55 },
+    { center: new THREE.Vector3(-0.34, 0.64, 0.1), radius: 0.2, appearAt: 0.42, density: 50 },
+    { center: new THREE.Vector3(0.78, 1.12, 0.04), radius: 0.18, appearAt: 0.66, density: 45 },
+    { center: new THREE.Vector3(-0.72, 1.24, -0.02), radius: 0.18, appearAt: 0.68, density: 45 },
+    { center: new THREE.Vector3(0.55, 1.52, -0.1), radius: 0.17, appearAt: 0.7, density: 38 },
+    { center: new THREE.Vector3(-0.5, 1.55, 0.08), radius: 0.17, appearAt: 0.72, density: 38 },
   ];
 }
 
@@ -317,11 +318,17 @@ function NeedleCanopy({
   wind: { x: number; y: number };
 }) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
+  const tipRef = useRef<THREE.InstancedMesh>(null);
   const season = useExperienceStore((s) => s.season);
+  const hoveredLeaf = useExperienceStore((s) => s.hoveredLeaf);
+  const leafRipple = useExperienceStore((s) => s.leafRipple);
+  const setHoveredLeaf = useExperienceStore((s) => s.setHoveredLeaf);
+  const triggerLeafRipple = useExperienceStore((s) => s.triggerLeafRipple);
   const colors = SEASON_CONFIG[season];
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const color = useMemo(() => new THREE.Color(), []);
   const eased = useRef(0);
+  const hoverStrength = useRef<Float32Array | null>(null);
 
   const needles = useMemo(() => {
     const items: {
@@ -339,15 +346,15 @@ function NeedleCanopy({
         const w = hash(id + 3);
         const theta = u * Math.PI * 2;
         const phi = Math.acos(2 * v - 1);
-        const r = Math.pow(w, 0.4) * pad.radius;
+        const r = Math.pow(w, 0.38) * pad.radius;
         items.push({
           pos: new THREE.Vector3(
             pad.center.x + Math.sin(phi) * Math.cos(theta) * r,
-            pad.center.y + Math.cos(phi) * r * 0.42,
-            pad.center.z + Math.sin(phi) * Math.sin(theta) * r * 0.88
+            pad.center.y + Math.cos(phi) * r * 0.4,
+            pad.center.z + Math.sin(phi) * Math.sin(theta) * r * 0.9
           ),
           appearAt: pad.appearAt + (i / pad.density) * 0.14,
-          scale: 0.055 + hash(id + 4) * 0.07,
+          scale: 0.05 + hash(id + 4) * 0.075,
           hue: hash(id + 5),
           seed: id,
         });
@@ -357,56 +364,160 @@ function NeedleCanopy({
     return items;
   }, [pads]);
 
+  if (!hoverStrength.current || hoverStrength.current.length !== needles.length) {
+    hoverStrength.current = new Float32Array(needles.length);
+  }
+
   const cPrimary = useMemo(() => new THREE.Color(colors.leaf), [colors.leaf]);
   const cSecondary = useMemo(
     () => new THREE.Color(colors.leafSecondary),
     [colors.leafSecondary]
   );
+  const cHighlight = useMemo(() => {
+    const c = new THREE.Color(colors.leafSecondary);
+    c.offsetHSL(0.02, 0.1, 0.12);
+    return c;
+  }, [colors.leafSecondary]);
 
   useFrame(({ clock }, dt) => {
     if (!meshRef.current) return;
     eased.current += (growth - eased.current) * Math.min(1, dt * 2.2);
     const g = eased.current;
     const t = clock.elapsedTime;
+    const hs = hoverStrength.current!;
+    const rippleId = leafRipple?.id ?? -1;
+    const rippleAge = leafRipple ? (performance.now() - leafRipple.at) / 1000 : 99;
+
     for (let i = 0; i < needles.length; i++) {
+      const targetHover =
+        hoveredLeaf === null
+          ? 0
+          : hoveredLeaf === i
+            ? 1
+            : needles[i].pos.distanceTo(needles[hoveredLeaf].pos) < 0.22
+              ? 0.55
+              : needles[i].pos.distanceTo(needles[hoveredLeaf].pos) < 0.4
+                ? 0.2
+                : 0;
+      hs[i] += (targetHover - hs[i]) * Math.min(1, dt * 8);
+
       const n = needles[i];
       const s = smoothstep(n.appearAt, n.appearAt + 0.1, g);
       if (s < 0.01) {
         dummy.scale.setScalar(0);
       } else {
+        let ripple = 0;
+        if (rippleAge < 1.2 && rippleId >= 0) {
+          const d = n.pos.distanceTo(needles[rippleId].pos);
+          const wave = rippleAge * 1.8 - d * 4;
+          if (wave > 0 && wave < 1.2) {
+            ripple = Math.sin(wave * Math.PI) * 0.08 * (1 - rippleAge / 1.2);
+          }
+        }
+
+        const h = hs[i];
         const sway =
-          Math.sin(t * 1.05 + n.seed * 0.3) * 0.018 + wind.x * 0.04;
+          Math.sin(t * 1.05 + n.seed * 0.3) * 0.016 +
+          wind.x * 0.045 +
+          h * 0.035 +
+          ripple;
         const bob =
-          Math.cos(t * 0.9 + n.seed * 0.25) * 0.01 + wind.y * 0.01;
+          Math.cos(t * 0.9 + n.seed * 0.25) * 0.01 +
+          wind.y * 0.012 +
+          h * 0.04 +
+          ripple * 0.6;
         dummy.position.set(n.pos.x + sway, n.pos.y + bob, n.pos.z);
-        const sc = n.scale * s;
-        dummy.scale.set(sc * 1.2, sc * 0.65, sc * 1.1);
+        const sc = n.scale * s * (1 + h * 0.35 + ripple * 2);
+        dummy.scale.set(sc * 1.35, sc * 0.55, sc * 1.2);
         dummy.rotation.set(
-          Math.sin(t * 0.3 + n.seed) * 0.25,
+          Math.sin(t * 0.3 + n.seed) * 0.2 + h * 0.4,
           n.seed * 0.7,
-          Math.cos(t * 0.25 + n.seed) * 0.2 + wind.x * 0.1
+          Math.cos(t * 0.25 + n.seed) * 0.18 + wind.x * 0.12 + h * 0.5
         );
       }
       dummy.updateMatrix();
       meshRef.current.setMatrixAt(i, dummy.matrix);
-      color.copy(n.hue > 0.55 ? cSecondary : cPrimary);
+
+      if (hs[i] > 0.15) color.copy(cHighlight);
+      else color.copy(n.hue > 0.55 ? cSecondary : cPrimary);
       meshRef.current.setColorAt(i, color);
+
+      if (tipRef.current && i % 3 === 0) {
+        if (s < 0.01) {
+          dummy.scale.setScalar(0);
+        } else {
+          const tipScale = n.scale * 0.35 * s * (1 + hs[i] * 0.5);
+          dummy.position.set(
+            n.pos.x + wind.x * 0.02,
+            n.pos.y + 0.02 + hs[i] * 0.02,
+            n.pos.z
+          );
+          dummy.scale.set(tipScale * 0.5, tipScale * 1.4, tipScale * 0.5);
+          dummy.rotation.set(0.4, n.seed, wind.x * 0.2);
+        }
+        dummy.updateMatrix();
+        tipRef.current.setMatrixAt(Math.floor(i / 3), dummy.matrix);
+        color.copy(cSecondary);
+        tipRef.current.setColorAt(Math.floor(i / 3), color);
+      }
     }
     meshRef.current.instanceMatrix.needsUpdate = true;
     if (meshRef.current.instanceColor)
       meshRef.current.instanceColor.needsUpdate = true;
+    if (tipRef.current) {
+      tipRef.current.instanceMatrix.needsUpdate = true;
+      if (tipRef.current.instanceColor)
+        tipRef.current.instanceColor.needsUpdate = true;
+    }
   });
 
+  const tipCount = Math.ceil(needles.length / 3);
+
+  const onLeafMove = (e: ThreeEvent<PointerEvent>) => {
+    e.stopPropagation();
+    if (e.instanceId == null) return;
+    setHoveredLeaf(e.instanceId);
+    document.body.style.cursor = "pointer";
+    ensureSoundOnInteraction();
+    getAmbientEngine().playLeafRustle();
+  };
+
+  const onLeafClick = (e: ThreeEvent<MouseEvent>) => {
+    e.stopPropagation();
+    if (e.instanceId == null) return;
+    ensureSoundOnInteraction();
+    getAmbientEngine().playInteractionChime();
+    getAmbientEngine().playLeafRustle();
+    triggerLeafRipple(e.instanceId);
+  };
+
   return (
-    <instancedMesh
-      ref={meshRef}
-      args={[undefined, undefined, needles.length]}
-      castShadow
-      frustumCulled={false}
-    >
-      <sphereGeometry args={[1, 8, 6]} />
-      <meshStandardMaterial roughness={0.8} metalness={0} />
-    </instancedMesh>
+    <>
+      <instancedMesh
+        ref={meshRef}
+        args={[undefined, undefined, needles.length]}
+        castShadow
+        frustumCulled={false}
+        onPointerMove={onLeafMove}
+        onPointerOut={() => {
+          setHoveredLeaf(null);
+          document.body.style.cursor = "auto";
+        }}
+        onClick={onLeafClick}
+      >
+        <icosahedronGeometry args={[1, 1]} />
+        <meshStandardMaterial roughness={0.78} metalness={0} flatShading />
+      </instancedMesh>
+      <instancedMesh
+        ref={tipRef}
+        args={[undefined, undefined, tipCount]}
+        frustumCulled={false}
+        raycast={() => null}
+      >
+        <coneGeometry args={[0.35, 1.2, 5]} />
+        <meshStandardMaterial roughness={0.7} metalness={0} />
+      </instancedMesh>
+    </>
   );
 }
 

@@ -161,7 +161,7 @@ export function SeasonControls() {
           aria-pressed={season === s.id}
           title={
             s.id === "rain"
-              ? "Natural monsoon rain"
+              ? "Soft natural drizzle"
               : s.id === "summer"
                 ? "Bright summer sun"
                 : s.id === "autumn"

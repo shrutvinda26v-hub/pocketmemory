@@ -52,7 +52,14 @@ export function SceneLighting() {
 
   return (
     <>
-      <fog attach="fog" args={[config.fogColor, 7, 18]} />
+      <fog
+        attach="fog"
+        args={[
+          config.fogColor,
+          season === "winter" ? 9 : 7,
+          season === "winter" ? 22 : 18,
+        ]}
+      />
       <ambientLight intensity={config.ambientIntensity * 0.85} color="#F5F0E8" />
       <directionalLight
         ref={sun}

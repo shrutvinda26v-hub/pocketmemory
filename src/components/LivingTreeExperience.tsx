@@ -6,6 +6,7 @@ import { SceneEngine } from "@/lib/sceneEngine";
 import type { InteractionPoint } from "@/lib/sceneTypes";
 import { getTheme, type TreeThemeId } from "@/lib/treeThemes";
 import { BootVeil } from "./BootVeil";
+import { HandCameraPreview } from "./HandCameraPreview";
 import { UIOverlay } from "./UIOverlay";
 
 function isTouchPrimaryDevice() {
@@ -35,6 +36,7 @@ export function LivingTreeExperience() {
   const [themeId, setThemeId] = useState<TreeThemeId>("azure");
   const [trackingStatus, setTrackingStatus] = useState<TrackingStatus>("idle");
   const [handDetected, setHandDetected] = useState(false);
+  const [tracker, setTracker] = useState<HandTracker | null>(null);
   const [isTouchPrimary] = useState(() => isTouchPrimaryDevice());
   const theme = getTheme(themeId);
 
@@ -104,25 +106,27 @@ export function LivingTreeExperience() {
       }, 1200);
     });
 
-    const tracker = new HandTracker();
-    trackerRef.current = tracker;
-    tracker.onStatus = (status) => setTrackingStatus(status);
+    const handTracker = new HandTracker();
+    handTracker.setAccent(getTheme("azure").glow);
+    trackerRef.current = handTracker;
+    setTracker(handTracker);
+    handTracker.onStatus = (status) => setTrackingStatus(status);
 
     const onResize = () => engine.resize();
     window.addEventListener("resize", onResize);
 
     let lastDetected: boolean | null = null;
     const syncLoop = () => {
-      const trackerPoint = tracker.point;
+      const trackerPoint = handTracker.point;
       let next = interactionRef.current;
 
-      if (interactiveRef.current && tracker.status === "active" && trackerPoint.active) {
+      if (interactiveRef.current && handTracker.status === "active" && trackerPoint.active) {
         next = trackerPoint;
         if (lastDetected !== true) {
           lastDetected = true;
           setHandDetected(true);
         }
-      } else if (tracker.status === "active") {
+      } else if (handTracker.status === "active") {
         if (lastDetected !== false) {
           lastDetected = false;
           setHandDetected(false);
@@ -144,10 +148,11 @@ export function LivingTreeExperience() {
       if (cameraTimer) window.clearTimeout(cameraTimer);
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", onResize);
-      tracker.stop();
+      handTracker.stop();
       engine.destroy();
       engineRef.current = null;
       trackerRef.current = null;
+      setTracker(null);
     };
   }, [isTouchPrimary, toggleCamera]);
 
@@ -246,6 +251,10 @@ export function LivingTreeExperience() {
     };
   }, []);
 
+  useEffect(() => {
+    tracker?.setAccent(theme.glow);
+  }, [tracker, theme]);
+
   return (
     <div className="relative h-dvh w-full overflow-hidden bg-[#000814]">
       <canvas
@@ -264,6 +273,12 @@ export function LivingTreeExperience() {
         switching={switching}
         onToggleCamera={() => void toggleCamera()}
         onSelectTree={(id) => void selectTree(id)}
+      />
+      <HandCameraPreview
+        visible={trackingStatus === "active"}
+        tracker={tracker}
+        accent={theme.accentCss}
+        handDetected={handDetected}
       />
       <BootVeil visible={booting || !ready} />
     </div>

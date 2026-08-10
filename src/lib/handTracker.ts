@@ -37,6 +37,33 @@ const INDEX_TIP = 8;
 /** Palm approximation: wrist + MCP joints */
 const PALM_IDS = [0, 5, 9, 13, 17] as const;
 
+/** MediaPipe hand skeleton connections */
+export const HAND_CONNECTIONS: Array<[number, number]> = [
+  [0, 1],
+  [1, 2],
+  [2, 3],
+  [3, 4],
+  [0, 5],
+  [5, 6],
+  [6, 7],
+  [7, 8],
+  [0, 9],
+  [9, 10],
+  [10, 11],
+  [11, 12],
+  [0, 13],
+  [13, 14],
+  [14, 15],
+  [15, 16],
+  [0, 17],
+  [17, 18],
+  [18, 19],
+  [19, 20],
+  [5, 9],
+  [9, 13],
+  [13, 17],
+];
+
 function palmCenter(landmarks: Landmark[]) {
   let x = 0;
   let y = 0;
@@ -69,6 +96,10 @@ export class HandTracker {
   private prevY = 0;
   private hasSample = false;
   private running = false;
+  private previewCanvas: HTMLCanvasElement | null = null;
+  private previewCtx: CanvasRenderingContext2D | null = null;
+  private lastLandmarks: Landmark[] | null = null;
+  private accent: [number, number, number] = [0, 229, 255];
 
   status: TrackingStatus = "idle";
   point: HandTrackingPoint = {
@@ -103,6 +134,15 @@ export class HandTracker {
     }
   }
 
+  setPreviewCanvas(canvas: HTMLCanvasElement | null) {
+    this.previewCanvas = canvas;
+    this.previewCtx = canvas?.getContext("2d") ?? null;
+  }
+
+  setAccent(rgb: [number, number, number]) {
+    this.accent = rgb;
+  }
+
   async start() {
     if (this.running || this.status === "requesting" || this.status === "loading") return;
     if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
@@ -112,8 +152,6 @@ export class HandTracker {
 
     this.setStatus("requesting");
     try {
-      // Always request permission — don't gate on enumerateDevices
-      // (many browsers hide cameras until the user grants access).
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: "user",
@@ -185,7 +223,6 @@ export class HandTracker {
         baseOptions: { ...base.baseOptions, delegate: "GPU" },
       });
     } catch {
-      // CPU fallback for devices without WebGL / GPU delegate support
       return await HandLandmarker.createFromOptions(fileset, {
         ...base,
         baseOptions: { ...base.baseOptions, delegate: "CPU" },
@@ -196,6 +233,8 @@ export class HandTracker {
   stop() {
     this.cleanupMedia();
     this.hasSample = false;
+    this.lastLandmarks = null;
+    this.clearPreview();
     this.point = {
       x: 0,
       y: 0,
@@ -233,6 +272,70 @@ export class HandTracker {
     this.lastVideoTime = -1;
   }
 
+  private clearPreview() {
+    const canvas = this.previewCanvas;
+    const ctx = this.previewCtx;
+    if (!canvas || !ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+
+  private drawPreview() {
+    const canvas = this.previewCanvas;
+    const ctx = this.previewCtx;
+    const video = this.video;
+    if (!canvas || !ctx || !video || video.readyState < 2) return;
+
+    const w = canvas.width;
+    const h = canvas.height;
+    ctx.save();
+    // Mirror preview to match selfie / hand mapping
+    ctx.translate(w, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, 0, 0, w, h);
+
+    const landmarks = this.lastLandmarks;
+    if (landmarks) {
+      const [ar, ag, ab] = this.accent;
+      ctx.lineWidth = Math.max(2, w * 0.008);
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.strokeStyle = `rgba(${ar}, ${ag}, ${ab}, 0.95)`;
+      ctx.shadowColor = `rgba(${ar}, ${ag}, ${ab}, 0.85)`;
+      ctx.shadowBlur = 8;
+
+      for (const [a, b] of HAND_CONNECTIONS) {
+        const pa = landmarks[a];
+        const pb = landmarks[b];
+        if (!pa || !pb) continue;
+        ctx.beginPath();
+        ctx.moveTo(pa.x * w, pa.y * h);
+        ctx.lineTo(pb.x * w, pb.y * h);
+        ctx.stroke();
+      }
+
+      for (let i = 0; i < landmarks.length; i++) {
+        const p = landmarks[i];
+        const isTip = i === 4 || i === 8 || i === 12 || i === 16 || i === 20;
+        const r = isTip ? Math.max(3, w * 0.014) : Math.max(2, w * 0.009);
+        ctx.beginPath();
+        ctx.fillStyle = isTip
+          ? `rgba(255, 255, 255, 0.95)`
+          : `rgba(${ar}, ${ag}, ${ab}, 0.95)`;
+        ctx.arc(p.x * w, p.y * h, r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    ctx.restore();
+
+    // Soft vignette frame (unmirrored overlay)
+    const vig = ctx.createRadialGradient(w / 2, h / 2, h * 0.2, w / 2, h / 2, h * 0.75);
+    vig.addColorStop(0, "rgba(0,0,0,0)");
+    vig.addColorStop(1, "rgba(0,0,0,0.35)");
+    ctx.fillStyle = vig;
+    ctx.fillRect(0, 0, w, h);
+  }
+
   private loop = () => {
     if (!this.running || !this.video || !this.landmarker) return;
     const now = performance.now();
@@ -243,10 +346,10 @@ export class HandTracker {
         const result = this.landmarker.detectForVideo(this.video, now);
         const landmarks = result.landmarks?.[0];
         if (landmarks?.[INDEX_TIP]) {
+          this.lastLandmarks = landmarks;
           const tip = landmarks[INDEX_TIP];
           const palm = palmCenter(landmarks);
 
-          // Mirrored X — selfie webcam is typically mirrored
           const targetX = (1 - tip.x) * window.innerWidth;
           const targetY = tip.y * window.innerHeight;
           const targetPalmX = (1 - palm.x) * window.innerWidth;
@@ -272,7 +375,6 @@ export class HandTracker {
           this.prevX = this.smoothedX;
           this.prevY = this.smoothedY;
 
-          // Movement boosts strength slightly for more lively glow
           const motion = Math.min(1, Math.hypot(vx, vy) / 28);
 
           this.point = {
@@ -287,6 +389,7 @@ export class HandTracker {
             strength: 0.85 + motion * 0.15,
           };
         } else {
+          this.lastLandmarks = null;
           this.point = {
             ...this.point,
             active: false,
@@ -300,6 +403,7 @@ export class HandTracker {
       }
     }
 
+    this.drawPreview();
     this.raf = requestAnimationFrame(this.loop);
   };
 }

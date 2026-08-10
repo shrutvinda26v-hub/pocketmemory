@@ -3,6 +3,11 @@ export type PointerSource = "none" | "hand" | "mouse" | "touch";
 export interface InteractionPoint {
   x: number;
   y: number;
+  /** Palm center — available when source is "hand" */
+  palmX?: number;
+  palmY?: number;
+  vx?: number;
+  vy?: number;
   active: boolean;
   source: PointerSource;
   strength: number;

@@ -23,6 +23,8 @@ export function UIOverlay({
   onToggleCamera,
 }: UIOverlayProps) {
   const trackingActive = trackingStatus === "active";
+  const trackingBusy =
+    trackingStatus === "requesting" || trackingStatus === "loading";
 
   return (
     <div className="pointer-events-none absolute inset-0 z-10 overflow-hidden">
@@ -57,10 +59,24 @@ export function UIOverlay({
           <button
             type="button"
             onClick={onToggleCamera}
-            aria-label={trackingActive ? "Disable hand tracking" : "Enable hand tracking"}
-            className="group flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-cyan-50/80 backdrop-blur-md transition hover:border-cyan-200/30 hover:bg-white/10"
+            disabled={trackingBusy}
+            aria-label={
+              trackingActive
+                ? "Disable hand tracking"
+                : trackingBusy
+                  ? "Starting hand tracking"
+                  : "Enable hand tracking"
+            }
+            className="group flex items-center gap-2.5 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-cyan-50/85 backdrop-blur-md transition hover:border-cyan-200/30 hover:bg-white/10 disabled:opacity-60"
           >
-            <CameraIcon active={trackingActive} />
+            <CameraIcon active={trackingActive || trackingBusy} />
+            <span className="hidden text-[10px] tracking-[0.2em] uppercase sm:inline">
+              {trackingBusy
+                ? "Starting…"
+                : trackingActive
+                  ? "Tracking on"
+                  : "Enable hand tracking"}
+            </span>
           </button>
 
           <AnimatePresence>
@@ -73,17 +89,36 @@ export function UIOverlay({
               >
                 <span
                   className={`h-1.5 w-1.5 rounded-full ${
-                    handDetected ? "bg-cyan-300 shadow-[0_0_8px_#67e8f9]" : "bg-cyan-300/40"
+                    handDetected
+                      ? "bg-cyan-300 shadow-[0_0_8px_#67e8f9]"
+                      : "bg-cyan-300/40"
                   }`}
                 />
-                Hand tracking active
+                {handDetected ? "Hand tracking active" : "Show your hand"}
               </motion.div>
             )}
           </AnimatePresence>
         </motion.div>
       </div>
 
-      <div className="absolute inset-x-0 bottom-10 flex justify-center px-6">
+      <div className="absolute inset-x-0 bottom-10 flex flex-col items-center gap-4 px-6">
+        <AnimatePresence mode="wait">
+          {interactive && !awakened && !isTouchPrimary && !trackingActive && !trackingBusy && (
+            <motion.button
+              key="enable-cta"
+              type="button"
+              onClick={onToggleCamera}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.8 }}
+              className="pointer-events-auto rounded-full border border-cyan-100/20 bg-cyan-100/5 px-5 py-2.5 text-[11px] tracking-[0.28em] text-cyan-50/70 uppercase backdrop-blur-md transition hover:border-cyan-100/35 hover:bg-cyan-100/10 hover:text-cyan-50"
+            >
+              Enable hand tracking
+            </motion.button>
+          )}
+        </AnimatePresence>
+
         <AnimatePresence mode="wait">
           {interactive && !awakened && (
             <motion.p
@@ -96,9 +131,11 @@ export function UIOverlay({
             >
               {isTouchPrimary
                 ? "Touch and drag to awaken it."
-                : trackingActive
-                  ? "Move your hand to awaken it."
-                  : "Move your hand to awaken it."}
+                : trackingBusy
+                  ? "Starting camera…"
+                  : trackingActive
+                    ? "Move your hand to awaken it."
+                    : "Or move your cursor to awaken it."}
             </motion.p>
           )}
         </AnimatePresence>
@@ -109,8 +146,10 @@ export function UIOverlay({
         trackingStatus === "error") && (
         <div className="absolute bottom-6 left-6 max-w-xs text-[11px] tracking-wide text-amber-100/50">
           {trackingStatus === "denied"
-            ? "Camera access denied. Touch or move your cursor to awaken the tree."
-            : "No camera available. Touch or move your cursor to awaken the tree."}
+            ? "Camera access denied. Move your cursor or touch to awaken the tree."
+            : trackingStatus === "unsupported"
+              ? "No camera found. Move your cursor or touch to awaken the tree."
+              : "Hand tracking unavailable. Move your cursor or touch to awaken the tree."}
         </div>
       )}
     </div>

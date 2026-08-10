@@ -75,12 +75,11 @@ export function LivingTreeExperience() {
           setInteractive(true);
           engine.setInteractive(true);
 
+          // Prompt for camera on desktop — getUserMedia itself discovers devices.
+          // Do not gate on enumerateDevices (often empty before permission).
           if (!isTouchPrimary) {
             cameraTimer = window.setTimeout(() => {
-              if (disposed) return;
-              void HandTracker.hasCamera().then((has) => {
-                if (!disposed && has) void toggleCamera();
-              });
+              if (!disposed) void toggleCamera();
             }, 900);
           }
         }, 700);

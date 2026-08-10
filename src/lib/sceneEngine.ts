@@ -434,10 +434,24 @@ export class SceneEngine {
     if (handActive && strength > 0.05) {
       this.stampLight(hx, hy, strength);
       this.stampMemory(hx, hy, strength);
+
+      // Palm acts as a softer secondary light source for hand tracking
+      if (
+        this.interaction.source === "hand" &&
+        this.interaction.palmX != null &&
+        this.interaction.palmY != null
+      ) {
+        this.stampLight(this.interaction.palmX, this.interaction.palmY, strength * 0.45);
+        this.stampMemory(this.interaction.palmX, this.interaction.palmY, strength * 0.3);
+      }
+
       this.trail.push({ x: hx, y: hy, life: 1 });
       if (this.trail.length > 22) this.trail.shift();
 
-      const moved = Math.hypot(hx - this.lastHandX, hy - this.lastHandY);
+      const moved =
+        this.interaction.vx != null && this.interaction.vy != null
+          ? Math.hypot(this.interaction.vx, this.interaction.vy)
+          : Math.hypot(hx - this.lastHandX, hy - this.lastHandY);
       this.lastHandX = hx;
       this.lastHandY = hy;
       this.awakenAmount = Math.min(1, this.awakenAmount + dt * 0.25);

@@ -171,14 +171,13 @@ export function drawParticles(
     const x = p.x + parallaxX;
     const y = p.y + parallaxY;
     const r = p.size;
-    const g = ctx.createRadialGradient(x, y, 0, x, y, r * 4.2);
-    g.addColorStop(0, `rgba(240, 255, 255, ${a})`);
-    g.addColorStop(0.25, `rgba(0, 255, 230, ${a * 0.85})`);
-    g.addColorStop(0.6, `rgba(0, 220, 255, ${a * 0.45})`);
-    g.addColorStop(1, "rgba(0, 120, 255, 0)");
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r * 3.5);
+    g.addColorStop(0, `rgba(220, 255, 255, ${a})`);
+    g.addColorStop(0.35, `rgba(0, 229, 255, ${a * 0.7})`);
+    g.addColorStop(1, "rgba(0, 80, 180, 0)");
     ctx.fillStyle = g;
     ctx.beginPath();
-    ctx.arc(x, y, r * 4.2, 0, Math.PI * 2);
+    ctx.arc(x, y, r * 3.5, 0, Math.PI * 2);
     ctx.fill();
   }
   ctx.restore();

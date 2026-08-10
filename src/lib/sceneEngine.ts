@@ -187,24 +187,31 @@ export class SceneEngine {
     scale = 1,
   ) {
     const minDim = Math.min(this.width, this.height);
-    // Tight spotlight — only the pointed area lights; rest stays dark
-    const ambient = minDim * 0.16 * scale;
-    const core = minDim * 0.03 * scale;
-    const strong = minDim * 0.065 * scale;
-    const soft = minDim * 0.11 * scale;
+    const ambient = minDim * 0.36 * scale;
+    const core = minDim * 0.055 * scale;
+    const strong = minDim * 0.11 * scale;
+    const soft = minDim * 0.22 * scale;
 
+    // Organic irregularity: a few offset ellipses instead of one perfect circle
+    const lobes = 3;
     ctx.globalCompositeOperation = "lighter";
-    const g = ctx.createRadialGradient(x, y, 0, x, y, ambient);
-    const s = Math.min(1.35, strength * 1.15);
-    g.addColorStop(0, `rgba(255,255,255,${0.95 * s})`);
-    g.addColorStop(core / ambient, `rgba(255,255,255,${0.7 * s})`);
-    g.addColorStop(strong / ambient, `rgba(255,255,255,${0.32 * s})`);
-    g.addColorStop(soft / ambient, `rgba(255,255,255,${0.1 * s})`);
-    g.addColorStop(1, "rgba(255,255,255,0)");
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.arc(x, y, ambient, 0, Math.PI * 2);
-    ctx.fill();
+    for (let i = 0; i < lobes; i++) {
+      const ox = Math.sin(this.time * 1.7 + i * 2.1 + x * 0.01) * ambient * 0.08;
+      const oy = Math.cos(this.time * 1.3 + i * 1.7 + y * 0.01) * ambient * 0.06;
+      const rx = ambient * (0.85 + i * 0.08);
+      const ry = ambient * (0.72 + (2 - i) * 0.08);
+      const g = ctx.createRadialGradient(x + ox, y + oy, 0, x + ox, y + oy, rx);
+      const s = strength * (i === 0 ? 1 : 0.45);
+      g.addColorStop(0, `rgba(255,255,255,${0.5 * s})`);
+      g.addColorStop(core / rx, `rgba(255,255,255,${0.34 * s})`);
+      g.addColorStop(strong / rx, `rgba(255,255,255,${0.18 * s})`);
+      g.addColorStop(soft / rx, `rgba(255,255,255,${0.07 * s})`);
+      g.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.ellipse(x + ox, y + oy, rx, ry, i * 0.4, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
 
   private stampLight(x: number, y: number, strength: number) {
@@ -212,8 +219,7 @@ export class SceneEngine {
   }
 
   private stampMemory(x: number, y: number, strength: number) {
-    // Very subtle short trail only — no lingering awaken across the tree
-    this.stampRadial(this.memoryCtx, x, y, strength * 0.12, 0.7);
+    this.stampRadial(this.memoryCtx, x, y, strength * 0.22, 0.85);
   }
 
   private fadeCanvas(ctx: CanvasRenderingContext2D, keep: number) {
@@ -226,7 +232,9 @@ export class SceneEngine {
   private rebuildCombinedLight() {
     this.combinedLightCtx.clearRect(0, 0, this.width, this.height);
     this.combinedLightCtx.globalCompositeOperation = "lighter";
-    // No global ambient — darkness everywhere except the hand spotlight
+    // Tiny dormant veins — barely visible until interaction
+    this.combinedLightCtx.fillStyle = "rgba(255,255,255,0.02)";
+    this.combinedLightCtx.fillRect(0, 0, this.width, this.height);
     this.combinedLightCtx.drawImage(this.memoryCanvas, 0, 0, this.width, this.height);
     this.combinedLightCtx.drawImage(this.lightCanvas, 0, 0, this.width, this.height);
     this.combinedLightCtx.globalCompositeOperation = "source-over";
@@ -247,10 +255,10 @@ export class SceneEngine {
         y,
         angle,
         dist: 0,
-        maxDist: 40 + Math.random() * 70,
+        maxDist: 100 + Math.random() * 180,
         life: 0,
-        maxLife: 0.55 + Math.random() * 0.45,
-        width: 10 + Math.random() * 14,
+        maxLife: 1.1 + Math.random() * 0.9,
+        width: 8 + Math.random() * 16,
       });
     }
     if (this.pulses.length > 36) this.pulses.splice(0, this.pulses.length - 36);
@@ -267,10 +275,8 @@ export class SceneEngine {
       const px = p.x + Math.cos(p.angle) * p.dist;
       const py = p.y + Math.sin(p.angle) * p.dist;
       const fade = 1 - p.life / p.maxLife;
-      // Keep energy pulses local to the hand zone
-      if (p.dist < p.maxDist * 0.45) {
-        this.stampLight(px, py, fade * 0.22);
-      }
+      this.stampLight(px, py, fade * 0.35);
+      this.stampMemory(px, py, fade * 0.15);
 
       if (p.life >= p.maxLife) this.pulses.splice(i, 1);
     }
@@ -421,25 +427,26 @@ export class SceneEngine {
       ? Math.max(this.interaction.strength, this.interaction.active ? 1 : 0)
       : 0;
 
-    // Spotlight follows the hand tightly; other regions fall back to dark quickly
-    this.fadeCanvas(this.lightCtx, Math.max(0.72, 1 - dt * 1.8));
-    this.fadeCanvas(this.memoryCtx, Math.max(0.82, 1 - dt * 0.9));
+    // Fast trail fades; memory fades very slowly so awakened regions linger
+    this.fadeCanvas(this.lightCtx, Math.max(0.9, 1 - dt * 0.35));
+    this.fadeCanvas(this.memoryCtx, Math.max(0.985, 1 - dt * 0.02));
 
     if (handActive && strength > 0.05) {
       this.stampLight(hx, hy, strength);
-      this.stampMemory(hx, hy, strength * 0.5);
+      this.stampMemory(hx, hy, strength);
 
-      // Palm is a tight secondary core only (not a wide wash)
+      // Palm acts as a softer secondary light source for hand tracking
       if (
         this.interaction.source === "hand" &&
         this.interaction.palmX != null &&
         this.interaction.palmY != null
       ) {
-        this.stampLight(this.interaction.palmX, this.interaction.palmY, strength * 0.35);
+        this.stampLight(this.interaction.palmX, this.interaction.palmY, strength * 0.45);
+        this.stampMemory(this.interaction.palmX, this.interaction.palmY, strength * 0.3);
       }
 
       this.trail.push({ x: hx, y: hy, life: 1 });
-      if (this.trail.length > 10) this.trail.shift();
+      if (this.trail.length > 22) this.trail.shift();
 
       const moved =
         this.interaction.vx != null && this.interaction.vy != null
@@ -461,9 +468,9 @@ export class SceneEngine {
         );
       }
 
-      if (this.pulseCooldown <= 0 && moved > 8) {
-        this.spawnPulse(hx, hy, 1);
-        this.pulseCooldown = 0.22;
+      if (this.pulseCooldown <= 0 && moved > 6) {
+        this.spawnPulse(hx, hy, this.tier === "low" ? 1 : 2);
+        this.pulseCooldown = 0.14;
       }
 
       if (
@@ -483,8 +490,8 @@ export class SceneEngine {
     }
 
     for (const t of this.trail) {
-      t.life -= dt * 2.8;
-      if (t.life > 0) this.stampLight(t.x, t.y, t.life * 0.12 * strength);
+      t.life -= dt * 1.5;
+      if (t.life > 0) this.stampLight(t.x, t.y, t.life * 0.22 * strength);
     }
     this.trail = this.trail.filter((t) => t.life > 0);
 
@@ -531,11 +538,12 @@ export class SceneEngine {
     ctx.globalAlpha = this.sceneOpacity;
 
     if (this.baseImg) {
-      // Keep the tree mostly dark; only the hand spotlight reveals fluorescence
+      // Darken only the tree bitmap so the sky/horizon stay luminous
       this.glowCtx.clearRect(0, 0, this.width, this.height);
       this.coverDraw(this.glowCtx, this.baseImg, treeX, treeY);
+      const darken = 0.28 * (1 - this.awakenAmount * 0.6);
       this.glowCtx.globalCompositeOperation = "source-atop";
-      this.glowCtx.fillStyle = "rgba(0, 4, 14, 0.55)";
+      this.glowCtx.fillStyle = `rgba(0, 6, 18, ${darken})`;
       this.glowCtx.fillRect(0, 0, this.width, this.height);
       this.glowCtx.globalCompositeOperation = "source-over";
       ctx.drawImage(this.glowCanvas, 0, 0, this.width, this.height);
@@ -544,43 +552,20 @@ export class SceneEngine {
     if (this.glowImg) {
       this.glowCtx.clearRect(0, 0, this.width, this.height);
       this.coverDraw(this.glowCtx, this.glowImg, treeX, treeY);
-      // Punch fluorescent cyan into the glow layer before masking
-      this.glowCtx.globalCompositeOperation = "screen";
-      this.glowCtx.fillStyle = "rgba(0, 255, 220, 0.28)";
-      this.glowCtx.fillRect(0, 0, this.width, this.height);
-      this.glowCtx.globalCompositeOperation = "lighter";
-      this.glowCtx.fillStyle = "rgba(80, 255, 255, 0.18)";
-      this.glowCtx.fillRect(0, 0, this.width, this.height);
       this.glowCtx.globalCompositeOperation = "destination-in";
       this.glowCtx.drawImage(this.combinedLightCanvas, 0, 0, this.width, this.height);
       this.glowCtx.globalCompositeOperation = "source-over";
 
       ctx.save();
       ctx.globalCompositeOperation = "lighter";
-      ctx.globalAlpha = 1 * this.sceneOpacity;
+      ctx.globalAlpha = 0.92 * this.sceneOpacity;
       ctx.drawImage(this.glowCanvas, 0, 0, this.width, this.height);
 
-      // Extra fluorescent bloom only inside the spotlight
       if (this.tier !== "low") {
-        ctx.filter = this.tier === "high" ? "blur(22px)" : "blur(14px)";
-        ctx.globalAlpha = 0.55 * this.sceneOpacity;
-        ctx.drawImage(this.glowCanvas, 0, 0, this.width, this.height);
-        ctx.filter = this.tier === "high" ? "blur(40px)" : "blur(24px)";
-        ctx.globalAlpha = 0.28 * this.sceneOpacity;
+        ctx.filter = this.tier === "high" ? "blur(18px)" : "blur(10px)";
+        ctx.globalAlpha = (0.28 + this.awakenAmount * 0.12) * this.sceneOpacity;
         ctx.drawImage(this.glowCanvas, 0, 0, this.width, this.height);
         ctx.filter = "none";
-      }
-
-      // Neon core around the hand
-      if (handActive && strength > 0.05) {
-        const neon = ctx.createRadialGradient(hx, hy, 0, hx, hy, Math.min(this.width, this.height) * 0.12);
-        neon.addColorStop(0, `rgba(180, 255, 255, ${0.45 * strength})`);
-        neon.addColorStop(0.35, `rgba(0, 255, 220, ${0.28 * strength})`);
-        neon.addColorStop(1, "rgba(0, 180, 255, 0)");
-        ctx.fillStyle = neon;
-        ctx.beginPath();
-        ctx.arc(hx, hy, Math.min(this.width, this.height) * 0.12, 0, Math.PI * 2);
-        ctx.fill();
       }
       ctx.restore();
     }

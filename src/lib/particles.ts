@@ -95,7 +95,9 @@ export function updateParticles(
   handActive: boolean,
   width: number,
   height: number,
+  awakenAmount = 0,
 ) {
+  const hush = 0.22 + awakenAmount * 0.78;
   for (let i = particles.length - 1; i >= 0; i--) {
     const p = particles[i];
     p.life += dt;
@@ -125,7 +127,7 @@ export function updateParticles(
       const dist = Math.hypot(dx, dy);
       if (handActive && dist < 220) {
         const influence = 1 - dist / 220;
-        p.alpha = Math.min(1, p.baseAlpha + influence * 0.85);
+        p.alpha = Math.min(1, p.baseAlpha * hush + influence * 0.85);
         p.size = Math.min(4, p.size + influence * 0.02);
         // push slightly outward
         if (dist > 1) {
@@ -133,7 +135,8 @@ export function updateParticles(
           p.vy += (dy / dist) * influence * 0.35;
         }
       } else {
-        p.alpha += (p.baseAlpha - p.alpha) * 0.04;
+        const target = p.baseAlpha * hush;
+        p.alpha += (target - p.alpha) * 0.04;
       }
 
       // respawn if drifted too far

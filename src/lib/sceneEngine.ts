@@ -64,6 +64,7 @@ export class SceneEngine {
   private dpr = 1;
   private destroyed = false;
   private awakenAmount = 0;
+  private interactive = false;
 
   private interaction: InteractionPoint = {
     x: 0,
@@ -154,6 +155,10 @@ export class SceneEngine {
     this.targetParallax = { x: nx, y: ny };
   }
 
+  setInteractive(enabled: boolean) {
+    this.interactive = enabled;
+  }
+
   destroy() {
     this.destroyed = true;
     cancelAnimationFrame(this.raf);
@@ -228,7 +233,7 @@ export class SceneEngine {
     this.combinedLightCtx.clearRect(0, 0, this.width, this.height);
     this.combinedLightCtx.globalCompositeOperation = "lighter";
     // Tiny dormant veins — barely visible until interaction
-    this.combinedLightCtx.fillStyle = "rgba(255,255,255,0.035)";
+    this.combinedLightCtx.fillStyle = "rgba(255,255,255,0.02)";
     this.combinedLightCtx.fillRect(0, 0, this.width, this.height);
     this.combinedLightCtx.drawImage(this.memoryCanvas, 0, 0, this.width, this.height);
     this.combinedLightCtx.drawImage(this.lightCanvas, 0, 0, this.width, this.height);
@@ -370,6 +375,7 @@ export class SceneEngine {
   }
 
   private drawCursor(ctx: CanvasRenderingContext2D) {
+    if (!this.interactive) return;
     if (!this.interaction.active && this.interaction.strength <= 0.05) return;
     if (this.interaction.source === "mouse" && !this.interaction.active) return;
     const { x, y, strength } = this.interaction;
@@ -412,13 +418,14 @@ export class SceneEngine {
     const fgX = this.parallax.x * 20;
     const fgY = this.parallax.y * 20;
 
-    const handActive = this.interaction.active || this.interaction.strength > 0.2;
+    const handActive =
+      this.interactive &&
+      (this.interaction.active || this.interaction.strength > 0.2);
     const hx = this.interaction.x;
     const hy = this.interaction.y;
-    const strength = Math.max(
-      this.interaction.strength,
-      this.interaction.active ? 1 : 0,
-    );
+    const strength = this.interactive
+      ? Math.max(this.interaction.strength, this.interaction.active ? 1 : 0)
+      : 0;
 
     // Fast trail fades; memory fades very slowly so awakened regions linger
     this.fadeCanvas(this.lightCtx, Math.max(0.9, 1 - dt * 0.35));
@@ -477,7 +484,16 @@ export class SceneEngine {
     this.updatePulses(dt);
     this.rebuildCombinedLight();
 
-    updateParticles(this.particles, dt, hx, hy, handActive, this.width, this.height);
+    updateParticles(
+      this.particles,
+      dt,
+      hx,
+      hy,
+      handActive,
+      this.width,
+      this.height,
+      this.awakenAmount,
+    );
     updateButterflies(this.butterflies, dt, hx, hy, handActive, this.time);
 
     const ctx = this.ctx;

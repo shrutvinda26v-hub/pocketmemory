@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, useEffectEvent } from "react"
 import { HandTracker, type TrackingStatus } from "@/lib/handTracker";
 import { SceneEngine } from "@/lib/sceneEngine";
 import type { InteractionPoint } from "@/lib/sceneTypes";
+import { BootVeil } from "./BootVeil";
 import { UIOverlay } from "./UIOverlay";
 
 function isTouchPrimaryDevice() {
@@ -23,9 +24,11 @@ export function LivingTreeExperience() {
     strength: 0,
   });
   const touchActiveRef = useRef(false);
-  const autoStartRef = useRef(false);
+  const interactiveRef = useRef(false);
 
+  const [booting, setBooting] = useState(true);
   const [ready, setReady] = useState(false);
+  const [interactive, setInteractive] = useState(false);
   const [awakened, setAwakened] = useState(false);
   const [trackingStatus, setTrackingStatus] = useState<TrackingStatus>("idle");
   const [handDetected, setHandDetected] = useState(false);
@@ -56,18 +59,32 @@ export function LivingTreeExperience() {
     engine.onFirstAwaken = onFirstAwaken;
 
     let disposed = false;
-    engine.init().then(async () => {
+    let introTimer: number | undefined;
+    let cameraTimer: number | undefined;
+
+    engine.init().then(() => {
       if (disposed) return;
       setReady(true);
-      if (!isTouchPrimary && !autoStartRef.current) {
-        autoStartRef.current = true;
-        const hasCamera = await HandTracker.hasCamera();
-        if (!disposed && hasCamera) {
-          window.setTimeout(() => {
-            if (!disposed) void toggleCamera();
-          }, 2200);
-        }
-      }
+      // Let the veil lift and the tree settle before interaction
+      introTimer = window.setTimeout(() => {
+        if (disposed) return;
+        setBooting(false);
+        window.setTimeout(() => {
+          if (disposed) return;
+          interactiveRef.current = true;
+          setInteractive(true);
+          engine.setInteractive(true);
+
+          if (!isTouchPrimary) {
+            cameraTimer = window.setTimeout(() => {
+              if (disposed) return;
+              void HandTracker.hasCamera().then((has) => {
+                if (!disposed && has) void toggleCamera();
+              });
+            }, 900);
+          }
+        }, 700);
+      }, 1200);
     });
 
     const tracker = new HandTracker();
@@ -82,7 +99,7 @@ export function LivingTreeExperience() {
       const trackerPoint = tracker.point;
       let next = interactionRef.current;
 
-      if (tracker.status === "active" && trackerPoint.active) {
+      if (interactiveRef.current && tracker.status === "active" && trackerPoint.active) {
         next = trackerPoint;
         if (lastDetected !== true) {
           lastDetected = true;
@@ -106,6 +123,8 @@ export function LivingTreeExperience() {
 
     return () => {
       disposed = true;
+      if (introTimer) window.clearTimeout(introTimer);
+      if (cameraTimer) window.clearTimeout(cameraTimer);
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", onResize);
       tracker.stop();
@@ -119,6 +138,7 @@ export function LivingTreeExperience() {
     const engine = () => engineRef.current;
 
     const onPointerMove = (e: PointerEvent) => {
+      if (!interactiveRef.current) return;
       if (touchActiveRef.current) return;
       const tracker = trackerRef.current;
       if (tracker?.status === "active" && tracker.point.active) {
@@ -152,6 +172,7 @@ export function LivingTreeExperience() {
     };
 
     const onTouchStart = (e: TouchEvent) => {
+      if (!interactiveRef.current) return;
       const t = e.touches[0];
       if (!t) return;
       touchActiveRef.current = true;
@@ -165,6 +186,7 @@ export function LivingTreeExperience() {
     };
 
     const onTouchMove = (e: TouchEvent) => {
+      if (!interactiveRef.current) return;
       const t = e.touches[0];
       if (!t) return;
       interactionRef.current = {
@@ -215,13 +237,15 @@ export function LivingTreeExperience() {
         aria-label="Interactive living tree scene"
       />
       <UIOverlay
-        ready={ready}
+        ready={ready && !booting}
+        interactive={interactive}
         awakened={awakened}
         trackingStatus={trackingStatus}
         handDetected={handDetected}
         isTouchPrimary={isTouchPrimary}
         onToggleCamera={() => void toggleCamera()}
       />
+      <BootVeil visible={booting || !ready} />
     </div>
   );
 }

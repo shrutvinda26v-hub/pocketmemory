@@ -34,6 +34,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${display.variable} ${sans.variable} h-full`}>
+      <head>
+        <link rel="preload" as="image" href="/assets/tree-base-dark.webp" type="image/webp" />
+        <link rel="preload" as="image" href="/assets/tree-glow-awake.webp" type="image/webp" />
+        <link rel="preload" as="image" href="/assets/butterfly.webp" type="image/webp" />
+      </head>
       <body className="min-h-full overflow-hidden bg-[#000814] font-sans antialiased">
         {children}
       </body>

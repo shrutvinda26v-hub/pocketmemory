@@ -5,6 +5,7 @@ import type { TrackingStatus } from "@/lib/handTracker";
 
 interface UIOverlayProps {
   ready: boolean;
+  interactive: boolean;
   awakened: boolean;
   trackingStatus: TrackingStatus;
   handDetected: boolean;
@@ -14,6 +15,7 @@ interface UIOverlayProps {
 
 export function UIOverlay({
   ready,
+  interactive,
   awakened,
   trackingStatus,
   handDetected,
@@ -28,7 +30,7 @@ export function UIOverlay({
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={ready ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1], delay: 0.6 }}
+          transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
           className="max-w-xl"
         >
           <p className="mb-4 text-[11px] font-medium tracking-[0.35em] text-cyan-100/55 uppercase">
@@ -49,7 +51,7 @@ export function UIOverlay({
         <motion.div
           initial={{ opacity: 0 }}
           animate={ready ? { opacity: 1 } : {}}
-          transition={{ delay: 1.2, duration: 1 }}
+          transition={{ delay: 0.55, duration: 1 }}
           className="pointer-events-auto flex flex-col items-end gap-3"
         >
           <button
@@ -83,20 +85,20 @@ export function UIOverlay({
 
       <div className="absolute inset-x-0 bottom-10 flex justify-center px-6">
         <AnimatePresence mode="wait">
-          {ready && !awakened && (
+          {interactive && !awakened && (
             <motion.p
               key="prompt"
               initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
+              animate={{ opacity: [0, 1, 0.55, 1], y: 0 }}
               exit={{ opacity: 0, y: -6 }}
-              transition={{ delay: 1.8, duration: 1.1 }}
+              transition={{ duration: 2.8, ease: "easeInOut" }}
               className="text-center text-xs tracking-[0.28em] text-cyan-50/45 uppercase sm:text-[13px]"
             >
               {isTouchPrimary
                 ? "Touch and drag to awaken it."
                 : trackingActive
                   ? "Move your hand to awaken it."
-                  : "Move your hand — or enable the camera."}
+                  : "Move your hand to awaken it."}
             </motion.p>
           )}
         </AnimatePresence>

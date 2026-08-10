@@ -187,31 +187,24 @@ export class SceneEngine {
     scale = 1,
   ) {
     const minDim = Math.min(this.width, this.height);
-    const ambient = minDim * 0.36 * scale;
-    const core = minDim * 0.055 * scale;
-    const strong = minDim * 0.11 * scale;
-    const soft = minDim * 0.22 * scale;
+    // Soft hover spotlight — only the pointed area, feathered edges
+    const ambient = minDim * 0.2 * scale;
+    const core = minDim * 0.04 * scale;
+    const strong = minDim * 0.08 * scale;
+    const soft = minDim * 0.14 * scale;
 
-    // Organic irregularity: a few offset ellipses instead of one perfect circle
-    const lobes = 3;
     ctx.globalCompositeOperation = "lighter";
-    for (let i = 0; i < lobes; i++) {
-      const ox = Math.sin(this.time * 1.7 + i * 2.1 + x * 0.01) * ambient * 0.08;
-      const oy = Math.cos(this.time * 1.3 + i * 1.7 + y * 0.01) * ambient * 0.06;
-      const rx = ambient * (0.85 + i * 0.08);
-      const ry = ambient * (0.72 + (2 - i) * 0.08);
-      const g = ctx.createRadialGradient(x + ox, y + oy, 0, x + ox, y + oy, rx);
-      const s = strength * (i === 0 ? 1 : 0.45);
-      g.addColorStop(0, `rgba(255,255,255,${0.5 * s})`);
-      g.addColorStop(core / rx, `rgba(255,255,255,${0.34 * s})`);
-      g.addColorStop(strong / rx, `rgba(255,255,255,${0.18 * s})`);
-      g.addColorStop(soft / rx, `rgba(255,255,255,${0.07 * s})`);
-      g.addColorStop(1, "rgba(255,255,255,0)");
-      ctx.fillStyle = g;
-      ctx.beginPath();
-      ctx.ellipse(x + ox, y + oy, rx, ry, i * 0.4, 0, Math.PI * 2);
-      ctx.fill();
-    }
+    const g = ctx.createRadialGradient(x, y, 0, x, y, ambient);
+    const s = strength;
+    g.addColorStop(0, `rgba(255,255,255,${0.72 * s})`);
+    g.addColorStop(core / ambient, `rgba(255,255,255,${0.48 * s})`);
+    g.addColorStop(strong / ambient, `rgba(255,255,255,${0.22 * s})`);
+    g.addColorStop(soft / ambient, `rgba(255,255,255,${0.08 * s})`);
+    g.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(x, y, ambient, 0, Math.PI * 2);
+    ctx.fill();
   }
 
   private stampLight(x: number, y: number, strength: number) {
@@ -219,7 +212,8 @@ export class SceneEngine {
   }
 
   private stampMemory(x: number, y: number, strength: number) {
-    this.stampRadial(this.memoryCtx, x, y, strength * 0.22, 0.85);
+    // Brief hover trail only — does not leave the whole tree lit
+    this.stampRadial(this.memoryCtx, x, y, strength * 0.14, 0.75);
   }
 
   private fadeCanvas(ctx: CanvasRenderingContext2D, keep: number) {
@@ -232,9 +226,7 @@ export class SceneEngine {
   private rebuildCombinedLight() {
     this.combinedLightCtx.clearRect(0, 0, this.width, this.height);
     this.combinedLightCtx.globalCompositeOperation = "lighter";
-    // Tiny dormant veins — barely visible until interaction
-    this.combinedLightCtx.fillStyle = "rgba(255,255,255,0.02)";
-    this.combinedLightCtx.fillRect(0, 0, this.width, this.height);
+    // Hover-only light — no global ambient wash
     this.combinedLightCtx.drawImage(this.memoryCanvas, 0, 0, this.width, this.height);
     this.combinedLightCtx.drawImage(this.lightCanvas, 0, 0, this.width, this.height);
     this.combinedLightCtx.globalCompositeOperation = "source-over";
@@ -255,10 +247,10 @@ export class SceneEngine {
         y,
         angle,
         dist: 0,
-        maxDist: 100 + Math.random() * 180,
+        maxDist: 50 + Math.random() * 60,
         life: 0,
-        maxLife: 1.1 + Math.random() * 0.9,
-        width: 8 + Math.random() * 16,
+        maxLife: 0.7 + Math.random() * 0.5,
+        width: 8 + Math.random() * 14,
       });
     }
     if (this.pulses.length > 36) this.pulses.splice(0, this.pulses.length - 36);
@@ -275,8 +267,10 @@ export class SceneEngine {
       const px = p.x + Math.cos(p.angle) * p.dist;
       const py = p.y + Math.sin(p.angle) * p.dist;
       const fade = 1 - p.life / p.maxLife;
-      this.stampLight(px, py, fade * 0.35);
-      this.stampMemory(px, py, fade * 0.15);
+      // Keep pulse light near the hover point
+      if (p.dist < 55) {
+        this.stampLight(px, py, fade * 0.2);
+      }
 
       if (p.life >= p.maxLife) this.pulses.splice(i, 1);
     }
@@ -427,26 +421,25 @@ export class SceneEngine {
       ? Math.max(this.interaction.strength, this.interaction.active ? 1 : 0)
       : 0;
 
-    // Fast trail fades; memory fades very slowly so awakened regions linger
-    this.fadeCanvas(this.lightCtx, Math.max(0.9, 1 - dt * 0.35));
-    this.fadeCanvas(this.memoryCtx, Math.max(0.985, 1 - dt * 0.02));
+    // Hover follow: current light fades fast; short trail fades soon after
+    this.fadeCanvas(this.lightCtx, Math.max(0.78, 1 - dt * 1.4));
+    this.fadeCanvas(this.memoryCtx, Math.max(0.88, 1 - dt * 0.7));
 
     if (handActive && strength > 0.05) {
       this.stampLight(hx, hy, strength);
-      this.stampMemory(hx, hy, strength);
+      this.stampMemory(hx, hy, strength * 0.55);
 
-      // Palm acts as a softer secondary light source for hand tracking
+      // Palm is a small secondary core for hand tracking only
       if (
         this.interaction.source === "hand" &&
         this.interaction.palmX != null &&
         this.interaction.palmY != null
       ) {
-        this.stampLight(this.interaction.palmX, this.interaction.palmY, strength * 0.45);
-        this.stampMemory(this.interaction.palmX, this.interaction.palmY, strength * 0.3);
+        this.stampLight(this.interaction.palmX, this.interaction.palmY, strength * 0.3);
       }
 
       this.trail.push({ x: hx, y: hy, life: 1 });
-      if (this.trail.length > 22) this.trail.shift();
+      if (this.trail.length > 12) this.trail.shift();
 
       const moved =
         this.interaction.vx != null && this.interaction.vy != null
@@ -468,9 +461,9 @@ export class SceneEngine {
         );
       }
 
-      if (this.pulseCooldown <= 0 && moved > 6) {
-        this.spawnPulse(hx, hy, this.tier === "low" ? 1 : 2);
-        this.pulseCooldown = 0.14;
+      if (this.pulseCooldown <= 0 && moved > 8) {
+        this.spawnPulse(hx, hy, 1);
+        this.pulseCooldown = 0.2;
       }
 
       if (
@@ -490,8 +483,8 @@ export class SceneEngine {
     }
 
     for (const t of this.trail) {
-      t.life -= dt * 1.5;
-      if (t.life > 0) this.stampLight(t.x, t.y, t.life * 0.22 * strength);
+      t.life -= dt * 2.2;
+      if (t.life > 0) this.stampLight(t.x, t.y, t.life * 0.14 * strength);
     }
     this.trail = this.trail.filter((t) => t.life > 0);
 
@@ -538,12 +531,11 @@ export class SceneEngine {
     ctx.globalAlpha = this.sceneOpacity;
 
     if (this.baseImg) {
-      // Darken only the tree bitmap so the sky/horizon stay luminous
+      // Keep non-hovered tree darker so the hover glow reads clearly
       this.glowCtx.clearRect(0, 0, this.width, this.height);
       this.coverDraw(this.glowCtx, this.baseImg, treeX, treeY);
-      const darken = 0.28 * (1 - this.awakenAmount * 0.6);
       this.glowCtx.globalCompositeOperation = "source-atop";
-      this.glowCtx.fillStyle = `rgba(0, 6, 18, ${darken})`;
+      this.glowCtx.fillStyle = "rgba(0, 6, 18, 0.42)";
       this.glowCtx.fillRect(0, 0, this.width, this.height);
       this.glowCtx.globalCompositeOperation = "source-over";
       ctx.drawImage(this.glowCanvas, 0, 0, this.width, this.height);

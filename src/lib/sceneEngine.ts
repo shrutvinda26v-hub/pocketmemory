@@ -14,6 +14,7 @@ import type {
   ParallaxOffset,
   Particle,
 } from "./sceneTypes";
+import { getTheme, rgba, type TreeTheme, type TreeThemeId } from "./treeThemes";
 
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -78,8 +79,11 @@ export class SceneEngine {
   private trail: Array<{ x: number; y: number; life: number }> = [];
   private lastHandX = 0;
   private lastHandY = 0;
+  private theme: TreeTheme = getTheme("azure");
+  private switching = false;
 
   onFirstAwaken?: () => void;
+  onThemeReady?: (id: TreeThemeId) => void;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -101,11 +105,12 @@ export class SceneEngine {
     this.snapshotCtx = this.snapshotCanvas.getContext("2d")!;
   }
 
-  async init() {
+  async init(themeId: TreeThemeId = "azure") {
     this.tier = detectDeviceTier();
+    this.theme = getTheme(themeId);
     const [base, glow, butterfly] = await Promise.all([
-      loadImage("/assets/tree-base-dark.webp"),
-      loadImage("/assets/tree-glow-awake.webp"),
+      loadImage(this.theme.baseSrc),
+      loadImage(this.theme.glowSrc),
       loadImage("/assets/butterfly.webp"),
     ]);
     if (this.destroyed) return;
@@ -118,6 +123,49 @@ export class SceneEngine {
     gsap.to(this, { sceneOpacity: 1, duration: 3.2, ease: "power2.out" });
     this.lastTime = performance.now();
     this.loop(this.lastTime);
+  }
+
+  async setTheme(themeId: TreeThemeId) {
+    if (this.switching || this.theme.id === themeId) return;
+    this.switching = true;
+    const next = getTheme(themeId);
+    gsap.killTweensOf(this);
+
+    await new Promise<void>((resolve) => {
+      gsap.to(this, {
+        sceneOpacity: 0,
+        duration: 0.45,
+        ease: "power2.in",
+        onComplete: () => resolve(),
+      });
+    });
+    if (this.destroyed) return;
+
+    const [base, glow] = await Promise.all([
+      loadImage(next.baseSrc),
+      loadImage(next.glowSrc),
+    ]);
+    if (this.destroyed) return;
+
+    this.theme = next;
+    this.baseImg = base;
+    this.glowImg = glow;
+    this.firstAwaken = false;
+    this.awakenAmount = 0;
+    this.pulses = [];
+    this.trail = [];
+    this.lightCtx.clearRect(0, 0, this.width, this.height);
+    this.memoryCtx.clearRect(0, 0, this.width, this.height);
+    this.particles = createParticles(getParticleBudget(this.tier), this.width, this.height);
+    this.butterflies = createButterflies(getButterflyCount(this.tier), this.width, this.height);
+
+    gsap.to(this, { sceneOpacity: 1, duration: 0.9, ease: "power2.out" });
+    this.switching = false;
+    this.onThemeReady?.(themeId);
+  }
+
+  getThemeId() {
+    return this.theme.id;
   }
 
   resize = () => {
@@ -277,6 +325,7 @@ export class SceneEngine {
   }
 
   private drawPulses(ctx: CanvasRenderingContext2D, ox: number, oy: number) {
+    const { core, glow, bloom } = this.theme;
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
     for (const p of this.pulses) {
@@ -284,13 +333,12 @@ export class SceneEngine {
       const alpha = (1 - t) * 0.65;
       const x = p.x + Math.cos(p.angle) * p.dist + ox;
       const y = p.y + Math.sin(p.angle) * p.dist + oy;
-      // streak along travel direction
       const tx = Math.cos(p.angle);
       const ty = Math.sin(p.angle);
       const g = ctx.createRadialGradient(x, y, 0, x, y, p.width);
-      g.addColorStop(0, `rgba(220,255,255,${alpha})`);
-      g.addColorStop(0.35, `rgba(0,229,255,${alpha * 0.75})`);
-      g.addColorStop(1, "rgba(0,80,180,0)");
+      g.addColorStop(0, rgba(core, alpha));
+      g.addColorStop(0.35, rgba(glow, alpha * 0.75));
+      g.addColorStop(1, rgba(bloom, 0));
       ctx.fillStyle = g;
       ctx.beginPath();
       ctx.ellipse(x, y, p.width * 1.4, p.width * 0.55, Math.atan2(ty, tx), 0, Math.PI * 2);
@@ -357,8 +405,8 @@ export class SceneEngine {
       const sy = waterTop + 10 + ((i * 37) % waterH);
       const shimmer = this.waterCtx.createRadialGradient(sx, sy, 0, sx, sy, 40);
       const a = 0.06 + this.awakenAmount * 0.12;
-      shimmer.addColorStop(0, `rgba(80,200,255,${a})`);
-      shimmer.addColorStop(1, "rgba(80,200,255,0)");
+      shimmer.addColorStop(0, rgba(this.theme.glow, a));
+      shimmer.addColorStop(1, rgba(this.theme.glow, 0));
       this.waterCtx.fillStyle = shimmer;
       this.waterCtx.beginPath();
       this.waterCtx.ellipse(sx, sy, 50, 8, 0, 0, Math.PI * 2);
@@ -378,14 +426,14 @@ export class SceneEngine {
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
     const g = ctx.createRadialGradient(x, y, 0, x, y, r * 3);
-    g.addColorStop(0, `rgba(230,255,255,${0.9 * strength * pulse})`);
-    g.addColorStop(0.25, `rgba(0,229,255,${0.55 * strength})`);
-    g.addColorStop(1, "rgba(0,100,200,0)");
+    g.addColorStop(0, rgba(this.theme.core, 0.9 * strength * pulse));
+    g.addColorStop(0.25, rgba(this.theme.glow, 0.55 * strength));
+    g.addColorStop(1, rgba(this.theme.bloom, 0));
     ctx.fillStyle = g;
     ctx.beginPath();
     ctx.arc(x, y, r * 3, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = `rgba(240,255,255,${0.85 * strength})`;
+    ctx.fillStyle = rgba(this.theme.core, 0.85 * strength);
     ctx.beginPath();
     ctx.arc(x, y, 1.8, 0, Math.PI * 2);
     ctx.fill();
@@ -504,12 +552,12 @@ export class SceneEngine {
     updateButterflies(this.butterflies, dt, hx, hy, handActive, this.time);
 
     const ctx = this.ctx;
+    const theme = this.theme;
     ctx.globalAlpha = 1;
     const sky = ctx.createLinearGradient(0, 0, 0, this.height);
-    sky.addColorStop(0, "#000814");
-    sky.addColorStop(0.55, "#001d3d");
-    sky.addColorStop(0.78, "#002b5b");
-    sky.addColorStop(1, "#0a1628");
+    sky.addColorStop(0, theme.skyTop);
+    sky.addColorStop(0.55, theme.skyMid);
+    sky.addColorStop(1, theme.skyLow);
     ctx.fillStyle = sky;
     ctx.fillRect(0, 0, this.width, this.height);
 
@@ -521,8 +569,8 @@ export class SceneEngine {
       this.height * 0.72 + bgY,
       this.width * 0.45,
     );
-    horizon.addColorStop(0, "rgba(255,140,0,0.28)");
-    horizon.addColorStop(0.45, "rgba(255,100,20,0.08)");
+    horizon.addColorStop(0, rgba(theme.horizon, 0.28));
+    horizon.addColorStop(0.45, rgba(theme.horizon, 0.08));
     horizon.addColorStop(1, "rgba(0,0,0,0)");
     ctx.fillStyle = horizon;
     ctx.fillRect(0, 0, this.width, this.height);
@@ -563,8 +611,24 @@ export class SceneEngine {
     }
 
     this.drawPulses(ctx, treeX * 0.2, treeY * 0.2);
-    drawParticles(ctx, this.particles, partX, partY);
-    drawButterflies(ctx, this.butterflies, this.butterflyImg, fgX, fgY);
+    drawParticles(
+      ctx,
+      this.particles,
+      partX,
+      partY,
+      theme.core,
+      theme.glow,
+      theme.bloom,
+    );
+    drawButterflies(
+      ctx,
+      this.butterflies,
+      this.butterflyImg,
+      fgX,
+      fgY,
+      theme.glow,
+      theme.core,
+    );
 
     this.snapshotCtx.clearRect(0, 0, this.width, this.height);
     this.snapshotCtx.drawImage(this.canvas, 0, 0, this.width, this.height);

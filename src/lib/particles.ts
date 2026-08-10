@@ -161,6 +161,9 @@ export function drawParticles(
   particles: Particle[],
   parallaxX: number,
   parallaxY: number,
+  core: [number, number, number] = [220, 255, 255],
+  glow: [number, number, number] = [0, 229, 255],
+  bloom: [number, number, number] = [0, 80, 180],
 ) {
   ctx.save();
   ctx.globalCompositeOperation = "lighter";
@@ -172,9 +175,9 @@ export function drawParticles(
     const y = p.y + parallaxY;
     const r = p.size;
     const g = ctx.createRadialGradient(x, y, 0, x, y, r * 3.5);
-    g.addColorStop(0, `rgba(220, 255, 255, ${a})`);
-    g.addColorStop(0.35, `rgba(0, 229, 255, ${a * 0.7})`);
-    g.addColorStop(1, "rgba(0, 80, 180, 0)");
+    g.addColorStop(0, `rgba(${core[0]}, ${core[1]}, ${core[2]}, ${a})`);
+    g.addColorStop(0.35, `rgba(${glow[0]}, ${glow[1]}, ${glow[2]}, ${a * 0.7})`);
+    g.addColorStop(1, `rgba(${bloom[0]}, ${bloom[1]}, ${bloom[2]}, 0)`);
     ctx.fillStyle = g;
     ctx.beginPath();
     ctx.arc(x, y, r * 3.5, 0, Math.PI * 2);

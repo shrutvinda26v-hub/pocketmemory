@@ -38,6 +38,12 @@ export default function RootLayout({
         <link rel="preload" as="image" href="/assets/tree-base-dark.webp" type="image/webp" />
         <link rel="preload" as="image" href="/assets/tree-glow-awake.webp" type="image/webp" />
         <link rel="preload" as="image" href="/assets/butterfly.webp" type="image/webp" />
+        <link rel="prefetch" as="image" href="/assets/tree-ember-base.webp" type="image/webp" />
+        <link rel="prefetch" as="image" href="/assets/tree-ember-glow.webp" type="image/webp" />
+        <link rel="prefetch" as="image" href="/assets/tree-jade-base.webp" type="image/webp" />
+        <link rel="prefetch" as="image" href="/assets/tree-jade-glow.webp" type="image/webp" />
+        <link rel="prefetch" as="image" href="/assets/tree-amethyst-base.webp" type="image/webp" />
+        <link rel="prefetch" as="image" href="/assets/tree-amethyst-glow.webp" type="image/webp" />
       </head>
       <body className="min-h-full overflow-hidden bg-[#000814] font-sans antialiased">
         {children}

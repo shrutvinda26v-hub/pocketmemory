@@ -154,6 +154,8 @@ export function drawButterflies(
   sprite: HTMLImageElement | null,
   parallaxX: number,
   parallaxY: number,
+  glow: [number, number, number] = [0, 229, 255],
+  core: [number, number, number] = [180, 245, 255],
 ) {
   if (!sprite) return;
   ctx.save();
@@ -170,8 +172,9 @@ export function drawButterflies(
     ctx.globalCompositeOperation = "lighter";
     const glowR = 28 * b.scale * (0.7 + b.glow);
     const g = ctx.createRadialGradient(0, 0, 0, 0, 0, glowR);
-    g.addColorStop(0, `rgba(120, 240, 255, ${0.35 * b.glow})`);
-    g.addColorStop(1, "rgba(0, 100, 200, 0)");
+    g.addColorStop(0, `rgba(${core[0]}, ${core[1]}, ${core[2]}, ${0.4 * b.glow})`);
+    g.addColorStop(0.45, `rgba(${glow[0]}, ${glow[1]}, ${glow[2]}, ${0.28 * b.glow})`);
+    g.addColorStop(1, `rgba(${glow[0]}, ${glow[1]}, ${glow[2]}, 0)`);
     ctx.fillStyle = g;
     ctx.beginPath();
     ctx.arc(0, 0, glowR, 0, Math.PI * 2);
@@ -179,9 +182,15 @@ export function drawButterflies(
 
     ctx.globalCompositeOperation = "source-over";
     ctx.globalAlpha = 0.55 + b.glow * 0.4;
-    // slight wing squash for flap illusion
     ctx.scale(flap, 1);
     ctx.drawImage(sprite, -w / 2, -h / 2, w, h);
+    // Soft theme tint via additive wash
+    ctx.globalCompositeOperation = "lighter";
+    ctx.globalAlpha = 0.2 + b.glow * 0.25;
+    ctx.fillStyle = `rgba(${glow[0]}, ${glow[1]}, ${glow[2]}, 0.35)`;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, w * 0.45, h * 0.35, 0, 0, Math.PI * 2);
+    ctx.fill();
     ctx.restore();
   }
   ctx.restore();

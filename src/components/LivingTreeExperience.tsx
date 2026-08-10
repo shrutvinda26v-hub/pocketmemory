@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, useEffectEvent } from "react"
 import { HandTracker, type TrackingStatus } from "@/lib/handTracker";
 import { SceneEngine } from "@/lib/sceneEngine";
 import type { InteractionPoint } from "@/lib/sceneTypes";
+import { getTheme, type TreeThemeId } from "@/lib/treeThemes";
 import { BootVeil } from "./BootVeil";
 import { UIOverlay } from "./UIOverlay";
 
@@ -30,9 +31,12 @@ export function LivingTreeExperience() {
   const [ready, setReady] = useState(false);
   const [interactive, setInteractive] = useState(false);
   const [awakened, setAwakened] = useState(false);
+  const [switching, setSwitching] = useState(false);
+  const [themeId, setThemeId] = useState<TreeThemeId>("azure");
   const [trackingStatus, setTrackingStatus] = useState<TrackingStatus>("idle");
   const [handDetected, setHandDetected] = useState(false);
   const [isTouchPrimary] = useState(() => isTouchPrimaryDevice());
+  const theme = getTheme(themeId);
 
   const onFirstAwaken = useEffectEvent(() => {
     setAwakened(true);
@@ -41,13 +45,27 @@ export function LivingTreeExperience() {
   const toggleCamera = useCallback(async () => {
     const tracker = trackerRef.current;
     if (!tracker) return;
-    if (tracker.status === "active" || tracker.status === "requesting") {
+    if (
+      tracker.status === "active" ||
+      tracker.status === "requesting" ||
+      tracker.status === "loading"
+    ) {
       tracker.stop();
       setTrackingStatus("idle");
       setHandDetected(false);
     } else {
       await tracker.start();
     }
+  }, []);
+
+  const selectTree = useCallback(async (id: TreeThemeId) => {
+    const engine = engineRef.current;
+    if (!engine || id === engine.getThemeId()) return;
+    setSwitching(true);
+    setAwakened(false);
+    await engine.setTheme(id);
+    setThemeId(id);
+    setSwitching(false);
   }, []);
 
   useEffect(() => {
@@ -242,7 +260,10 @@ export function LivingTreeExperience() {
         trackingStatus={trackingStatus}
         handDetected={handDetected}
         isTouchPrimary={isTouchPrimary}
+        theme={theme}
+        switching={switching}
         onToggleCamera={() => void toggleCamera()}
+        onSelectTree={(id) => void selectTree(id)}
       />
       <BootVeil visible={booting || !ready} />
     </div>

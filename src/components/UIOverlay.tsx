@@ -102,9 +102,13 @@ export function UIOverlay({
         </AnimatePresence>
       </div>
 
-      {trackingStatus === "denied" && (
+      {(trackingStatus === "denied" ||
+        trackingStatus === "unsupported" ||
+        trackingStatus === "error") && (
         <div className="absolute bottom-6 left-6 max-w-xs text-[11px] tracking-wide text-amber-100/50">
-          Camera access denied. Touch or move your cursor to awaken the tree.
+          {trackingStatus === "denied"
+            ? "Camera access denied. Touch or move your cursor to awaken the tree."
+            : "No camera available. Touch or move your cursor to awaken the tree."}
         </div>
       )}
     </div>

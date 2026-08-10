@@ -56,11 +56,13 @@ export function LivingTreeExperience() {
     engine.onFirstAwaken = onFirstAwaken;
 
     let disposed = false;
-    engine.init().then(() => {
-      if (!disposed) {
-        setReady(true);
-        if (!isTouchPrimary && !autoStartRef.current) {
-          autoStartRef.current = true;
+    engine.init().then(async () => {
+      if (disposed) return;
+      setReady(true);
+      if (!isTouchPrimary && !autoStartRef.current) {
+        autoStartRef.current = true;
+        const hasCamera = await HandTracker.hasCamera();
+        if (!disposed && hasCamera) {
           window.setTimeout(() => {
             if (!disposed) void toggleCamera();
           }, 2200);

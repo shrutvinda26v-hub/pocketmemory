@@ -43,6 +43,18 @@ export class HandTracker {
     this.onStatus?.(status);
   }
 
+  static async hasCamera(): Promise<boolean> {
+    if (typeof navigator === "undefined" || !navigator.mediaDevices?.enumerateDevices) {
+      return false;
+    }
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      return devices.some((d) => d.kind === "videoinput");
+    } catch {
+      return false;
+    }
+  }
+
   async start() {
     if (this.running) return;
     if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
@@ -52,6 +64,12 @@ export class HandTracker {
 
     this.setStatus("requesting");
     try {
+      const hasCamera = await HandTracker.hasCamera();
+      if (!hasCamera) {
+        this.setStatus("unsupported");
+        return;
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: "user",
@@ -86,10 +104,25 @@ export class HandTracker {
       this.setStatus("active");
       this.loop();
     } catch (err) {
-      console.error("Hand tracking failed", err);
       const name = err instanceof Error ? err.name : "";
-      this.setStatus(name === "NotAllowedError" ? "denied" : "error");
-      this.stop();
+      if (name === "NotAllowedError") {
+        this.setStatus("denied");
+      } else if (name === "NotFoundError" || name === "DevicesNotFoundError") {
+        this.setStatus("unsupported");
+      } else {
+        console.warn("Hand tracking failed", err);
+        this.setStatus("error");
+      }
+      this.running = false;
+      if (this.raf) cancelAnimationFrame(this.raf);
+      this.raf = 0;
+      this.landmarker?.close();
+      this.landmarker = null;
+      if (this.stream) {
+        this.stream.getTracks().forEach((t) => t.stop());
+        this.stream = null;
+      }
+      this.video = null;
     }
   }
 

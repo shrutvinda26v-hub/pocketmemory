@@ -1,5 +1,5 @@
 import { FilesetResolver, HandLandmarker } from '@mediapipe/tasks-vision'
-import { classifyGesture, pinchDistance } from './gestures.ts'
+import { analyzeHand } from './gestures.ts'
 import type { Handedness, Landmark, TrackedHand } from './types.ts'
 
 let landmarkerPromise: Promise<HandLandmarker> | null = null
@@ -14,9 +14,9 @@ async function createLandmarker(): Promise<HandLandmarker> {
     },
     runningMode: 'VIDEO' as const,
     numHands: 2,
-    minHandDetectionConfidence: 0.55,
-    minHandPresenceConfidence: 0.55,
-    minTrackingConfidence: 0.5,
+    minHandDetectionConfidence: 0.4,
+    minHandPresenceConfidence: 0.4,
+    minTrackingConfidence: 0.4,
   }
   try {
     return await HandLandmarker.createFromOptions(vision, options)
@@ -61,12 +61,14 @@ export function detectTrackedHands(
     })) as Landmark[]
     if (landmarks.length < 21) continue
     const wrist = landmarks[0] ?? { x: 0.5, y: 0.5, z: 0 }
+    const analysis = analyzeHand(landmarks)
     hands.push({
       handedness: readHandedness(result.handedness, i),
       landmarks,
-      gesture: classifyGesture(landmarks),
+      gesture: analysis.gesture,
       wrist,
-      pinchDistance: pinchDistance(landmarks),
+      pinchDistance: analysis.pinchDistance,
+      extendedCount: analysis.extendedCount,
     })
   }
   return hands

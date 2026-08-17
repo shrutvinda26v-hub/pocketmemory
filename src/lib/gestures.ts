@@ -25,20 +25,37 @@ const FINGERS = [
 ] as const
 
 function dist(a: Landmark, b: Landmark): number {
-  const dx = a.x - b.x
-  const dy = a.y - b.y
-  const dz = a.z - b.z
-  return Math.hypot(dx, dy, dz)
+  return Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z)
+}
+
+export function palmSize(landmarks: Landmark[]): number {
+  const wrist = landmarks[LM.WRIST]
+  const middle = landmarks[LM.MIDDLE_MCP]
+  const index = landmarks[LM.INDEX_MCP]
+  const pinky = landmarks[LM.PINKY_MCP]
+  if (!wrist || !middle) return 0.12
+  const along = dist(wrist, middle)
+  const across = index && pinky ? dist(index, pinky) : along
+  return Math.max(along, across, 0.06)
 }
 
 function isExtended(landmarks: Landmark[], tip: number, pip: number, mcp: number): boolean {
   const tipPt = landmarks[tip]
   const pipPt = landmarks[pip]
   const mcpPt = landmarks[mcp]
-  if (!tipPt || !pipPt || !mcpPt) return false
-  const tipAbove = tipPt.y < mcpPt.y - 0.035
-  const longEnough = dist(tipPt, mcpPt) > dist(pipPt, mcpPt) * 1.15
-  return tipAbove && longEnough
+  const wrist = landmarks[LM.WRIST]
+  if (!tipPt || !pipPt || !mcpPt || !wrist) return false
+  const palm = palmSize(landmarks)
+  const stretch = dist(tipPt, mcpPt) / palm
+  const fromWrist = dist(tipPt, wrist) / Math.max(dist(mcpPt, wrist), 1e-6)
+  const v1x = pipPt.x - mcpPt.x
+  const v1y = pipPt.y - mcpPt.y
+  const v2x = tipPt.x - pipPt.x
+  const v2y = tipPt.y - pipPt.y
+  const d1 = Math.hypot(v1x, v1y) || 1e-6
+  const d2 = Math.hypot(v2x, v2y) || 1e-6
+  const straight = (v1x * v2x + v1y * v2y) / (d1 * d2)
+  return stretch > 0.5 && fromWrist > 1.05 && straight > 0.15
 }
 
 export function pinchDistance(landmarks: Landmark[]): number {
@@ -48,20 +65,52 @@ export function pinchDistance(landmarks: Landmark[]): number {
   return dist(thumb, index)
 }
 
-export function classifyGesture(landmarks: Landmark[]): Gesture {
-  if (landmarks.length < 21) return 'unknown'
+export interface HandAnalysis {
+  gesture: Gesture
+  extendedCount: number
+  pinchDistance: number
+}
 
+export function analyzeHand(landmarks: Landmark[]): HandAnalysis {
   const pinch = pinchDistance(landmarks)
-  const extended = FINGERS.map((finger) => isExtended(landmarks, finger.tip, finger.pip, finger.mcp))
-  const count = extended.filter(Boolean).length
-  const indexUp = extended[0]
-  const othersDown = !extended[1] && !extended[2] && !extended[3]
+  if (landmarks.length < 21) {
+    return { gesture: 'unknown', extendedCount: 0, pinchDistance: pinch }
+  }
 
-  if (pinch < PINCH_DISTANCE && count >= 1) return 'pinch'
-  if (indexUp && othersDown) return 'point'
-  if (count >= 4) return 'open_palm'
-  if (count <= 0) return 'fist'
-  return 'unknown'
+  const extended = FINGERS.map((finger) => isExtended(landmarks, finger.tip, finger.pip, finger.mcp))
+  const extendedCount = extended.filter(Boolean).length
+  const palm = palmSize(landmarks)
+  const pinchThreshold = Math.max(PINCH_DISTANCE, palm * 0.38)
+  const indexOut = extended[0] === true
+  const middleOut = extended[1] === true
+  const ringOut = extended[2] === true
+  const pinkyOut = extended[3] === true
+
+  if (pinch < pinchThreshold && indexOut && !ringOut && !pinkyOut) {
+    return { gesture: 'pinch', extendedCount, pinchDistance: pinch }
+  }
+  if (indexOut && !ringOut && !pinkyOut && !middleOut) {
+    return { gesture: 'point', extendedCount, pinchDistance: pinch }
+  }
+  if (indexOut && !ringOut && !pinkyOut && middleOut) {
+    const indexTip = landmarks[LM.INDEX_TIP]
+    const middleTip = landmarks[LM.MIDDLE_TIP]
+    const wrist = landmarks[LM.WRIST]
+    if (indexTip && middleTip && wrist && dist(indexTip, wrist) > dist(middleTip, wrist) * 1.08) {
+      return { gesture: 'point', extendedCount, pinchDistance: pinch }
+    }
+  }
+  if (extendedCount >= 4) {
+    return { gesture: 'open_palm', extendedCount, pinchDistance: pinch }
+  }
+  if (extendedCount === 0) {
+    return { gesture: 'fist', extendedCount, pinchDistance: pinch }
+  }
+  return { gesture: 'unknown', extendedCount, pinchDistance: pinch }
+}
+
+export function classifyGesture(landmarks: Landmark[]): Gesture {
+  return analyzeHand(landmarks).gesture
 }
 
 function emptyLandmarks(): Landmark[] {
@@ -137,4 +186,12 @@ export function palmAngle(landmarks: Landmark[]): number {
   const index = landmarks[LM.INDEX_MCP]
   if (!wrist || !index) return 0
   return Math.atan2(index.y - wrist.y, index.x - wrist.x)
+}
+
+export function holdMsFor(gesture: Gesture): number {
+  if (gesture === 'open_palm') return 720
+  if (gesture === 'point') return 180
+  if (gesture === 'fist') return 120
+  if (gesture === 'pinch') return 140
+  return 240
 }

@@ -5,7 +5,7 @@ import { playDissolve, playMaterialize, playReset, playSummon, unlockAudio } fro
 import { demoHands } from './lib/demoScript.ts'
 import { ShowcaseMachine } from './lib/showcaseMachine.ts'
 import { DETECT_INTERVAL_MS, type Phase, type ShowcaseSnapshot, type TrackedHand } from './lib/types.ts'
-import { FRUSTUM_HEIGHT } from './lib/mapping.ts'
+import { FRUSTUM_HEIGHT, landmarkToWorld, worldToScreen, type MappingOptions } from './lib/mapping.ts'
 import type { ShowcaseScene } from './scene/ShowcaseScene.ts'
 import './index.css'
 
@@ -35,6 +35,8 @@ function emptySnapshot(): ShowcaseSnapshot {
     pinchActive: false,
     pinchDelta: 0,
     trackingLost: false,
+    hint: '',
+    handReports: [],
   }
 }
 
@@ -46,6 +48,7 @@ export default function App() {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const labelRef = useRef<HTMLDivElement>(null)
+  const overlayRef = useRef<HTMLCanvasElement>(null)
   const sceneRef = useRef<ShowcaseScene | null>(null)
   const machineRef = useRef(new ShowcaseMachine(ROSTER.length, performance.now()))
   const landmarkerRef = useRef<HandLandmarker | null>(null)
@@ -111,36 +114,36 @@ export default function App() {
 
       const sceneNow = sceneRef.current
       const pokemon = ROSTER[snapshot.index] ?? ROSTER[0]!
+      const video = videoRef.current
+      const mapping: MappingOptions = {
+        viewportW: window.innerWidth,
+        viewportH: window.innerHeight,
+        videoW: video?.videoWidth ?? 0,
+        videoH: video?.videoHeight ?? 0,
+        frustumHeight: FRUSTUM_HEIGHT,
+        mirror: currentMode === 'live',
+      }
       if (sceneNow && currentMode !== 'browse') {
-        const video = videoRef.current
         sceneNow.preload([
           wrapIndex(snapshot.index - 1, ROSTER.length),
           snapshot.index,
           wrapIndex(snapshot.index + 1, ROSTER.length),
           snapshot.pendingIndex,
         ])
-        sceneNow.update(
-          dt,
-          snapshot,
-          hands,
-          {
-            viewportW: window.innerWidth,
-            viewportH: window.innerHeight,
-            videoW: video?.videoWidth ?? 0,
-            videoH: video?.videoHeight ?? 0,
-            frustumHeight: FRUSTUM_HEIGHT,
-            mirror: currentMode === 'live',
-          },
-          pokemon,
-        )
+        sceneNow.update(dt, snapshot, hands, mapping, pokemon)
         sceneNow.render()
         if (labelRef.current) {
           labelRef.current.style.transform = `translate(-50%, 18px) translate(${sceneNow.cubeScreen.x}px, ${sceneNow.cubeScreen.y}px)`
           labelRef.current.style.opacity = snapshot.labelVisible && snapshot.phase !== 'idle' ? '1' : '0'
         }
       }
+      if (overlayRef.current && currentMode === 'live') {
+        drawHandOverlay(overlayRef.current, hands, mapping)
+      } else if (overlayRef.current) {
+        overlayRef.current.getContext('2d')?.clearRect(0, 0, overlayRef.current.width, overlayRef.current.height)
+      }
 
-      const key = `${snapshot.phase}|${snapshot.index}|${snapshot.handsDetected}|${snapshot.caught.length}|${snapshot.cubeSolid}|${snapshot.trackingLost}`
+      const key = `${snapshot.phase}|${snapshot.index}|${snapshot.handsDetected}|${snapshot.caught.length}|${snapshot.hint}|${snapshot.handReports.map((h) => h.gesture).join(',')}`
       if (key !== lastUiKey.current) {
         lastUiKey.current = key
         setUi({ ...snapshot })
@@ -263,6 +266,7 @@ export default function App() {
       <div className="vignette" />
       <div className="grain" />
       <canvas ref={canvasRef} className="stage-canvas" aria-hidden="true" />
+      <canvas ref={overlayRef} className="hand-overlay" aria-hidden="true" />
 
       <div ref={labelRef} className="poke-label" aria-hidden="true">
         <span className="poke-num">#{padDex(pokemon.id)}</span>
@@ -309,7 +313,13 @@ export default function App() {
 
       {showStage && mode !== 'gate' && (
         <>
-          <GestureGuide open={guideOpen} onToggle={() => setGuideOpen((value) => !value)} />
+          {mode === 'live' && <p className="coach">{ui.hint}</p>}
+          <GestureGuide
+            open={guideOpen}
+            onToggle={() => setGuideOpen((value) => !value)}
+            reports={ui.handReports}
+            phase={ui.phase}
+          />
           <CaughtDots caught={ui.caught} />
           <footer className="brand">
             <span>pocketmemory</span>
@@ -373,7 +383,61 @@ function CameraPrompt({
   )
 }
 
-function GestureGuide({ open, onToggle }: { open: boolean; onToggle: () => void }) {
+function drawHandOverlay(
+  canvas: HTMLCanvasElement,
+  hands: TrackedHand[],
+  mapping: MappingOptions,
+): void {
+  const width = window.innerWidth
+  const height = window.innerHeight
+  if (canvas.width !== width || canvas.height !== height) {
+    canvas.width = width
+    canvas.height = height
+  }
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return
+  ctx.clearRect(0, 0, width, height)
+  for (const hand of hands) {
+    const color =
+      hand.gesture === 'point'
+        ? '#f7d02c'
+        : hand.gesture === 'fist'
+          ? '#f57d31'
+          : hand.gesture === 'open_palm'
+            ? '#7ac74c'
+            : hand.gesture === 'pinch'
+              ? '#f95587'
+              : 'rgba(244,239,228,0.7)'
+    ctx.fillStyle = color
+    ctx.strokeStyle = color
+    ctx.lineWidth = 1.5
+    for (const landmark of hand.landmarks) {
+      const world = landmarkToWorld(landmark, mapping)
+      const screen = worldToScreen(world, mapping.viewportW, mapping.viewportH, mapping.frustumHeight)
+      ctx.beginPath()
+      ctx.arc(screen.x, screen.y, 3.2, 0, Math.PI * 2)
+      ctx.fill()
+    }
+  }
+}
+
+function gestureName(gesture: TrackedHand['gesture']): string {
+  if (gesture === 'open_palm') return 'open palm'
+  if (gesture === 'unknown') return 'reading…'
+  return gesture
+}
+
+function GestureGuide({
+  open,
+  onToggle,
+  reports,
+  phase,
+}: {
+  open: boolean
+  onToggle: () => void
+  reports: ShowcaseSnapshot['handReports']
+  phase: ShowcaseSnapshot['phase']
+}) {
   return (
     <aside className={`guide ${open ? 'is-open' : ''}`}>
       <button type="button" className="guide-toggle" onClick={onToggle} aria-expanded={open}>
@@ -381,40 +445,48 @@ function GestureGuide({ open, onToggle }: { open: boolean; onToggle: () => void 
         <span className="sr-only">Gesture guide</span>
       </button>
       {open && (
-        <ul>
-          <li>
-            <span className="guide-icon" aria-hidden="true">
-              ☝
-            </span>
-            <span>
-              <strong>Point up</strong> to summon
-            </span>
-          </li>
-          <li>
-            <span className="guide-icon" aria-hidden="true">
-              ✊
-            </span>
-            <span>
-              <strong>Fist + swipe</strong> to cycle
-            </span>
-          </li>
-          <li>
-            <span className="guide-icon" aria-hidden="true">
-              🖐️
-            </span>
-            <span>
-              <strong>Open palm</strong> to release
-            </span>
-          </li>
-          <li>
-            <span className="guide-icon" aria-hidden="true">
-              🤏
-            </span>
-            <span>
-              <strong>Pinch</strong> to rotate
-            </span>
-          </li>
-        </ul>
+        <div className="guide-body">
+          <p className="guide-live">
+            {reports.length === 0
+              ? 'No hands in view'
+              : reports.map((report) => `${report.role}: ${gestureName(report.gesture)}`).join(' · ')}
+          </p>
+          <p className="guide-phase">{phase}</p>
+          <ul>
+            <li>
+              <span className="guide-icon" aria-hidden="true">
+                ☝
+              </span>
+              <span>
+                <strong>Index out</strong> to summon
+              </span>
+            </li>
+            <li>
+              <span className="guide-icon" aria-hidden="true">
+                ✊
+              </span>
+              <span>
+                <strong>Other hand: fist + swipe</strong> to cycle
+              </span>
+            </li>
+            <li>
+              <span className="guide-icon" aria-hidden="true">
+                🖐️🖐️
+              </span>
+              <span>
+                <strong>Both palms</strong> to reset
+              </span>
+            </li>
+            <li>
+              <span className="guide-icon" aria-hidden="true">
+                🤏
+              </span>
+              <span>
+                <strong>Pinch</strong> to rotate
+              </span>
+            </li>
+          </ul>
+        </div>
       )}
     </aside>
   )

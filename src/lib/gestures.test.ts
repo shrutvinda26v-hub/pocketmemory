@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { classifyGesture, pinchDistance, poseHand } from './gestures.ts'
 
 describe('classifyGesture', () => {
-  it('detects an index-up point', () => {
-    const landmarks = poseHand({ gesture: 'point', handedness: 'Right' })
+  it('detects a point even when the finger is not aimed straight up', () => {
+    const landmarks = poseHand({ gesture: 'point', origin: { x: 0.4, y: 0.7, z: 0.08 }, handedness: 'Left' })
     expect(classifyGesture(landmarks)).toBe('point')
   })
 

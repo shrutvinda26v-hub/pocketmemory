@@ -1,22 +1,23 @@
 import { describe, expect, it } from 'vitest'
-import { pinchDistance, poseHand } from './gestures.ts'
+import { analyzeHand, pinchDistance, poseHand } from './gestures.ts'
 import { ShowcaseMachine } from './showcaseMachine.ts'
-import { DISSOLVE_MS, GESTURE_HOLD_MS, MATERIALIZE_MS, SUMMON_MS } from './types.ts'
+import { DISSOLVE_MS, GESTURE_HOLD_MS, MATERIALIZE_MS, PALM_HOLD_MS, SUMMON_MS } from './types.ts'
 import type { Gesture, Handedness, TrackedHand } from './types.ts'
 
 function hand(gesture: Gesture | 'relax', handedness: Handedness, x = 0.6): TrackedHand {
-  const mapped = gesture === 'relax' ? 'unknown' : gesture
   const landmarks = poseHand({
     gesture,
     origin: { x, y: 0.55, z: 0 },
     handedness,
   })
+  const analysis = analyzeHand(landmarks)
   return {
     handedness,
     landmarks,
-    gesture: mapped === 'unknown' ? 'unknown' : mapped,
+    gesture: gesture === 'relax' ? 'unknown' : analysis.gesture,
     wrist: landmarks[0] ?? { x, y: 0.55, z: 0 },
     pinchDistance: pinchDistance(landmarks),
+    extendedCount: analysis.extendedCount,
   }
 }
 
@@ -44,12 +45,20 @@ describe('ShowcaseMachine', () => {
     expect(afterSummon.snap.labelVisible).toBe(true)
   })
 
+  it('does not reset if the holder briefly opens their hand', () => {
+    const machine = new ShowcaseMachine(18, 0)
+    machine.summon(0, 'Right')
+    const held = step(machine, 0, SUMMON_MS + 40, [hand('relax', 'Right', 0.7)])
+    const briefPalm = step(machine, held.now, 240, [hand('open_palm', 'Right', 0.7)])
+    expect(briefPalm.snap.phase).toBe('holding')
+  })
+
   it('cycles the roster on a control-hand fist swipe', () => {
     const machine = new ShowcaseMachine(18, 0)
     machine.summon(0, 'Right')
     step(machine, 10, SUMMON_MS + 40, [hand('relax', 'Right', 0.7)])
 
-    const heldFist = step(machine, SUMMON_MS + 80, GESTURE_HOLD_MS + 80, [
+    const heldFist = step(machine, SUMMON_MS + 80, 80, [
       hand('relax', 'Right', 0.7),
       hand('fist', 'Left', 0.55),
     ])
@@ -62,6 +71,15 @@ describe('ShowcaseMachine', () => {
     const snap = machine.getSnapshot(now)
     expect(snap.phase).toBe('dissolving')
     expect(snap.pendingIndex).toBe(1)
+  })
+
+  it('still tracks the holder if MediaPipe flips handedness labels', () => {
+    const machine = new ShowcaseMachine(18, 0)
+    machine.summon(0, 'Right')
+    step(machine, 0, SUMMON_MS + 40, [hand('relax', 'Right', 0.7)])
+    const flipped = step(machine, SUMMON_MS + 80, 200, [hand('relax', 'Left', 0.72)])
+    expect(flipped.snap.phase).toBe('holding')
+    expect(flipped.snap.trackingLost).toBe(false)
   })
 
   it('wraps the roster index backward', () => {
@@ -77,7 +95,7 @@ describe('ShowcaseMachine', () => {
     const machine = new ShowcaseMachine(18, 0)
     machine.summon(0, 'Right')
     step(machine, 0, SUMMON_MS + 40, [hand('relax', 'Right')])
-    const after = step(machine, SUMMON_MS + 80, GESTURE_HOLD_MS + 80, [
+    const after = step(machine, SUMMON_MS + 80, PALM_HOLD_MS + 80, [
       hand('open_palm', 'Right', 0.7),
       hand('open_palm', 'Left', 0.3),
     ])
@@ -94,7 +112,7 @@ describe('ShowcaseMachine', () => {
     const briefLoss = step(machine, held.now, 300, [])
     expect(briefLoss.snap.phase).toBe('holding')
 
-    const longLoss = step(machine, briefLoss.now, 900, [])
+    const longLoss = step(machine, briefLoss.now, 1600, [])
     expect(longLoss.snap.phase).toBe('idle')
   })
 

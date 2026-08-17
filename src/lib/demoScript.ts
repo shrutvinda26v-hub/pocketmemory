@@ -1,4 +1,4 @@
-import { classifyGesture, pinchDistance, poseHand } from './gestures.ts'
+import { analyzeHand, poseHand } from './gestures.ts'
 import type { TrackedHand } from './types.ts'
 
 const LOOP = 16
@@ -58,23 +58,27 @@ export function demoHands(timeSec: number): TrackedHand[] {
     origin: anchorOrigin,
     handedness: 'Right',
   })
+  const anchorAnalysis = analyzeHand(anchorLandmarks)
   const hands: TrackedHand[] = [
     {
       handedness: 'Right',
       landmarks: anchorLandmarks,
-      gesture: classifyGesture(anchorLandmarks),
+      gesture: anchorAnalysis.gesture,
       wrist: anchorLandmarks[0] ?? anchorOrigin,
-      pinchDistance: pinchDistance(anchorLandmarks),
+      pinchDistance: anchorAnalysis.pinchDistance,
+      extendedCount: anchorAnalysis.extendedCount,
     },
   ]
 
   if (control) {
+    const analysis = analyzeHand(control)
     hands.push({
       handedness: controlHandedness,
       landmarks: control,
-      gesture: controlGesture === 'unknown' ? classifyGesture(control) : controlGesture,
+      gesture: controlGesture === 'unknown' ? analysis.gesture : controlGesture,
       wrist: control[0] ?? controlOrigin,
-      pinchDistance: pinchDistance(control),
+      pinchDistance: analysis.pinchDistance,
+      extendedCount: analysis.extendedCount,
     })
   }
 

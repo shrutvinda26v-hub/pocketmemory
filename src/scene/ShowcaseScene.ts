@@ -2,8 +2,10 @@ import * as THREE from 'three'
 import { accentFor, type Pokemon } from '../data/pokemon.ts'
 import { CUBE_PADDING, type Phase, type ShowcaseSnapshot, type TrackedHand } from '../lib/types.ts'
 import { FRUSTUM_HEIGHT, handBounds, landmarkToWorld, worldToScreen, type MappingOptions, type WorldPoint } from '../lib/mapping.ts'
+import { buildVoxelModel, type VoxelModel } from '../lib/voxelPokemon.ts'
 
 const MAX_PARTICLES = 480
+const MAX_VOXELS = 2200
 const AMBIENT_COUNT = 64
 
 interface Sample {
@@ -45,41 +47,6 @@ void main() {
 
 function hexToColor(hex: string): THREE.Color {
   return new THREE.Color(hex)
-}
-
-function sampleImage(image: HTMLImageElement, maxCount: number): Sample[] {
-  const size = 72
-  const canvas = document.createElement('canvas')
-  canvas.width = size
-  canvas.height = size
-  const ctx = canvas.getContext('2d', { willReadFrequently: true })
-  if (!ctx) return []
-  ctx.drawImage(image, 0, 0, size, size)
-  const { data } = ctx.getImageData(0, 0, size, size)
-  const hits: Sample[] = []
-  for (let y = 0; y < size; y += 1) {
-    for (let x = 0; x < size; x += 1) {
-      const i = (y * size + x) * 4
-      const alpha = data[i + 3] ?? 0
-      if (alpha < 92) continue
-      hits.push({
-        x: x / size - 0.5,
-        y: -(y / size - 0.5),
-        z: (((x + y) % 7) - 3) * 0.01,
-        r: (data[i] ?? 255) / 255,
-        g: (data[i + 1] ?? 255) / 255,
-        b: (data[i + 2] ?? 255) / 255,
-      })
-    }
-  }
-  if (hits.length <= maxCount) return hits
-  const out: Sample[] = []
-  const step = hits.length / maxCount
-  for (let i = 0; i < maxCount; i += 1) {
-    const sample = hits[Math.floor(i * step)]
-    if (sample) out.push(sample)
-  }
-  return out
 }
 
 function makeCornerGeometry(): THREE.BufferGeometry {
@@ -124,6 +91,13 @@ export class ShowcaseScene {
   private cornerMat: THREE.LineBasicMaterial
   private billboard: THREE.Mesh
   private billboardMat: THREE.MeshBasicMaterial
+  private modelGroup: THREE.Group
+  private voxels: THREE.InstancedMesh
+  private voxelMat: THREE.MeshLambertMaterial
+  private voxelGeo: THREE.BoxGeometry
+  private rimLight: THREE.PointLight
+  private dummy = new THREE.Object3D()
+  private voxelTint = new THREE.Color()
   private particles: THREE.Points
   private particleGeo: THREE.BufferGeometry
   private particleMat: THREE.ShaderMaterial
@@ -143,6 +117,7 @@ export class ShowcaseScene {
   private roster: Pokemon[] = []
   private textures = new Map<number, THREE.Texture>()
   private samples = new Map<number, Sample[]>()
+  private models = new Map<number, VoxelModel>()
   private loading = new Set<number>()
   private currentId = -1
   private lastPhase: Phase = 'idle'
@@ -172,6 +147,13 @@ export class ShowcaseScene {
     this.camera.position.z = 8
 
     this.threeScene = new THREE.Scene()
+    this.threeScene.add(new THREE.AmbientLight(0xf5efe4, 0.78))
+    const key = new THREE.DirectionalLight(0xffffff, 1.2)
+    key.position.set(0.55, 1.15, 2.4)
+    this.threeScene.add(key)
+    const fill = new THREE.DirectionalLight(0x9ecbff, 0.35)
+    fill.position.set(-0.8, 0.2, 1.2)
+    this.threeScene.add(fill)
 
     this.fillMat = new THREE.MeshBasicMaterial({
       color: 0xffffff,
@@ -198,7 +180,20 @@ export class ShowcaseScene {
       side: THREE.DoubleSide,
     })
     this.billboard = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), this.billboardMat)
+    this.billboard.visible = false
     this.cube.add(this.billboard)
+
+    this.voxelGeo = new THREE.BoxGeometry(1, 1, 1)
+    this.voxelMat = new THREE.MeshLambertMaterial({ transparent: true, opacity: 0 })
+    this.voxels = new THREE.InstancedMesh(this.voxelGeo, this.voxelMat, MAX_VOXELS)
+    this.voxels.instanceMatrix.setUsage(THREE.DynamicDrawUsage)
+    this.voxels.count = 0
+    this.voxels.frustumCulled = false
+    this.modelGroup = new THREE.Group()
+    this.modelGroup.add(this.voxels)
+    this.cube.add(this.modelGroup)
+    this.rimLight = new THREE.PointLight(0xffffff, 0.85, 2.4)
+    this.cube.add(this.rimLight)
 
     this.positions = new Float32Array(MAX_PARTICLES * 3)
     this.colors = new Float32Array(MAX_PARTICLES * 3)
@@ -304,7 +299,11 @@ export class ShowcaseScene {
     const billboardGoal =
       snapshot.phase === 'dissolving' ? 0 : snapshot.phase === 'idle' ? 0 : snapshot.phase === 'materializing' ? Math.min(1, snapshot.phaseAgeMs / 900) : targetBillboard
     this.billboardOpacity += (billboardGoal - this.billboardOpacity) * (1 - Math.exp(-dt * 8))
-    this.billboardMat.opacity = this.billboardOpacity * this.cubeOpacity
+    this.billboardMat.opacity = 0
+    this.voxelMat.opacity = this.billboardOpacity * this.cubeOpacity
+    this.rimLight.color.copy(this.accent)
+    this.rimLight.intensity = 0.55 + snapshot.pulse * 0.7
+    this.modelGroup.visible = this.voxelMat.opacity > 0.04 && snapshot.phase !== 'dissolving'
 
     if (phaseChanged && snapshot.phase === 'dissolving') {
       this.seedVelocities()
@@ -315,9 +314,7 @@ export class ShowcaseScene {
     }
     this.lastPhase = snapshot.phase
 
-    const anchor = snapshot.anchorHand
-      ? hands.find((hand) => hand.handedness === snapshot.anchorHand)
-      : hands[0]
+    const anchor = pickFollowHand(hands, this.cube.position, mapping)
     if (anchor && snapshot.phase !== 'idle') {
       const points: WorldPoint[] = anchor.landmarks.map((landmark) => landmarkToWorld(landmark, mapping))
       const bounds = handBounds(points)
@@ -341,9 +338,9 @@ export class ShowcaseScene {
     if (snapshot.pinchActive) this.userRotY += snapshot.pinchDelta
     const bob = this.reducedMotion ? 0 : Math.sin(this.time * 1.5) * 0.028
     const idleSpin = this.reducedMotion ? 0 : Math.sin(this.time * 0.7) * 0.18
-    this.billboard.position.set(0, bob, 0.02)
-    this.billboard.rotation.y = this.userRotY + idleSpin
-    this.billboard.scale.setScalar(0.72)
+    this.modelGroup.position.set(0, bob, 0)
+    this.modelGroup.rotation.y = this.userRotY + idleSpin + (this.reducedMotion ? 0 : this.time * 0.55)
+    this.modelGroup.scale.setScalar(0.92)
 
     this.updateParticles(dt, snapshot)
     this.updateAmbient(snapshot)
@@ -363,6 +360,9 @@ export class ShowcaseScene {
     this.cubeEdges.geometry.dispose()
     this.cubeCorners.geometry.dispose()
     this.billboard.geometry.dispose()
+    this.voxelGeo.dispose()
+    this.voxelMat.dispose()
+    this.voxels.dispose()
     this.particleGeo.dispose()
     this.ambientGeo.dispose()
     this.fillMat.dispose()
@@ -383,7 +383,9 @@ export class ShowcaseScene {
       texture.colorSpace = THREE.SRGBColorSpace
       texture.needsUpdate = true
       this.textures.set(pokemon.id, texture)
-      this.samples.set(pokemon.id, sampleImage(image, MAX_PARTICLES))
+      const model = buildVoxelModel(image)
+      this.models.set(pokemon.id, model)
+      this.samples.set(pokemon.id, model.samples)
       this.loading.delete(pokemon.id)
       if (this.currentId === pokemon.id) this.applyPokemon(pokemon)
     }
@@ -401,16 +403,35 @@ export class ShowcaseScene {
       this.billboardMat.map = texture
       this.billboardMat.needsUpdate = true
     }
+    const model = this.models.get(pokemon.id)
+    if (model) this.layoutVoxels(model)
     const samples = this.samples.get(pokemon.id)
     if (samples) this.layoutRest(samples)
+  }
+
+  private layoutVoxels(model: VoxelModel): void {
+    const count = Math.min(model.voxels.length, MAX_VOXELS)
+    this.voxels.count = count
+    for (let i = 0; i < count; i += 1) {
+      const voxel = model.voxels[i]!
+      this.dummy.position.set(voxel.x, voxel.y, voxel.z)
+      this.dummy.scale.setScalar(model.cell * 1.05)
+      this.dummy.rotation.set(0, 0, 0)
+      this.dummy.updateMatrix()
+      this.voxels.setMatrixAt(i, this.dummy.matrix)
+      this.voxelTint.setRGB(voxel.r, voxel.g, voxel.b)
+      this.voxels.setColorAt(i, this.voxelTint)
+    }
+    this.voxels.instanceMatrix.needsUpdate = true
+    if (this.voxels.instanceColor) this.voxels.instanceColor.needsUpdate = true
   }
 
   private layoutRest(samples: Sample[]): void {
     this.particleCount = samples.length
     for (let i = 0; i < samples.length; i += 1) {
       const sample = samples[i]!
-      this.rest[i * 3] = sample.x * 0.78
-      this.rest[i * 3 + 1] = sample.y * 0.78
+      this.rest[i * 3] = sample.x
+      this.rest[i * 3 + 1] = sample.y
       this.rest[i * 3 + 2] = sample.z
       this.positions[i * 3] = this.rest[i * 3] ?? 0
       this.positions[i * 3 + 1] = this.rest[i * 3 + 1] ?? 0
@@ -469,14 +490,7 @@ export class ShowcaseScene {
       }
       this.particles.visible = true
     } else if (snapshot.phase === 'holding' || snapshot.phase === 'summoning') {
-      for (let i = 0; i < this.particleCount; i += 1) {
-        const drift = this.reducedMotion ? 0 : Math.sin(this.time * 1.2 + i * 0.35) * 0.012
-        this.positions[i * 3] = (this.rest[i * 3] ?? 0) + drift
-        this.positions[i * 3 + 1] = this.rest[i * 3 + 1] ?? 0
-        this.positions[i * 3 + 2] = this.rest[i * 3 + 2] ?? 0
-        this.alphas[i] = 0.16
-      }
-      this.particles.visible = this.cubeOpacity > 0.2
+      this.particles.visible = false
     } else {
       this.particles.visible = false
     }
@@ -521,4 +535,28 @@ export class ShowcaseScene {
     if (size) size.needsUpdate = true
     if (alpha) alpha.needsUpdate = true
   }
+}
+
+function pickFollowHand(
+  hands: TrackedHand[],
+  cubePos: THREE.Vector3,
+  mapping: MappingOptions,
+): TrackedHand | undefined {
+  if (hands.length === 0) return undefined
+  if (hands.length === 1) return hands[0]
+  let best = hands[0]
+  let bestDist = Infinity
+  for (const hand of hands) {
+    const wrist = hand.landmarks[0]
+    if (!wrist) continue
+    const world = landmarkToWorld(wrist, mapping)
+    const dx = world.x - cubePos.x
+    const dy = world.y - cubePos.y
+    const dist = dx * dx + dy * dy
+    if (dist < bestDist) {
+      bestDist = dist
+      best = hand
+    }
+  }
+  return best
 }

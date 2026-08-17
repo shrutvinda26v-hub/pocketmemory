@@ -55,7 +55,7 @@ function isExtended(landmarks: Landmark[], tip: number, pip: number, mcp: number
   const d1 = Math.hypot(v1x, v1y) || 1e-6
   const d2 = Math.hypot(v2x, v2y) || 1e-6
   const straight = (v1x * v2x + v1y * v2y) / (d1 * d2)
-  return stretch > 0.5 && fromWrist > 1.05 && straight > 0.15
+  return stretch > 0.4 && fromWrist > 1.02 && straight > 0.0
 }
 
 export function pinchDistance(landmarks: Landmark[]): number {

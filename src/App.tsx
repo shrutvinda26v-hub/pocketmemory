@@ -4,8 +4,9 @@ import { ROSTER, accentFor, padDex, wrapIndex } from './data/pokemon.ts'
 import { playDissolve, playMaterialize, playReset, playSummon, unlockAudio } from './lib/audio.ts'
 import { demoHands } from './lib/demoScript.ts'
 import { ShowcaseMachine } from './lib/showcaseMachine.ts'
-import { DETECT_INTERVAL_MS, type Phase, type ShowcaseSnapshot, type TrackedHand } from './lib/types.ts'
+import { type Phase, type ShowcaseSnapshot, type TrackedHand } from './lib/types.ts'
 import { FRUSTUM_HEIGHT, landmarkToWorld, worldToScreen, type MappingOptions } from './lib/mapping.ts'
+import { HAND_BONES } from './lib/handBones.ts'
 import type { ShowcaseScene } from './scene/ShowcaseScene.ts'
 import './index.css'
 
@@ -53,7 +54,6 @@ export default function App() {
   const machineRef = useRef(new ShowcaseMachine(ROSTER.length, performance.now()))
   const landmarkerRef = useRef<HandLandmarker | null>(null)
   const modeRef = useRef<Mode>(initialMode())
-  const lastDetect = useRef(0)
   const lastPhase = useRef<Phase>('idle')
   const lastUiKey = useRef('')
   const demoOrigin = useRef(performance.now())
@@ -90,13 +90,10 @@ export default function App() {
       if (currentMode === 'demo') {
         hands = demoHands((now - demoOrigin.current) / 1000)
       } else if (currentMode === 'live' && landmarkerRef.current && videoRef.current && detectRef.current) {
-        if (now - lastDetect.current >= DETECT_INTERVAL_MS) {
-          lastDetect.current = now
-          try {
-            handsRef.current = detectRef.current(landmarkerRef.current, videoRef.current, now)
-          } catch {
-            // Keep the last stable frame if MediaPipe rejects a timestamp.
-          }
+        try {
+          handsRef.current = detectRef.current(landmarkerRef.current, videoRef.current, now)
+        } catch {
+          // Keep the last stable frame if MediaPipe rejects a timestamp.
         }
         hands = handsRef.current
       }
@@ -410,12 +407,28 @@ function drawHandOverlay(
               : 'rgba(244,239,228,0.7)'
     ctx.fillStyle = color
     ctx.strokeStyle = color
-    ctx.lineWidth = 1.5
-    for (const landmark of hand.landmarks) {
+    ctx.lineWidth = 2.8
+    ctx.lineJoin = 'round'
+    ctx.lineCap = 'round'
+    for (const [a, b] of HAND_BONES) {
+      const pa = hand.landmarks[a]
+      const pb = hand.landmarks[b]
+      if (!pa || !pb) continue
+      const sa = worldToScreen(landmarkToWorld(pa, mapping), mapping.viewportW, mapping.viewportH, mapping.frustumHeight)
+      const sb = worldToScreen(landmarkToWorld(pb, mapping), mapping.viewportW, mapping.viewportH, mapping.frustumHeight)
+      ctx.beginPath()
+      ctx.moveTo(sa.x, sa.y)
+      ctx.lineTo(sb.x, sb.y)
+      ctx.stroke()
+    }
+    for (let i = 0; i < hand.landmarks.length; i += 1) {
+      const landmark = hand.landmarks[i]
+      if (!landmark) continue
       const world = landmarkToWorld(landmark, mapping)
       const screen = worldToScreen(world, mapping.viewportW, mapping.viewportH, mapping.frustumHeight)
+      const tip = i === 4 || i === 8 || i === 12 || i === 16 || i === 20
       ctx.beginPath()
-      ctx.arc(screen.x, screen.y, 3.2, 0, Math.PI * 2)
+      ctx.arc(screen.x, screen.y, tip ? 5.5 : 3.4, 0, Math.PI * 2)
       ctx.fill()
     }
   }

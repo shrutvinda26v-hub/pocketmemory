@@ -1,5 +1,4 @@
 import * as THREE from 'three'
-import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import { accentFor, type Pokemon } from '../data/pokemon.ts'
 import {
   CUBE_PADDING,
@@ -17,10 +16,18 @@ import {
   type MappingOptions,
   type WorldPoint,
 } from '../lib/mapping.ts'
-import { buildHdFigure, type HdFigure, type Sample } from '../lib/hdPokemonMesh.ts'
 
 const MAX_PARTICLES = 480
 const AMBIENT_COUNT = 64
+
+interface Sample {
+  x: number
+  y: number
+  z: number
+  r: number
+  g: number
+  b: number
+}
 
 const particleVertex = `
 uniform float uPixelRatio;
@@ -52,6 +59,41 @@ void main() {
 
 function hexToColor(hex: string): THREE.Color {
   return new THREE.Color(hex)
+}
+
+function sampleImage(image: HTMLImageElement, maxCount: number): Sample[] {
+  const size = 72
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d', { willReadFrequently: true })
+  if (!ctx) return []
+  ctx.drawImage(image, 0, 0, size, size)
+  const { data } = ctx.getImageData(0, 0, size, size)
+  const hits: Sample[] = []
+  for (let y = 0; y < size; y += 1) {
+    for (let x = 0; x < size; x += 1) {
+      const i = (y * size + x) * 4
+      const alpha = data[i + 3] ?? 0
+      if (alpha < 92) continue
+      hits.push({
+        x: x / size - 0.5,
+        y: -(y / size - 0.5),
+        z: (((x + y) % 7) - 3) * 0.01,
+        r: (data[i] ?? 255) / 255,
+        g: (data[i + 1] ?? 255) / 255,
+        b: (data[i + 2] ?? 255) / 255,
+      })
+    }
+  }
+  if (hits.length <= maxCount) return hits
+  const out: Sample[] = []
+  const step = hits.length / maxCount
+  for (let i = 0; i < maxCount; i += 1) {
+    const sample = hits[Math.floor(i * step)]
+    if (sample) out.push(sample)
+  }
+  return out
 }
 
 function makeCornerGeometry(): THREE.BufferGeometry {
@@ -91,24 +133,17 @@ export class ShowcaseScene {
   private cubeFill: THREE.Mesh
   private cubeEdges: THREE.LineSegments
   private cubeCorners: THREE.LineSegments
-  private fillMat: THREE.MeshPhysicalMaterial
+  private fillMat: THREE.MeshBasicMaterial
   private edgeMat: THREE.LineBasicMaterial
   private cornerMat: THREE.LineBasicMaterial
-  private modelGroup: THREE.Group
-  private frontMesh: THREE.Mesh
-  private backMesh: THREE.Mesh
-  private figureMat: THREE.MeshPhysicalMaterial
-  private contact: THREE.Mesh
-  private contactMat: THREE.MeshBasicMaterial
-  private rimLight: THREE.PointLight
-  private keyLight: THREE.DirectionalLight
+  private billboard: THREE.Mesh
+  private billboardMat: THREE.MeshBasicMaterial
   private particles: THREE.Points
   private particleGeo: THREE.BufferGeometry
   private particleMat: THREE.ShaderMaterial
   private ambient: THREE.Points
   private ambientGeo: THREE.BufferGeometry
   private ambientMat: THREE.ShaderMaterial
-  private envMap: THREE.Texture | null = null
 
   private positions: Float32Array
   private colors: Float32Array
@@ -120,18 +155,19 @@ export class ShowcaseScene {
   private ambientOffsets: Float32Array
 
   private roster: Pokemon[] = []
-  private figures = new Map<number, HdFigure>()
+  private textures = new Map<number, THREE.Texture>()
   private samples = new Map<number, Sample[]>()
   private loading = new Set<number>()
   private currentId = -1
   private lastPhase: Phase = 'idle'
   private cubeOpacity = 0
-  private figureOpacity = 0
-  private userRotY = 0
+  private billboardOpacity = 0
+  private userRotZ = 0
   private time = 0
   private accent = new THREE.Color('#e6dcc8')
   private reducedMotion = false
   private dummyTarget = new THREE.Vector3()
+  private inverseCube = new THREE.Quaternion()
 
   constructor(canvas: HTMLCanvasElement) {
     this.reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -144,8 +180,6 @@ export class ShowcaseScene {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     this.renderer.setClearColor(0x000000, 0)
     this.renderer.outputColorSpace = THREE.SRGBColorSpace
-    this.renderer.toneMapping = THREE.ACESFilmicToneMapping
-    this.renderer.toneMappingExposure = 1.08
 
     const aspect = window.innerWidth / Math.max(1, window.innerHeight)
     const half = FRUSTUM_HEIGHT / 2
@@ -153,33 +187,12 @@ export class ShowcaseScene {
     this.camera.position.z = 8
 
     this.threeScene = new THREE.Scene()
-    const pmrem = new THREE.PMREMGenerator(this.renderer)
-    const room = new RoomEnvironment()
-    this.envMap = pmrem.fromScene(room, 0.04).texture
-    this.threeScene.environment = this.envMap
-    this.threeScene.environmentIntensity = 0.92
-    room.dispose()
-    pmrem.dispose()
 
-    this.threeScene.add(new THREE.HemisphereLight(0xfff6ea, 0x1b1428, 0.62))
-    this.keyLight = new THREE.DirectionalLight(0xffffff, 1.55)
-    this.keyLight.position.set(0.7, 1.35, 2.6)
-    this.threeScene.add(this.keyLight)
-    const fill = new THREE.DirectionalLight(0xa8c8ff, 0.55)
-    fill.position.set(-1.1, 0.15, 1.6)
-    this.threeScene.add(fill)
-
-    this.fillMat = new THREE.MeshPhysicalMaterial({
+    this.fillMat = new THREE.MeshBasicMaterial({
       color: 0xffffff,
       transparent: true,
       opacity: 0.05,
-      roughness: 0.08,
-      metalness: 0.12,
-      clearcoat: 1,
-      clearcoatRoughness: 0.1,
-      envMapIntensity: 1.35,
       depthWrite: false,
-      side: THREE.DoubleSide,
     })
     this.cubeFill = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), this.fillMat)
 
@@ -193,43 +206,16 @@ export class ShowcaseScene {
     this.cube.add(this.cubeFill, this.cubeEdges, this.cubeCorners)
     this.threeScene.add(this.cube)
 
-    this.figureMat = new THREE.MeshPhysicalMaterial({
-      transparent: true,
-      opacity: 0,
-      roughness: 0.34,
-      metalness: 0.03,
-      clearcoat: 0.72,
-      clearcoatRoughness: 0.18,
-      sheen: 0.42,
-      sheenColor: new THREE.Color('#ffffff'),
-      sheenRoughness: 0.4,
-      envMapIntensity: 0.78,
-      alphaTest: 0.08,
-      side: THREE.FrontSide,
-      normalScale: new THREE.Vector2(0.55, 0.55),
-    })
-    this.frontMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.01, 0.01), this.figureMat)
-    this.backMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.01, 0.01), this.figureMat)
-    this.frontMesh.visible = false
-    this.backMesh.visible = false
-
-    this.contactMat = new THREE.MeshBasicMaterial({
-      color: 0x000000,
+    this.billboardMat = new THREE.MeshBasicMaterial({
       transparent: true,
       opacity: 0,
       depthWrite: false,
+      side: THREE.DoubleSide,
+      alphaTest: 0.04,
+      premultipliedAlpha: true,
     })
-    this.contact = new THREE.Mesh(new THREE.CircleGeometry(0.34, 48), this.contactMat)
-    this.contact.rotation.x = -Math.PI / 2
-    this.contact.position.y = -0.42
-
-    this.modelGroup = new THREE.Group()
-    this.modelGroup.add(this.frontMesh, this.backMesh, this.contact)
-    this.cube.add(this.modelGroup)
-
-    this.rimLight = new THREE.PointLight(0xffffff, 1.15, 2.8)
-    this.rimLight.position.set(0.12, 0.38, 0.72)
-    this.cube.add(this.rimLight)
+    this.billboard = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), this.billboardMat)
+    this.cube.add(this.billboard)
 
     this.positions = new Float32Array(MAX_PARTICLES * 3)
     this.colors = new Float32Array(MAX_PARTICLES * 3)
@@ -321,31 +307,24 @@ export class ShowcaseScene {
     this.edgeMat.color.copy(this.accent)
     this.cornerMat.color.copy(this.accent)
     this.fillMat.color.copy(this.accent)
-    this.figureMat.sheenColor.copy(this.accent)
 
     const targetCube = snapshot.phase === 'idle' ? 0 : 1
     this.cubeOpacity += (targetCube - this.cubeOpacity) * (1 - Math.exp(-dt * 7))
     const pulse = 1 + snapshot.pulse * 0.12
-    const fill = snapshot.cubeSolid ? 0.16 : 0.055
+    const fill = snapshot.cubeSolid ? 0.14 : 0.045
     this.edgeMat.opacity = this.cubeOpacity * (0.42 + snapshot.pulse * 0.45)
     this.cornerMat.opacity = this.cubeOpacity * (0.75 + snapshot.pulse * 0.25)
     this.fillMat.opacity = this.cubeOpacity * fill
-    this.contactMat.opacity = this.cubeOpacity * this.figureOpacity * 0.28
 
-    const figureGoal =
+    const billboardGoal =
       snapshot.phase === 'dissolving' || snapshot.phase === 'idle'
         ? 0
         : snapshot.phase === 'materializing'
           ? Math.min(1, snapshot.phaseAgeMs / MATERIALIZE_MS)
           : 1
-    this.figureOpacity += (figureGoal - this.figureOpacity) * (1 - Math.exp(-dt * 8))
-    const opacity = this.figureOpacity * this.cubeOpacity
-    this.figureMat.opacity = opacity
-    this.figureMat.transparent = opacity < 0.98
-    this.figureMat.depthWrite = opacity > 0.82
-    this.rimLight.color.copy(this.accent)
-    this.rimLight.intensity = 0.85 + snapshot.pulse * 0.9
-    this.modelGroup.visible = opacity > 0.04 && snapshot.phase !== 'dissolving'
+    this.billboardOpacity += (billboardGoal - this.billboardOpacity) * (1 - Math.exp(-dt * 8))
+    this.billboardMat.opacity = this.billboardOpacity * this.cubeOpacity
+    this.billboard.visible = this.billboardMat.opacity > 0.04 && snapshot.phase !== 'dissolving'
 
     if (phaseChanged && snapshot.phase === 'dissolving') {
       this.seedVelocities()
@@ -373,16 +352,15 @@ export class ShowcaseScene {
         const rot = Math.atan2(indexMcp.y - wrist.y, indexMcp.x - wrist.x) + Math.PI / 2
         this.cube.rotation.z += (rot * 0.35 - this.cube.rotation.z) * (1 - Math.exp(-dt * 6))
       }
-    } else if (snapshot.phase !== 'idle') {
-      this.cube.rotation.y += dt * 0.12
     }
 
-    if (snapshot.pinchActive) this.userRotY += snapshot.pinchDelta
-    const bob = this.reducedMotion ? 0 : Math.sin(this.time * 1.35) * 0.024
-    const idleSpin = this.reducedMotion ? 0 : Math.sin(this.time * 0.55) * 0.14
-    this.modelGroup.position.set(0, bob, 0)
-    this.modelGroup.rotation.y = this.userRotY + idleSpin + (this.reducedMotion ? 0 : this.time * 0.28)
-    this.modelGroup.scale.setScalar(0.94)
+    if (snapshot.pinchActive) this.userRotZ += snapshot.pinchDelta
+    const bob = this.reducedMotion ? 0 : Math.sin(this.time * 1.5) * 0.028
+    this.billboard.position.set(0, bob, 0.02)
+    this.inverseCube.copy(this.cube.quaternion).invert()
+    this.billboard.quaternion.copy(this.inverseCube)
+    this.billboard.rotateZ(this.userRotZ)
+    this.billboard.scale.setScalar(0.82)
 
     this.updateParticles(dt, snapshot)
     this.updateAmbient(snapshot)
@@ -401,40 +379,33 @@ export class ShowcaseScene {
     this.cubeFill.geometry.dispose()
     this.cubeEdges.geometry.dispose()
     this.cubeCorners.geometry.dispose()
-    this.contact.geometry.dispose()
-    const bound = new Set([this.frontMesh.geometry.uuid, this.backMesh.geometry.uuid])
+    this.billboard.geometry.dispose()
     this.particleGeo.dispose()
     this.ambientGeo.dispose()
     this.fillMat.dispose()
     this.edgeMat.dispose()
     this.cornerMat.dispose()
-    this.figureMat.dispose()
-    this.contactMat.dispose()
+    this.billboardMat.dispose()
     this.particleMat.dispose()
     this.ambientMat.dispose()
-    this.envMap?.dispose()
-    for (const figure of this.figures.values()) {
-      bound.delete(figure.front.uuid)
-      bound.delete(figure.back.uuid)
-      figure.front.dispose()
-      figure.back.dispose()
-      figure.texture.dispose()
-      figure.normalMap.dispose()
-    }
-    for (const uuid of bound) {
-      if (this.frontMesh.geometry.uuid === uuid) this.frontMesh.geometry.dispose()
-      if (this.backMesh.geometry.uuid === uuid) this.backMesh.geometry.dispose()
-    }
+    for (const texture of this.textures.values()) texture.dispose()
   }
 
   private ensurePokemon(pokemon: Pokemon): void {
-    if (this.figures.has(pokemon.id) || this.loading.has(pokemon.id)) return
+    if (this.textures.has(pokemon.id) || this.loading.has(pokemon.id)) return
     this.loading.add(pokemon.id)
     const image = new Image()
     image.onload = () => {
-      const figure = buildHdFigure(image, this.renderer.capabilities.getMaxAnisotropy())
-      this.figures.set(pokemon.id, figure)
-      this.samples.set(pokemon.id, figure.samples)
+      const texture = new THREE.Texture(image)
+      texture.colorSpace = THREE.SRGBColorSpace
+      texture.anisotropy = this.renderer.capabilities.getMaxAnisotropy()
+      texture.minFilter = THREE.LinearMipmapLinearFilter
+      texture.magFilter = THREE.LinearFilter
+      texture.generateMipmaps = true
+      texture.premultiplyAlpha = true
+      texture.needsUpdate = true
+      this.textures.set(pokemon.id, texture)
+      this.samples.set(pokemon.id, sampleImage(image, MAX_PARTICLES))
       this.loading.delete(pokemon.id)
       if (this.currentId === pokemon.id) this.applyPokemon(pokemon)
     }
@@ -447,15 +418,10 @@ export class ShowcaseScene {
   private applyPokemon(pokemon: Pokemon): void {
     this.currentId = pokemon.id
     this.ensurePokemon(pokemon)
-    const figure = this.figures.get(pokemon.id)
-    if (figure) {
-      this.frontMesh.geometry = figure.front
-      this.backMesh.geometry = figure.back
-      this.figureMat.map = figure.texture
-      this.figureMat.normalMap = figure.normalMap
-      this.figureMat.needsUpdate = true
-      this.frontMesh.visible = true
-      this.backMesh.visible = true
+    const texture = this.textures.get(pokemon.id)
+    if (texture) {
+      this.billboardMat.map = texture
+      this.billboardMat.needsUpdate = true
     }
     const samples = this.samples.get(pokemon.id)
     if (samples) this.layoutRest(samples)
@@ -465,8 +431,8 @@ export class ShowcaseScene {
     this.particleCount = samples.length
     for (let i = 0; i < samples.length; i += 1) {
       const sample = samples[i]!
-      this.rest[i * 3] = sample.x
-      this.rest[i * 3 + 1] = sample.y
+      this.rest[i * 3] = sample.x * 0.78
+      this.rest[i * 3 + 1] = sample.y * 0.78
       this.rest[i * 3 + 2] = sample.z
       this.positions[i * 3] = this.rest[i * 3] ?? 0
       this.positions[i * 3 + 1] = this.rest[i * 3 + 1] ?? 0
@@ -524,6 +490,15 @@ export class ShowcaseScene {
         this.alphas[i] = 0.25 + 0.55 * (1 - t)
       }
       this.particles.visible = true
+    } else if (snapshot.phase === 'holding' || snapshot.phase === 'summoning') {
+      for (let i = 0; i < this.particleCount; i += 1) {
+        const drift = this.reducedMotion ? 0 : Math.sin(this.time * 1.2 + i * 0.35) * 0.012
+        this.positions[i * 3] = (this.rest[i * 3] ?? 0) + drift
+        this.positions[i * 3 + 1] = this.rest[i * 3 + 1] ?? 0
+        this.positions[i * 3 + 2] = this.rest[i * 3 + 2] ?? 0
+        this.alphas[i] = 0.16
+      }
+      this.particles.visible = this.cubeOpacity > 0.2
     } else {
       this.particles.visible = false
     }

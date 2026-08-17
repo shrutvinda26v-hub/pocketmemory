@@ -62,7 +62,6 @@ export default function App() {
 
   const [mode, setMode] = useState<Mode>(initialMode)
   const [ui, setUi] = useState<ShowcaseSnapshot>(emptySnapshot)
-  const [guideOpen, setGuideOpen] = useState(true)
   const [status, setStatus] = useState('')
   const [unsupported, setUnsupported] = useState(!cameraSupported())
   const [denied, setDenied] = useState(false)
@@ -140,7 +139,7 @@ export default function App() {
         overlayRef.current.getContext('2d')?.clearRect(0, 0, overlayRef.current.width, overlayRef.current.height)
       }
 
-      const key = `${snapshot.phase}|${snapshot.index}|${snapshot.handsDetected}|${snapshot.caught.length}|${snapshot.hint}|${snapshot.handReports.map((h) => h.gesture).join(',')}`
+      const key = `${snapshot.phase}|${snapshot.index}|${snapshot.handsDetected}|${snapshot.caught.length}`
       if (key !== lastUiKey.current) {
         lastUiKey.current = key
         setUi({ ...snapshot })
@@ -236,7 +235,6 @@ export default function App() {
 
   const pokemon = ROSTER[ui.index] ?? ROSTER[0]!
   const accent = accentFor(pokemon)
-  const showHero = (mode === 'live' || mode === 'demo') && ui.phase === 'idle' && !ui.handsDetected
   const showStage = mode !== 'browse'
 
   return (
@@ -270,17 +268,6 @@ export default function App() {
         <span className="poke-name">{pokemon.name}</span>
       </div>
 
-      {showHero && (
-        <div className="hero">
-          <p className="hero-kicker">webcam · local · no buttons</p>
-          <p className="hero-title">
-            Point to summon.
-            <br />
-            <em>Swipe to switch.</em>
-          </p>
-        </div>
-      )}
-
       {mode === 'gate' && (
         <CameraPrompt
           starting={starting}
@@ -310,13 +297,6 @@ export default function App() {
 
       {showStage && mode !== 'gate' && (
         <>
-          {mode === 'live' && <p className="coach">{ui.hint}</p>}
-          <GestureGuide
-            open={guideOpen}
-            onToggle={() => setGuideOpen((value) => !value)}
-            reports={ui.handReports}
-            phase={ui.phase}
-          />
           <CaughtDots caught={ui.caught} />
           <footer className="brand">
             <span>pocketmemory</span>
@@ -361,8 +341,7 @@ function CameraPrompt({
         the interface.
       </h2>
       <p className="gate-copy">
-        A wireframe cube locks to one hand. The other hand cycles the roster. Point to summon,
-        swipe to switch. Camera frames are processed locally in your browser — never uploaded.
+        Camera frames are processed locally in your browser — never uploaded.
       </p>
       <button type="button" className="cta" onClick={onEnable} disabled={starting}>
         {starting ? status || 'Starting…' : 'Enable your camera to begin'}
@@ -432,77 +411,6 @@ function drawHandOverlay(
       ctx.fill()
     }
   }
-}
-
-function gestureName(gesture: TrackedHand['gesture']): string {
-  if (gesture === 'open_palm') return 'open palm'
-  if (gesture === 'unknown') return 'reading…'
-  return gesture
-}
-
-function GestureGuide({
-  open,
-  onToggle,
-  reports,
-  phase,
-}: {
-  open: boolean
-  onToggle: () => void
-  reports: ShowcaseSnapshot['handReports']
-  phase: ShowcaseSnapshot['phase']
-}) {
-  return (
-    <aside className={`guide ${open ? 'is-open' : ''}`}>
-      <button type="button" className="guide-toggle" onClick={onToggle} aria-expanded={open}>
-        i
-        <span className="sr-only">Gesture guide</span>
-      </button>
-      {open && (
-        <div className="guide-body">
-          <p className="guide-live">
-            {reports.length === 0
-              ? 'No hands in view'
-              : reports.map((report) => `${report.role}: ${gestureName(report.gesture)}`).join(' · ')}
-          </p>
-          <p className="guide-phase">{phase}</p>
-          <ul>
-            <li>
-              <span className="guide-icon" aria-hidden="true">
-                ☝
-              </span>
-              <span>
-                <strong>Index out</strong> to summon
-              </span>
-            </li>
-            <li>
-              <span className="guide-icon" aria-hidden="true">
-                ✊
-              </span>
-              <span>
-                <strong>Other hand: fist + swipe</strong> to cycle
-              </span>
-            </li>
-            <li>
-              <span className="guide-icon" aria-hidden="true">
-                🖐️🖐️
-              </span>
-              <span>
-                <strong>Both palms</strong> to reset
-              </span>
-            </li>
-            <li>
-              <span className="guide-icon" aria-hidden="true">
-                🤏
-              </span>
-              <span>
-                <strong>Pinch</strong> to rotate
-              </span>
-            </li>
-          </ul>
-        </div>
-      )}
-    </aside>
-  )
 }
 
 function CaughtDots({ caught }: { caught: number[] }) {

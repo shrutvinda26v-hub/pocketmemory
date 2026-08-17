@@ -258,8 +258,12 @@ export default function App() {
         playsInline
         disablePictureInPicture
       />
-      <div className="vignette" />
-      <div className="grain" />
+      {mode !== 'live' && (
+        <>
+          <div className="vignette" />
+          <div className="grain" />
+        </>
+      )}
       <canvas ref={canvasRef} className="stage-canvas" aria-hidden="true" />
       <canvas ref={overlayRef} className="hand-overlay" aria-hidden="true" />
 

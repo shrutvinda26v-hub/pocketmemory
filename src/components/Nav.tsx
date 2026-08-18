@@ -4,9 +4,17 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/lib/cart";
 
+const LINKS = [
+  { href: "/shop", label: "SHOP" },
+  { href: "/#shades", label: "SHADES" },
+  { href: "/#quiz", label: "BADDIE QUIZ" },
+  { href: "/about", label: "ABOUT" },
+];
+
 export function Nav() {
   const { count, setOpen } = useCart();
   const [solid, setSolid] = useState(false);
+  const [menu, setMenu] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setSolid(window.scrollY > 40);
@@ -16,19 +24,34 @@ export function Nav() {
   }, []);
 
   return (
-    <header className={`nav ${solid ? "is-solid" : ""}`}>
-      <Link href="/" className="logo">
+    <header className={`nav ${solid || menu ? "is-solid" : ""}`}>
+      <Link href="/" className="logo" onClick={() => setMenu(false)}>
         BADDIE
       </Link>
       <nav className="nav-links">
-        <Link href="/shop">SHOP</Link>
-        <Link href="/#shades">SHADES</Link>
-        <Link href="/#quiz">BADDIE QUIZ</Link>
-        <Link href="/about">ABOUT</Link>
+        {LINKS.map((l) => (
+          <Link key={l.href} href={l.href}>
+            {l.label}
+          </Link>
+        ))}
       </nav>
-      <button type="button" className="bag-btn" onClick={() => setOpen(true)}>
-        BAG ({count})
-      </button>
+      <div className="flex items-center gap-4">
+        <button type="button" className="menu-btn" onClick={() => setMenu((v) => !v)}>
+          {menu ? "CLOSE" : "MENU"}
+        </button>
+        <button type="button" className="bag-btn" onClick={() => setOpen(true)}>
+          BAG ({count})
+        </button>
+      </div>
+      {menu && (
+        <div className="mobile-menu">
+          {LINKS.map((l) => (
+            <Link key={l.href} href={l.href} onClick={() => setMenu(false)}>
+              {l.label}
+            </Link>
+          ))}
+        </div>
+      )}
     </header>
   );
 }

@@ -22,6 +22,11 @@ export function UniverseSection() {
       }}
     >
       <div className="paisley" />
+      <img
+        src="/images/shade-universe.png"
+        alt=""
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-25 mix-blend-lighten"
+      />
       <div className="relative z-10 mx-auto max-w-6xl px-6">
         <p className="kicker text-[#f6d56b]">05 — THE SHADE UNIVERSE</p>
         <h2 className="display-lg mt-3">MEET YOUR MOOD.</h2>

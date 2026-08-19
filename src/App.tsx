@@ -4,6 +4,7 @@ import { playIgnite, playWhoosh, unlockAudio } from './lib/audio.ts'
 import { BlowDetector } from './lib/blowDetector.ts'
 import { CandleMachine } from './lib/candleMachine.ts'
 import { SnapDetector } from './lib/snapDetector.ts'
+import { drawHandSkeleton } from './lib/handSkeleton.ts'
 import type { AppMode, CandlePhase, TrackingFrame } from './lib/types.ts'
 import type { CakeScene } from './scene/CakeScene.ts'
 
@@ -22,6 +23,7 @@ function statusLabel(phase: CandlePhase, tracking: TrackingFrame | null, live: b
 export default function App() {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const overlayRef = useRef<HTMLCanvasElement>(null)
   const sceneRef = useRef<CakeScene | null>(null)
   const machineRef = useRef(new CandleMachine(0))
   const blowRef = useRef(new BlowDetector())
@@ -91,6 +93,9 @@ export default function App() {
 
       scene?.update(dt, snapshot.visuals)
       scene?.render()
+      if (overlayRef.current && videoRef.current) {
+        drawHandSkeleton(overlayRef.current, trackingRef.current?.hands ?? [], videoRef.current)
+      }
 
       const uiKey = `${snapshot.phase}|${snapshot.hint}|${trackingRef.current?.faceActive}|${trackingRef.current?.handsActive}`
       if (uiKey !== lastUi) {
@@ -177,14 +182,17 @@ export default function App() {
       <h1 className="sr-only">Make a wish — blow out the candle, then snap to light it</h1>
       <canvas ref={canvasRef} className="stage" aria-hidden="true" />
 
-      <video
-        ref={videoRef}
-        className={live ? 'cam' : 'cam is-hidden'}
-        autoPlay
-        muted
-        playsInline
-        disablePictureInPicture
-      />
+      <div className={live ? 'cam-wrap' : 'cam-wrap is-hidden'}>
+        <video
+          ref={videoRef}
+          className="cam"
+          autoPlay
+          muted
+          playsInline
+          disablePictureInPicture
+        />
+        <canvas ref={overlayRef} className="hand-skel" aria-hidden="true" />
+      </div>
 
       {live && (
         <div className={`status ${trackingOn ? 'is-on' : 'is-wait'}`} aria-live="polite">

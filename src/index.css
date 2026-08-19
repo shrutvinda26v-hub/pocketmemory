@@ -41,22 +41,39 @@ body,
   display: block;
 }
 
-.cam {
+.cam-wrap {
   position: absolute;
   top: 22px;
   right: 22px;
   width: 188px;
   height: 188px;
-  object-fit: cover;
   border-radius: 50%;
-  transform: scaleX(-1);
+  overflow: hidden;
   border: 2px solid rgba(255, 248, 238, 0.9);
   box-shadow: 0 12px 36px rgba(80, 50, 30, 0.18), 0 0 0 8px rgba(255, 250, 242, 0.55);
   z-index: 3;
 }
 
-.cam.is-hidden {
+.cam-wrap.is-hidden {
   opacity: 0;
+  pointer-events: none;
+}
+
+.cam,
+.hand-skel {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  transform: scaleX(-1);
+}
+
+.cam {
+  object-fit: cover;
+}
+
+.hand-skel {
   pointer-events: none;
 }
 
@@ -198,7 +215,7 @@ body,
 }
 
 @media (max-width: 640px) {
-  .cam {
+  .cam-wrap {
     width: 132px;
     height: 132px;
     top: 16px;

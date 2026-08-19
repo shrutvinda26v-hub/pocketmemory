@@ -117,6 +117,57 @@ export function starSparkleTexture(): THREE.CanvasTexture {
   return texture
 }
 
+export function letterCandleTexture(letter: string, wax: string, stripe: string): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas')
+  canvas.width = 128
+  canvas.height = 256
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('2d context missing')
+  ctx.fillStyle = wax
+  ctx.fillRect(0, 0, 128, 256)
+  ctx.strokeStyle = stripe
+  ctx.lineWidth = 18
+  ctx.globalAlpha = 0.55
+  for (let y = -80; y < 320; y += 30) {
+    ctx.beginPath()
+    ctx.moveTo(0, y)
+    ctx.lineTo(128, y + 48)
+    ctx.stroke()
+  }
+  ctx.globalAlpha = 1
+  ctx.fillStyle = stripe
+  ctx.font = 'bold 92px "Fraunces", Georgia, serif'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText(letter, 64, 128)
+  const texture = new THREE.CanvasTexture(canvas)
+  texture.colorSpace = THREE.SRGBColorSpace
+  texture.wrapS = THREE.RepeatWrapping
+  texture.wrapT = THREE.ClampToEdgeWrapping
+  return texture
+}
+
+export function letterBadgeTexture(letter: string, bg: string, fg = '#fffaf4'): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas')
+  canvas.width = 128
+  canvas.height = 128
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('2d context missing')
+  ctx.clearRect(0, 0, 128, 128)
+  ctx.fillStyle = bg
+  ctx.beginPath()
+  ctx.roundRect(8, 8, 112, 112, 22)
+  ctx.fill()
+  ctx.fillStyle = fg
+  ctx.font = '700 78px "Fraunces", Georgia, serif'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText(letter, 64, 70)
+  const texture = new THREE.CanvasTexture(canvas)
+  texture.colorSpace = THREE.SRGBColorSpace
+  return texture
+}
+
 export function frostingBump(): THREE.CanvasTexture {
   const canvas = document.createElement('canvas')
   canvas.width = 256

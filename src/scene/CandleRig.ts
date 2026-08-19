@@ -82,6 +82,7 @@ interface SparkParticle {
 
 interface Twinkle {
   sprite: THREE.Sprite
+  origin: THREE.Vector3
   angle: number
   radius: number
   height: number
@@ -90,14 +91,20 @@ interface Twinkle {
   size: number
 }
 
+interface FlameHead {
+  flameA: THREE.Mesh
+  flameB: THREE.Mesh
+  glow: THREE.Sprite
+  ember: THREE.Mesh
+  tip: THREE.Vector3
+  phase: number
+}
+
 export class CandleRig {
   readonly group = new THREE.Group()
   readonly light: THREE.PointLight
   private readonly flameMat: THREE.ShaderMaterial
-  private readonly flameA: THREE.Mesh
-  private readonly flameB: THREE.Mesh
-  private readonly glow: THREE.Sprite
-  private readonly ember: THREE.Mesh
+  private readonly heads: FlameHead[] = []
   private readonly smoke: THREE.Points
   private readonly smokePos: Float32Array
   private readonly smokeSize: Float32Array
@@ -107,11 +114,13 @@ export class CandleRig {
   private readonly twinkles: Twinkle[] = []
   private readonly smokes: SmokeParticle[] = []
   private readonly sparkList: SparkParticle[] = []
+  private readonly wickTips: THREE.Vector3[]
   private smokeSpawn = 0
   private lastSpark = 0
   private time = 0
 
-  constructor() {
+  constructor(wickTips: THREE.Vector3[]) {
+    this.wickTips = wickTips
     const flameMat = new THREE.ShaderMaterial({
       uniforms: {
         uTime: { value: 0 },
@@ -127,41 +136,45 @@ export class CandleRig {
       side: THREE.DoubleSide,
     })
     this.flameMat = flameMat
-    const geom = new THREE.PlaneGeometry(0.28, 0.46)
-    geom.translate(0, 0.23, 0)
-    this.flameA = new THREE.Mesh(geom, flameMat)
-    this.flameB = new THREE.Mesh(geom, flameMat)
-    this.flameB.rotation.y = Math.PI / 2
-    this.group.add(this.flameA, this.flameB)
+    const geom = new THREE.PlaneGeometry(0.14, 0.32)
+    geom.translate(0, 0.16, 0)
+    const glowMap = softSpriteTexture('#ffb45a')
+    const emberGeom = new THREE.SphereGeometry(0.01, 8, 6)
+    const emberMat = new THREE.MeshStandardMaterial({
+      color: 0x3a1208,
+      emissive: 0xff6a1a,
+      emissiveIntensity: 0,
+      roughness: 0.6,
+    })
 
-    const glow = new THREE.Sprite(
-      new THREE.SpriteMaterial({
-        map: softSpriteTexture('#ffb45a'),
-        color: 0xffc978,
-        transparent: true,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending,
-        opacity: 0.55,
-      }),
-    )
-    glow.scale.set(0.38, 0.5, 1)
-    glow.position.y = 0.14
-    this.glow = glow
-    this.group.add(glow)
+    for (let i = 0; i < wickTips.length; i += 1) {
+      const tip = wickTips[i]!
+      const flameA = new THREE.Mesh(geom, flameMat)
+      const flameB = new THREE.Mesh(geom, flameMat)
+      flameB.rotation.y = Math.PI / 2
+      const glow = new THREE.Sprite(
+        new THREE.SpriteMaterial({
+          map: glowMap,
+          color: 0xffc978,
+          transparent: true,
+          depthWrite: false,
+          blending: THREE.AdditiveBlending,
+          opacity: 0.45,
+        }),
+      )
+      glow.scale.set(0.22, 0.28, 1)
+      const ember = new THREE.Mesh(emberGeom, emberMat)
+      const head: FlameHead = { flameA, flameB, glow, ember, tip, phase: i * 0.73 }
+      this.heads.push(head)
+      for (const obj of [flameA, flameB, glow, ember]) {
+        obj.position.copy(tip)
+        this.group.add(obj)
+      }
+      glow.position.y = tip.y + 0.08
+    }
 
-    this.ember = new THREE.Mesh(
-      new THREE.SphereGeometry(0.012, 10, 8),
-      new THREE.MeshStandardMaterial({
-        color: 0x3a1208,
-        emissive: 0xff6a1a,
-        emissiveIntensity: 0,
-        roughness: 0.6,
-      }),
-    )
-    this.group.add(this.ember)
-
-    this.smokePos = new Float32Array(48 * 3)
-    this.smokeSize = new Float32Array(48)
+    this.smokePos = new Float32Array(64 * 3)
+    this.smokeSize = new Float32Array(64)
     const smokeGeom = new THREE.BufferGeometry()
     smokeGeom.setAttribute('position', new THREE.BufferAttribute(this.smokePos, 3))
     smokeGeom.setAttribute('size', new THREE.BufferAttribute(this.smokeSize, 1))
@@ -173,13 +186,13 @@ export class CandleRig {
         transparent: true,
         opacity: 0.35,
         depthWrite: false,
-        size: 0.12,
+        size: 0.1,
         blending: THREE.NormalBlending,
       }),
     )
     this.group.add(this.smoke)
 
-    this.sparkPos = new Float32Array(32 * 3)
+    this.sparkPos = new Float32Array(48 * 3)
     const sparkGeom = new THREE.BufferGeometry()
     sparkGeom.setAttribute('position', new THREE.BufferAttribute(this.sparkPos, 3))
     this.sparks = new THREE.Points(
@@ -189,7 +202,7 @@ export class CandleRig {
         color: 0xffe6a8,
         transparent: true,
         depthWrite: false,
-        size: 0.045,
+        size: 0.04,
         blending: THREE.AdditiveBlending,
       }),
     )
@@ -208,33 +221,35 @@ export class CandleRig {
     this.traveler.scale.set(0.08, 0.08, 1)
     this.group.add(this.traveler)
 
-    this.light = new THREE.PointLight(0xffb14a, 2.4, 7, 2)
-    this.light.position.set(0, 0.12, 0)
+    this.light = new THREE.PointLight(0xffb14a, 2.8, 8, 2)
+    this.light.position.set(0, 1.45, 0.1)
     this.group.add(this.light)
 
     const starMap = starSparkleTexture()
-    for (let i = 0; i < 36; i += 1) {
-      const sprite = new THREE.Sprite(
-        new THREE.SpriteMaterial({
-          map: starMap,
-          color: i % 3 === 0 ? 0xfff4c8 : 0xffd27a,
-          transparent: true,
-          depthWrite: false,
-          blending: THREE.AdditiveBlending,
-          opacity: 0,
-        }),
-      )
-      const twinkle: Twinkle = {
-        sprite,
-        angle: Math.random() * Math.PI * 2,
-        radius: 0.03 + Math.random() * 0.22,
-        height: 0.02 + Math.random() * 0.4,
-        speed: 0.35 + Math.random() * 0.85,
-        phase: Math.random() * Math.PI * 2,
-        size: 0.028 + Math.random() * 0.055,
+    for (const tip of wickTips) {
+      for (let i = 0; i < 2; i += 1) {
+        const sprite = new THREE.Sprite(
+          new THREE.SpriteMaterial({
+            map: starMap,
+            color: i === 0 ? 0xfff4c8 : 0xffd27a,
+            transparent: true,
+            depthWrite: false,
+            blending: THREE.AdditiveBlending,
+            opacity: 0,
+          }),
+        )
+        this.twinkles.push({
+          sprite,
+          origin: tip,
+          angle: Math.random() * Math.PI * 2,
+          radius: 0.02 + Math.random() * 0.08,
+          height: 0.02 + Math.random() * 0.16,
+          speed: 0.35 + Math.random() * 0.85,
+          phase: Math.random() * Math.PI * 2,
+          size: 0.022 + Math.random() * 0.03,
+        })
+        this.group.add(sprite)
       }
-      this.twinkles.push(twinkle)
-      this.group.add(sprite)
     }
   }
 
@@ -244,18 +259,22 @@ export class CandleRig {
     this.flameMat.uniforms.uIntensity!.value = visuals.flameIntensity
     this.flameMat.uniforms.uBend!.value = visuals.flameBend
     this.flameMat.uniforms.uTurbulence!.value = visuals.flameTurbulence
-    this.flameA.visible = visuals.flameIntensity > 0.02
-    this.flameB.visible = visuals.flameIntensity > 0.02
-    const flicker = 0.92 + Math.sin(this.time * 17.0) * 0.04 + Math.sin(this.time * 31.0) * 0.025
-    const scale = Math.max(0.15, visuals.flameIntensity) * flicker
-    this.flameA.scale.set(scale, 0.35 + 0.65 * visuals.flameIntensity, 1)
-    this.flameB.scale.copy(this.flameA.scale)
-    this.glow.material.opacity = 0.12 + visuals.flameIntensity * 0.38
-    this.glow.scale.set(0.28 + visuals.flameIntensity * 0.32, 0.36 + visuals.flameIntensity * 0.4, 1)
-    const emberMat = this.ember.material as THREE.MeshStandardMaterial
-    emberMat.emissiveIntensity = visuals.ember * 2.4 + visuals.wickGlow * 1.4
-    this.ember.scale.setScalar(0.7 + visuals.ember * 0.8 + visuals.wickGlow * 0.4)
-    this.light.intensity = 0.15 + visuals.light * 2.35 * flicker
+    const lit = visuals.flameIntensity > 0.02
+    for (const head of this.heads) {
+      const flicker = 0.9 + Math.sin(this.time * 17.0 + head.phase) * 0.06 + Math.sin(this.time * 29.0 + head.phase) * 0.03
+      const scale = Math.max(0.12, visuals.flameIntensity) * flicker
+      head.flameA.visible = lit
+      head.flameB.visible = lit
+      head.flameA.scale.set(scale, 0.4 + 0.6 * visuals.flameIntensity, 1)
+      head.flameB.scale.copy(head.flameA.scale)
+      head.glow.material.opacity = 0.04 + visuals.flameIntensity * 0.16
+      head.glow.scale.set(0.12 + visuals.flameIntensity * 0.12, 0.16 + visuals.flameIntensity * 0.14, 1)
+      const emberMat = head.ember.material as THREE.MeshStandardMaterial
+      emberMat.emissiveIntensity = visuals.ember * 2.2 + visuals.wickGlow * 1.2
+      head.ember.scale.setScalar(0.7 + visuals.ember * 0.7 + visuals.wickGlow * 0.35)
+    }
+    const flicker = 0.92 + Math.sin(this.time * 17.0) * 0.04
+    this.light.intensity = 0.35 + visuals.light * 2.6 * flicker
 
     this.updateSmoke(visuals, dt)
     this.updateSparks(visuals, dt)
@@ -269,7 +288,11 @@ export class CandleRig {
       twinkle.angle += twinkle.speed * 0.012
       const x = Math.cos(twinkle.angle) * twinkle.radius
       const z = Math.sin(twinkle.angle) * twinkle.radius * 0.7
-      twinkle.sprite.position.set(x, twinkle.height, z)
+      twinkle.sprite.position.set(
+        twinkle.origin.x + x,
+        twinkle.origin.y + twinkle.height,
+        twinkle.origin.z + z,
+      )
       const pulse = 0.35 + 0.65 * Math.pow(0.5 + 0.5 * Math.sin(this.time * (2.6 + twinkle.speed * 3.4) + twinkle.phase), 4)
       twinkle.sprite.material.opacity = live * pulse
       const size = twinkle.size * (0.75 + pulse * 0.9)
@@ -279,11 +302,12 @@ export class CandleRig {
   }
 
   private updateSmoke(visuals: CandleVisuals, dt: number): void {
-    this.smokeSpawn += dt * visuals.smoke * 14
-    while (this.smokeSpawn > 1 && this.smokes.length < 40) {
+    this.smokeSpawn += dt * visuals.smoke * 22
+    while (this.smokeSpawn > 1 && this.smokes.length < 56) {
       this.smokeSpawn -= 1
+      const origin = this.wickTips[Math.floor(Math.random() * this.wickTips.length)] ?? new THREE.Vector3()
       this.smokes.push({
-        pos: new THREE.Vector3((Math.random() - 0.5) * 0.02, 0.02, (Math.random() - 0.5) * 0.02),
+        pos: origin.clone().add(new THREE.Vector3((Math.random() - 0.5) * 0.02, 0.02, (Math.random() - 0.5) * 0.02)),
         vel: new THREE.Vector3((Math.random() - 0.5) * 0.05, 0.12 + Math.random() * 0.08, (Math.random() - 0.5) * 0.04),
         life: 0,
         max: 0.9 + Math.random() * 0.7,
@@ -319,10 +343,11 @@ export class CandleRig {
   private updateSparks(visuals: CandleVisuals, dt: number): void {
     if (visuals.spark > 0.4 && this.time - this.lastSpark > 0.25 && this.sparkList.length < 8) {
       this.lastSpark = this.time
-      for (let i = 0; i < 18; i += 1) {
+      for (let i = 0; i < 28; i += 1) {
+        const origin = this.wickTips[i % this.wickTips.length] ?? new THREE.Vector3()
         const dir = new THREE.Vector3(Math.random() - 0.5, Math.random() * 0.8, Math.random() - 0.5).normalize()
         this.sparkList.push({
-          pos: new THREE.Vector3(0, 0.03, 0),
+          pos: origin.clone(),
           vel: dir.multiplyScalar(0.35 + Math.random() * 0.45),
           life: 0,
           max: 0.22 + Math.random() * 0.18,
@@ -352,9 +377,9 @@ export class CandleRig {
     const t = visuals.sparkTravel
     const moving = visuals.phase === 'relighting' && t < 0.98 && t > 0.02
     this.traveler.material.opacity = moving ? 0.9 * (1 - t * 0.2) : 0
-    const start = new THREE.Vector3(0.16, 0.18, 0.1)
-    const mid = new THREE.Vector3(0.05, 0.32, 0.04)
-    const end = new THREE.Vector3(0, 0.02, 0)
+    const start = new THREE.Vector3(0.2, 1.7, 0.35)
+    const mid = new THREE.Vector3(0.08, 1.85, 0.12)
+    const end = this.wickTips[2]?.clone() ?? new THREE.Vector3(0, 1.5, 0.3)
     const p0 = start.clone().lerp(mid, t)
     const p1 = mid.clone().lerp(end, t)
     this.traveler.position.copy(p0.lerp(p1, t))

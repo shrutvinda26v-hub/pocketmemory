@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { boardTexture, candleStripeTexture, frostingBump } from './textures.ts'
+import { candleStripeTexture, frostingBump, letterBadgeTexture, letterCandleTexture } from './textures.ts'
 
 function mulberry32(seed: number): () => number {
   let a = seed >>> 0
@@ -46,7 +46,7 @@ function swirlGeometry(): THREE.TubeGeometry {
 
 export interface CakeBuild {
   group: THREE.Group
-  wickTip: THREE.Vector3
+  wickTips: THREE.Vector3[]
 }
 
 export function buildCake(): CakeBuild {
@@ -86,10 +86,9 @@ export function buildCake(): CakeBuild {
   const board = new THREE.Mesh(
     new THREE.CylinderGeometry(1.58, 1.62, 0.07, 64),
     new THREE.MeshStandardMaterial({
-      map: boardTexture(),
-      roughness: 0.82,
-      metalness: 0.08,
-      color: 0x3a2a24,
+      roughness: 0.55,
+      metalness: 0.03,
+      color: 0xead6b4,
     }),
   )
   board.position.y = 0.035
@@ -197,28 +196,110 @@ export function buildCake(): CakeBuild {
   if (sprinkles.instanceColor) sprinkles.instanceColor.needsUpdate = true
   group.add(sprinkles)
 
-  const candle = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.038, 0.042, 0.52, 24),
+  const wickMat = new THREE.MeshStandardMaterial({ color: 0x2b1a14, roughness: 0.9 })
+  const wickTips = addBirthdayCandles(group, glaze, wickMat)
+
+  return { group, wickTips }
+}
+
+const CANDLE_COLORS = [
+  { wax: '#f4b6c8', stripe: '#fff6f0', badge: '#e889b0' },
+  { wax: '#b7e3c8', stripe: '#f6fff8', badge: '#6fbf90' },
+  { wax: '#ffe08a', stripe: '#fffaf0', badge: '#e0b24a' },
+  { wax: '#cbb6f4', stripe: '#fbf6ff', badge: '#9a7ad4' },
+  { wax: '#f7c4a0', stripe: '#fff6f0', badge: '#e39b6c' },
+  { wax: '#a8d4f4', stripe: '#f4fbff', badge: '#6da7d8' },
+  { wax: '#f4a8a8', stripe: '#fff5f4', badge: '#e07b7b' },
+]
+
+function addBirthdayCandles(
+  group: THREE.Group,
+  glaze: THREE.MeshPhysicalMaterial,
+  wickMat: THREE.MeshStandardMaterial,
+): THREE.Vector3[] {
+  const tips: THREE.Vector3[] = []
+  const happy = 'HAPPY'.split('')
+  const birthday = 'BIRTHDAY'.split('')
+  const cakeTop = 0.96
+
+  const placeRow = (letters: string[], z: number, spacing: number, startIndex: number) => {
+    const mid = (letters.length - 1) / 2
+    letters.forEach((letter, i) => {
+      const x = (i - mid) * spacing
+      const bow = -x * x * 0.12
+      const height = 0.44 + ((i + startIndex) % 3) * 0.05
+      addOneCandle(group, glaze, wickMat, letter, x, z + bow, cakeTop, height, startIndex + i, tips)
+    })
+  }
+
+  placeRow(happy, 0.3, 0.15, 0)
+  placeRow(birthday, -0.28, 0.118, 5)
+
+  const extras = 8
+  for (let i = 0; i < extras; i += 1) {
+    const a = (i / extras) * Math.PI * 2 + 0.2
+    const r = 0.62
+    const x = Math.cos(a) * r
+    const z = Math.sin(a) * r
+    const height = 0.36 + (i % 4) * 0.04
+    addOneCandle(group, glaze, wickMat, '', x, z, cakeTop, height, i + 14, tips, true)
+  }
+
+  return tips
+}
+
+function addOneCandle(
+  group: THREE.Group,
+  glaze: THREE.MeshPhysicalMaterial,
+  wickMat: THREE.MeshStandardMaterial,
+  letter: string,
+  x: number,
+  z: number,
+  cakeTop: number,
+  height: number,
+  index: number,
+  tips: THREE.Vector3[],
+  extra = false,
+): void {
+  const palette = CANDLE_COLORS[index % CANDLE_COLORS.length]!
+  const radius = extra ? 0.028 : 0.034
+  const map = letter
+    ? letterCandleTexture(letter, palette.wax, palette.stripe)
+    : candleStripeTexture()
+  const body = new THREE.Mesh(
+    new THREE.CylinderGeometry(radius, radius + 0.004, height, 20),
     new THREE.MeshPhysicalMaterial({
-      map: candleStripeTexture(),
-      roughness: 0.45,
-      clearcoat: 0.3,
+      map,
+      color: extra ? palette.wax : 0xfff8f2,
+      roughness: 0.42,
+      clearcoat: 0.28,
     }),
   )
-  candle.position.y = 1.24
-  group.add(candle)
+  body.position.set(x, cakeTop + height / 2, z)
+  group.add(body)
 
-  const waxPool = new THREE.Mesh(new THREE.SphereGeometry(0.055, 16, 12), glaze)
-  waxPool.scale.set(1.1, 0.35, 1.1)
-  waxPool.position.y = 0.98
-  group.add(waxPool)
+  const pool = new THREE.Mesh(new THREE.SphereGeometry(radius + 0.02, 12, 10), glaze)
+  pool.scale.set(1, 0.32, 1)
+  pool.position.set(x, cakeTop + 0.01, z)
+  group.add(pool)
 
-  const wick = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.007, 0.009, 0.085, 8),
-    new THREE.MeshStandardMaterial({ color: 0x2b1a14, roughness: 0.9 }),
-  )
-  wick.position.y = 1.535
+  if (letter) {
+    const badge = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.1, 0.1),
+      new THREE.MeshBasicMaterial({
+        map: letterBadgeTexture(letter, palette.badge),
+        transparent: true,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+      }),
+    )
+    badge.position.set(x, cakeTop + height * 0.45, z + radius + 0.012)
+    badge.rotation.set(0, 0, 0)
+    group.add(badge)
+  }
+
+  const wick = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.007, 0.07, 6), wickMat)
+  wick.position.set(x, cakeTop + height + 0.028, z)
   group.add(wick)
-
-  return { group, wickTip: new THREE.Vector3(0, 1.58, 0) }
+  tips.push(new THREE.Vector3(x, cakeTop + height + 0.062, z))
 }

@@ -78,6 +78,45 @@ export function softSpriteTexture(color = '#ffffff'): THREE.CanvasTexture {
   return texture
 }
 
+export function starSparkleTexture(): THREE.CanvasTexture {
+  const size = 128
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('2d context missing')
+  const cx = size / 2
+  const cy = size / 2
+  const glow = ctx.createRadialGradient(cx, cy, 2, cx, cy, 58)
+  glow.addColorStop(0, 'rgba(255, 252, 236, 1)')
+  glow.addColorStop(0.14, 'rgba(255, 228, 160, 0.85)')
+  glow.addColorStop(1, 'rgba(255, 176, 80, 0)')
+  ctx.fillStyle = glow
+  ctx.fillRect(0, 0, size, size)
+  ctx.globalCompositeOperation = 'lighter'
+  ctx.fillStyle = '#fff6d8'
+  const drawSpike = (angle: number, length: number, width: number) => {
+    const dx = Math.cos(angle)
+    const dy = Math.sin(angle)
+    const px = -dy
+    const py = dx
+    ctx.beginPath()
+    ctx.moveTo(cx + dx * length, cy + dy * length)
+    ctx.lineTo(cx + px * width, cy + py * width)
+    ctx.lineTo(cx - dx * length * 0.22, cy - dy * length * 0.22)
+    ctx.lineTo(cx - px * width, cy - py * width)
+    ctx.closePath()
+    ctx.fill()
+  }
+  drawSpike(0, 56, 3.4)
+  drawSpike(Math.PI / 2, 56, 3.4)
+  drawSpike(Math.PI / 4, 22, 1.8)
+  drawSpike((Math.PI * 3) / 4, 22, 1.8)
+  const texture = new THREE.CanvasTexture(canvas)
+  texture.colorSpace = THREE.SRGBColorSpace
+  return texture
+}
+
 export function frostingBump(): THREE.CanvasTexture {
   const canvas = document.createElement('canvas')
   canvas.width = 256

@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { softSpriteTexture } from './textures.ts'
+import { softSpriteTexture, starSparkleTexture } from './textures.ts'
 import type { CandleVisuals } from '../lib/types.ts'
 
 const flameVertex = /* glsl */ `
@@ -55,6 +55,10 @@ void main() {
   vec3 col = mix(outer, mid, smoothstep(0.95, 0.35, d));
   col = mix(col, core, smoothstep(0.42, 0.0, d) * (1.0 - uv.y * 0.55));
   float alpha = body * (0.72 + 0.28 * n);
+  float sparkle = hash(floor(vec2(uv.x * 22.0, uv.y * 16.0 - t * 2.4)));
+  sparkle = pow(sparkle, 18.0) * body * 1.8;
+  col += vec3(1.0, 0.96, 0.78) * sparkle;
+  alpha = max(alpha, sparkle * 0.65);
   if (alpha < 0.02) discard;
   gl_FragColor = vec4(col * alpha, alpha);
 }
@@ -76,6 +80,16 @@ interface SparkParticle {
   max: number
 }
 
+interface Twinkle {
+  sprite: THREE.Sprite
+  angle: number
+  radius: number
+  height: number
+  speed: number
+  phase: number
+  size: number
+}
+
 export class CandleRig {
   readonly group = new THREE.Group()
   readonly light: THREE.PointLight
@@ -90,6 +104,7 @@ export class CandleRig {
   private readonly sparks: THREE.Points
   private readonly sparkPos: Float32Array
   private readonly traveler: THREE.Sprite
+  private readonly twinkles: Twinkle[] = []
   private readonly smokes: SmokeParticle[] = []
   private readonly sparkList: SparkParticle[] = []
   private smokeSpawn = 0
@@ -196,6 +211,31 @@ export class CandleRig {
     this.light = new THREE.PointLight(0xffb14a, 2.4, 7, 2)
     this.light.position.set(0, 0.12, 0)
     this.group.add(this.light)
+
+    const starMap = starSparkleTexture()
+    for (let i = 0; i < 36; i += 1) {
+      const sprite = new THREE.Sprite(
+        new THREE.SpriteMaterial({
+          map: starMap,
+          color: i % 3 === 0 ? 0xfff4c8 : 0xffd27a,
+          transparent: true,
+          depthWrite: false,
+          blending: THREE.AdditiveBlending,
+          opacity: 0,
+        }),
+      )
+      const twinkle: Twinkle = {
+        sprite,
+        angle: Math.random() * Math.PI * 2,
+        radius: 0.03 + Math.random() * 0.22,
+        height: 0.02 + Math.random() * 0.4,
+        speed: 0.35 + Math.random() * 0.85,
+        phase: Math.random() * Math.PI * 2,
+        size: 0.028 + Math.random() * 0.055,
+      }
+      this.twinkles.push(twinkle)
+      this.group.add(sprite)
+    }
   }
 
   update(visuals: CandleVisuals, dt: number): void {
@@ -220,6 +260,22 @@ export class CandleRig {
     this.updateSmoke(visuals, dt)
     this.updateSparks(visuals, dt)
     this.updateTraveler(visuals)
+    this.updateTwinkles(visuals)
+  }
+
+  private updateTwinkles(visuals: CandleVisuals): void {
+    const live = visuals.flameIntensity * visuals.light
+    for (const twinkle of this.twinkles) {
+      twinkle.angle += twinkle.speed * 0.012
+      const x = Math.cos(twinkle.angle) * twinkle.radius
+      const z = Math.sin(twinkle.angle) * twinkle.radius * 0.7
+      twinkle.sprite.position.set(x, twinkle.height, z)
+      const pulse = 0.35 + 0.65 * Math.pow(0.5 + 0.5 * Math.sin(this.time * (2.6 + twinkle.speed * 3.4) + twinkle.phase), 4)
+      twinkle.sprite.material.opacity = live * pulse
+      const size = twinkle.size * (0.75 + pulse * 0.9)
+      twinkle.sprite.scale.set(size, size, 1)
+      twinkle.sprite.visible = live > 0.04
+    }
   }
 
   private updateSmoke(visuals: CandleVisuals, dt: number): void {

@@ -35,7 +35,7 @@ export class CakeScene {
     this.renderer.shadowMap.enabled = false
 
     this.scene = new THREE.Scene()
-    this.scene.background = new THREE.Color(0x050308)
+    this.scene.background = new THREE.Color(0x2a1738)
     const pmrem = new THREE.PMREMGenerator(this.renderer)
     this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.06).texture
     this.scene.environmentIntensity = 0.35
@@ -44,7 +44,7 @@ export class CakeScene {
     this.camera = new THREE.PerspectiveCamera(30, 1, 0.1, 40)
     this.camera.position.set(0, 1.72, 3.95)
 
-    const hemi = new THREE.HemisphereLight(0x1c1420, 0x2a1814, 0.55)
+    const hemi = new THREE.HemisphereLight(0x4a2a68, 0x3a2030, 0.62)
     this.scene.add(hemi)
     this.key = new THREE.DirectionalLight(0xffe6c4, 1.15)
     this.key.position.set(2.4, 4.2, 3.2)
@@ -59,7 +59,7 @@ export class CakeScene {
     const ground = new THREE.Mesh(
       new THREE.PlaneGeometry(12, 12),
       new THREE.MeshBasicMaterial({
-        map: radialGradientTexture('rgba(48, 28, 24, 0.85)', 'rgba(5,3,8,0)', 512, 0.04),
+        map: radialGradientTexture('rgba(86, 42, 72, 0.9)', 'rgba(42,23,56,0)', 512, 0.04),
         transparent: true,
       }),
     )
@@ -85,9 +85,9 @@ export class CakeScene {
     this.rig.group.position.copy(built.wickTip)
     this.cake.add(this.rig.group)
 
-    this.dustBase = new Float32Array(80 * 3)
-    const dustPos = new Float32Array(80 * 3)
-    for (let i = 0; i < 80; i += 1) {
+    this.dustBase = new Float32Array(120 * 3)
+    const dustPos = new Float32Array(120 * 3)
+    for (let i = 0; i < 120; i += 1) {
       const a = Math.random() * Math.PI * 2
       const r = 0.4 + Math.random() * 1.6
       const x = Math.cos(a) * r - 0.35
@@ -106,12 +106,12 @@ export class CakeScene {
       dustGeom,
       new THREE.PointsMaterial({
         map: softSpriteTexture('#ffe7b0'),
-        color: 0xffe1a0,
+        color: 0xffe7b8,
         transparent: true,
         depthWrite: false,
-        size: 0.035,
+        size: 0.056,
         blending: THREE.AdditiveBlending,
-        opacity: 0.55,
+        opacity: 0.7,
       }),
     )
     this.scene.add(this.dust)
@@ -151,7 +151,7 @@ export class CakeScene {
   private updateDust(visuals: CandleVisuals): void {
     const pos = this.dust.geometry.getAttribute('position') as THREE.BufferAttribute
     const arr = pos.array as Float32Array
-    for (let i = 0; i < 80; i += 1) {
+    for (let i = 0; i < 120; i += 1) {
       const bx = this.dustBase[i * 3]!
       const by = this.dustBase[i * 3 + 1]!
       const bz = this.dustBase[i * 3 + 2]!
@@ -162,7 +162,7 @@ export class CakeScene {
       arr[i * 3 + 2] = bz + Math.sin(a) * 0.08
     }
     pos.needsUpdate = true
-    ;(this.dust.material as THREE.PointsMaterial).opacity = 0.15 + visuals.dust * 0.45
+    ;(this.dust.material as THREE.PointsMaterial).opacity = 0.22 + visuals.dust * 0.55
   }
 
   render(): void {

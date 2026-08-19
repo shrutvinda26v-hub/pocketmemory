@@ -18,7 +18,7 @@ body,
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: #050308;
+  background: #2a1738;
 }
 
 .sr-only {
@@ -45,13 +45,13 @@ body,
   position: absolute;
   top: 22px;
   right: 22px;
-  width: 108px;
-  height: 108px;
+  width: 188px;
+  height: 188px;
   object-fit: cover;
   border-radius: 50%;
   transform: scaleX(-1);
-  border: 1px solid rgba(246, 230, 216, 0.28);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45), 0 0 0 6px rgba(12, 6, 10, 0.45);
+  border: 2px solid rgba(246, 230, 216, 0.38);
+  box-shadow: 0 12px 44px rgba(0, 0, 0, 0.45), 0 0 0 8px rgba(24, 12, 28, 0.45);
   z-index: 3;
 }
 
@@ -199,8 +199,8 @@ body,
 
 @media (max-width: 640px) {
   .cam {
-    width: 76px;
-    height: 76px;
+    width: 132px;
+    height: 132px;
     top: 16px;
     right: 16px;
   }

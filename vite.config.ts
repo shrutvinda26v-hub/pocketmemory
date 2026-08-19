@@ -28,6 +28,11 @@ export default defineConfig({
   plugins: [react(), copyMediapipeWasm()],
   server: {
     host: true,
+    allowedHosts: true,
+  },
+  preview: {
+    host: true,
+    allowedHosts: true,
   },
   build: {
     chunkSizeWarningLimit: 800,

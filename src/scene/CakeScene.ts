@@ -31,35 +31,35 @@ export class CakeScene {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     this.renderer.outputColorSpace = THREE.SRGBColorSpace
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping
-    this.renderer.toneMappingExposure = 1.14
+    this.renderer.toneMappingExposure = 1.08
     this.renderer.shadowMap.enabled = false
 
     this.scene = new THREE.Scene()
-    this.scene.background = new THREE.Color(0xefe4d2)
+    this.scene.background = new THREE.Color(0x0b1e3a)
     const pmrem = new THREE.PMREMGenerator(this.renderer)
-    this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
-    this.scene.environmentIntensity = 0.62
+    this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.05).texture
+    this.scene.environmentIntensity = 0.42
     pmrem.dispose()
 
     this.camera = new THREE.PerspectiveCamera(30, 1, 0.1, 40)
     this.camera.position.set(0, 1.78, 4.15)
 
-    const hemi = new THREE.HemisphereLight(0xfff4e6, 0xd7c3a8, 0.95)
+    const hemi = new THREE.HemisphereLight(0x1c3f72, 0x0a1628, 0.7)
     this.scene.add(hemi)
-    this.key = new THREE.DirectionalLight(0xfff2e0, 1.35)
+    this.key = new THREE.DirectionalLight(0xfff0dc, 1.2)
     this.key.position.set(2.4, 4.2, 3.2)
     this.scene.add(this.key)
-    this.fill = new THREE.DirectionalLight(0xf0e6d8, 0.55)
+    this.fill = new THREE.DirectionalLight(0x7ea4d8, 0.32)
     this.fill.position.set(-3.2, 1.8, 1.4)
     this.scene.add(this.fill)
-    const rim = new THREE.DirectionalLight(0xffe0c4, 0.4)
+    const rim = new THREE.DirectionalLight(0x9ec4ff, 0.28)
     rim.position.set(0.2, 2.4, -4)
     this.scene.add(rim)
 
     const ground = new THREE.Mesh(
       new THREE.PlaneGeometry(12, 12),
       new THREE.MeshBasicMaterial({
-        map: radialGradientTexture('rgba(214, 190, 158, 0.55)', 'rgba(239,228,210,0)', 512, 0.08),
+        map: radialGradientTexture('rgba(18, 42, 82, 0.85)', 'rgba(11,30,58,0)', 512, 0.06),
         transparent: true,
       }),
     )
@@ -141,9 +141,9 @@ export class CakeScene {
     this.camera.position.x += (targetX - this.camera.position.x) * 0.04
     this.camera.position.y += (targetY - this.camera.position.y) * 0.04
     this.camera.lookAt(0, 1.12, 0)
-    ;(this.pool.material as THREE.MeshBasicMaterial).opacity = 0.2 + visuals.light * 0.45
-    this.key.intensity = 1.15 + visuals.light * 0.22
-    this.fill.intensity = 0.5
+    ;(this.pool.material as THREE.MeshBasicMaterial).opacity = 0.22 + visuals.light * 0.5
+    this.key.intensity = 0.95 + visuals.light * 0.28
+    this.fill.intensity = 0.28
     this.updateDust(visuals)
   }
 
@@ -161,7 +161,7 @@ export class CakeScene {
       arr[i * 3 + 2] = bz + Math.sin(a) * 0.08
     }
     pos.needsUpdate = true
-    ;(this.dust.material as THREE.PointsMaterial).opacity = 0.08 + visuals.dust * 0.28
+    ;(this.dust.material as THREE.PointsMaterial).opacity = 0.18 + visuals.dust * 0.42
   }
 
   render(): void {

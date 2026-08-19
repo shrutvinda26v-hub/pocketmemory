@@ -1,5 +1,5 @@
 :root {
-  color: #3b2a22;
+  color: #f4ebe0;
   font-family: Outfit, system-ui, sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -18,7 +18,7 @@ body,
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: #efe4d2;
+  background: #0b1e3a;
 }
 
 .sr-only {
@@ -49,8 +49,8 @@ body,
   height: 188px;
   border-radius: 50%;
   overflow: hidden;
-  border: 2px solid rgba(255, 248, 238, 0.9);
-  box-shadow: 0 12px 36px rgba(80, 50, 30, 0.18), 0 0 0 8px rgba(255, 250, 242, 0.55);
+  border: 2px solid rgba(210, 230, 255, 0.35);
+  box-shadow: 0 12px 36px rgba(4, 10, 28, 0.45), 0 0 0 8px rgba(10, 22, 48, 0.5);
   z-index: 3;
 }
 
@@ -87,12 +87,12 @@ body,
   gap: 8px;
   padding: 8px 12px 8px 10px;
   border-radius: 999px;
-  background: rgba(255, 250, 242, 0.72);
-  border: 1px solid rgba(90, 60, 40, 0.1);
+  background: rgba(8, 18, 42, 0.62);
+  border: 1px solid rgba(210, 230, 255, 0.14);
   backdrop-filter: blur(12px);
   font-size: 12px;
   letter-spacing: 0.04em;
-  color: #5a4338;
+  color: rgba(236, 244, 255, 0.86);
 }
 
 .status .dot {
@@ -129,7 +129,7 @@ body,
   font-size: 11px;
   letter-spacing: 0.28em;
   text-transform: uppercase;
-  color: #c4896a;
+  color: #c9dcff;
 }
 
 .title {
@@ -139,7 +139,7 @@ body,
   font-style: italic;
   font-size: clamp(34px, 5.4vw, 52px);
   letter-spacing: -0.03em;
-  color: #3b2a22;
+  color: #f6f3ee;
 }
 
 .copy {
@@ -147,12 +147,12 @@ body,
   max-width: 34ch;
   font-size: 14px;
   line-height: 1.5;
-  color: #6a5246;
+  color: rgba(232, 238, 250, 0.74);
   font-weight: 330;
 }
 
 .copy.dim {
-  color: #8a7366;
+  color: rgba(210, 222, 240, 0.55);
   margin-bottom: 12px;
 }
 
@@ -168,16 +168,16 @@ body,
 .cta {
   padding: 13px 28px;
   border-radius: 999px;
-  background: #3b2a22;
-  color: #f6eadc;
+  background: #eef3ff;
+  color: #102040;
   font-size: 15px;
   font-weight: 500;
-  box-shadow: 0 10px 24px rgba(90, 50, 30, 0.16);
+  box-shadow: 0 10px 28px rgba(80, 140, 220, 0.18);
 }
 
 .cta:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 14px 28px rgba(90, 50, 30, 0.22);
+  box-shadow: 0 14px 32px rgba(80, 140, 220, 0.28);
 }
 
 .cta:disabled {
@@ -191,7 +191,7 @@ body,
   left: 50%;
   transform: translateX(-50%);
   background: transparent;
-  color: #6a5246;
+  color: rgba(220, 230, 245, 0.75);
   text-decoration: underline;
   z-index: 6;
 }
@@ -205,12 +205,12 @@ body,
   z-index: 4;
   padding: 10px 18px;
   border-radius: 999px;
-  background: rgba(255, 250, 242, 0.78);
-  border: 1px solid rgba(90, 60, 40, 0.1);
+  background: rgba(8, 18, 42, 0.58);
+  border: 1px solid rgba(210, 230, 255, 0.14);
   backdrop-filter: blur(14px);
   font-size: 15px;
   letter-spacing: 0.01em;
-  color: #3b2a22;
+  color: #f6f3ee;
   white-space: nowrap;
 }
 

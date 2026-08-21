@@ -53,9 +53,9 @@ export function getJourney(p: number, intro = 1): JourneyFrame {
 
   return {
     cameraPos: [
-      lerp(0, 0.15, explode) + lerp(0, 0.35, boxReveal),
-      lerp(0.35, 0.55, explode) + lerp(0, 0.55, boxReveal) + lerp(0, 0.2, lidClose),
-      lerp(4.6, 5.4, explode) + lerp(0, 0.4, boxReveal),
+      lerp(0, 0.2, explode) + lerp(0, 0.4, boxReveal),
+      lerp(0.42, 0.62, explode) + lerp(0, 0.45, boxReveal) + lerp(0, 0.15, lidClose),
+      lerp(3.85, 4.7, explode) + lerp(0, 0.35, boxReveal),
     ],
     lookAt: [0, lerp(0.12, 0.2, explode) + lerp(0, -0.15, boxReveal), 0],
     fov: lerp(32, 36, boxReveal),

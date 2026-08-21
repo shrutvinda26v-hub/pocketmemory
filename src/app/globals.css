@@ -126,7 +126,7 @@ body {
 }
 
 .fallback-jewel {
-  width: min(78%, 22rem);
+  width: min(82%, 24rem);
   transform-style: preserve-3d;
   will-change: transform;
   position: relative;

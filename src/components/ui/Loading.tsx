@@ -1,14 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { useJourney } from "@/store/useJourney";
 
 export function LoadingGate({ children }: { children: React.ReactNode }) {
   const setReady = useJourney((s) => s.setReady);
   const [show, setShow] = useState(true);
+  const veilRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const node = veilRef.current;
+    if (!node) return;
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({
         defaults: { ease: "power2.inOut" },
@@ -30,8 +33,8 @@ export function LoadingGate({ children }: { children: React.ReactNode }) {
         )
         .fromTo(".boot-line", { scaleX: 0 }, { scaleX: 1, duration: 0.8 }, "-=0.4")
         .fromTo(".boot-sub", { opacity: 0 }, { opacity: 1, duration: 0.6 }, "-=0.3")
-        .to(".boot-veil", { opacity: 0, duration: 1.15, delay: 0.45 });
-    });
+        .to(node, { opacity: 0, duration: 1.15, delay: 0.45 });
+    }, node);
     return () => ctx.revert();
   }, [setReady]);
 
@@ -39,7 +42,7 @@ export function LoadingGate({ children }: { children: React.ReactNode }) {
     <>
       {children}
       {show && (
-        <div className="boot-veil" aria-hidden>
+        <div className="boot-veil" ref={veilRef} aria-hidden>
           <div className="boot-inner">
             <span className="boot-mark">
               <svg viewBox="0 0 24 24" width="18" height="18">

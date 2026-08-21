@@ -2,7 +2,6 @@
 
 import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { MeshTransmissionMaterial } from "@react-three/drei";
 import * as THREE from "three";
 import {
   createBrilliantGeometry,
@@ -21,7 +20,6 @@ function Brilliant({ geometry }: { geometry: THREE.BufferGeometry }) {
   const mesh = useRef<THREE.Mesh>(null);
   const shell = useRef<THREE.Mesh>(null);
   const core = useRef<THREE.Mesh>(null);
-  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
 
   useFrame((state) => {
     const frame = getJourney(useJourney.getState().progress);
@@ -51,21 +49,23 @@ function Brilliant({ geometry }: { geometry: THREE.BufferGeometry }) {
   return (
     <group>
       <mesh ref={mesh} geometry={geometry} frustumCulled={false}>
-        <MeshTransmissionMaterial
-          backside
-          samples={isMobile ? 3 : 5}
-          resolution={isMobile ? 192 : 384}
-          thickness={1.4}
-          chromaticAberration={0.07}
-          anisotropy={0.12}
+        <meshPhysicalMaterial
+          color="#eef4ff"
+          metalness={0.12}
+          roughness={0.03}
+          transmission={0.62}
+          thickness={1.25}
           ior={2.417}
-          roughness={0.02}
-          color="#f4f8ff"
-          attenuationColor="#d9e7ff"
-          attenuationDistance={0.9}
-          envMapIntensity={1.35}
-          toneMapped
+          envMapIntensity={1.55}
+          clearcoat={1}
+          clearcoatRoughness={0.03}
+          iridescence={0.16}
+          iridescenceIOR={1.5}
+          iridescenceThicknessRange={[90, 320]}
+          attenuationColor="#dce8ff"
+          attenuationDistance={1.1}
           transparent
+          opacity={1}
         />
       </mesh>
       <mesh ref={shell} geometry={geometry} frustumCulled={false}>

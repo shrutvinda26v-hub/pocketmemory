@@ -17,7 +17,7 @@ export function Lighting() {
     const t = state.clock.elapsedTime;
 
     if (key.current) {
-      key.current.intensity = 18 + frame.polish * 10;
+      key.current.intensity = 6 + frame.polish * 3;
       key.current.position.x = 1.4 + Math.sin(t * 0.15) * 0.15;
     }
 
@@ -27,7 +27,7 @@ export function Lighting() {
           ? (frame.sweep < 0.99 ? frame.sweep : (Math.sin(t * 0.55) + 1) * 0.5)
           : 0;
       sweep.current.position.set(-2.4 + sweepT * 4.8, 1.6, 2.4);
-      sweep.current.intensity = 8 + frame.sweep * 22;
+      sweep.current.intensity = 2 + frame.sweep * 8;
       sweep.current.target.position.set(0, 0.2, 0);
       sweep.current.target.updateMatrixWorld();
     }
@@ -51,7 +51,7 @@ export function Lighting() {
         position={[1.6, 2.8, 3.2]}
         angle={0.42}
         penumbra={0.85}
-        intensity={22}
+        intensity={12}
         distance={12}
       />
       <spotLight

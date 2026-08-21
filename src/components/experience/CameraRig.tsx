@@ -13,12 +13,13 @@ export function CameraRig() {
   const pos = useRef(new THREE.Vector3());
 
   useFrame(() => {
-    const frame = getJourney(useJourney.getState().progress);
+    const { progress, intro } = useJourney.getState();
+    const frame = getJourney(progress, intro);
     if (!camera.current) return;
     pos.current.set(frame.cameraPos[0], frame.cameraPos[1], frame.cameraPos[2]);
     look.current.set(frame.lookAt[0], frame.lookAt[1], frame.lookAt[2]);
-    camera.current.position.lerp(pos.current, 0.12);
-    camera.current.fov = THREE.MathUtils.lerp(camera.current.fov, frame.fov, 0.1);
+    camera.current.position.lerp(pos.current, 0.1);
+    camera.current.fov = THREE.MathUtils.lerp(camera.current.fov, frame.fov, 0.08);
     camera.current.lookAt(look.current);
     camera.current.updateProjectionMatrix();
   });
@@ -27,10 +28,10 @@ export function CameraRig() {
     <PerspectiveCamera
       ref={camera}
       makeDefault
-      fov={31}
+      fov={32}
       near={0.08}
       far={40}
-      position={[0, 0.22, 4.55]}
+      position={[0, 0.35, 4.6]}
     />
   );
 }

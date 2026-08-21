@@ -16,9 +16,9 @@ const sans = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "AUREL — The Journey of a Diamond",
+  title: "AUREL — The Eternal Pavé",
   description:
-    "A cinematic 9:16 journey from rough stone to timeless solitaire. Crafted for the screen.",
+    "A cinematic desktop study of the finest diamond ring ever set — revealed, assembled, and sealed.",
 };
 
 export default function RootLayout({

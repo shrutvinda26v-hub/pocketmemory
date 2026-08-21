@@ -17,7 +17,7 @@ function Fade({
       className={className}
       style={{
         opacity,
-        transform: `translateY(${(1 - opacity) * 8}px)`,
+        transform: `translateY(${(1 - opacity) * 14}px)`,
         pointerEvents: "none",
       }}
       aria-hidden={opacity < 0.08}
@@ -29,17 +29,17 @@ function Fade({
 
 export function Overlay() {
   const progress = useJourney((s) => s.progress);
-  const hero = copyOpacity(progress, "hero");
-  const rough = copyOpacity(progress, "rough");
-  const cut = copyOpacity(progress, "cut");
-  const polish = copyOpacity(progress, "polish");
-  const set = copyOpacity(progress, "set");
-  const finale = copyOpacity(progress, "finale");
+  const intro = useJourney((s) => s.intro);
+  const hero = copyOpacity(progress, "hero") * Math.min(1, intro);
+  const anatomy = copyOpacity(progress, "anatomy");
+  const assemble = copyOpacity(progress, "assemble");
+  const encase = copyOpacity(progress, "encase");
+  const seal = copyOpacity(progress, "seal");
   const cta = copyOpacity(progress, "cta");
-  const hint = copyOpacity(progress, "scrollHint");
+  const hint = copyOpacity(progress, "scrollHint") * Math.min(1, intro);
 
   return (
-    <div className="overlay">
+    <div className="overlay overlay-desktop">
       <header className="brand-lockup">
         <span className="brand-mark" aria-hidden>
           <svg viewBox="0 0 24 24" width="14" height="14">
@@ -49,7 +49,6 @@ export function Overlay() {
               stroke="currentColor"
               strokeWidth="1.15"
             />
-            <path d="M3.6 9.2h16.8M8.2 9.2 12 2.4l3.8 6.8M8.2 9.2 12 21.6 15.8 9.2" fill="none" stroke="currentColor" strokeWidth="1.15" />
           </svg>
         </span>
         <span className="brand-name">Aurel</span>
@@ -57,42 +56,37 @@ export function Overlay() {
         <span className="brand-sub">Maison</span>
       </header>
 
-      <div className="copy-stack">
+      <div className="copy-stack copy-desktop">
         <Fade opacity={hero} className="copy copy-hero">
-          <p className="eyebrow">The Journey of a Diamond</p>
+          <p className="eyebrow">The Eternal Pavé</p>
+          <h1>The finest diamond ring ever set.</h1>
         </Fade>
 
-        <Fade opacity={rough} className="copy">
-          <p className="kicker">01 / Rough</p>
+        <Fade opacity={anatomy} className="copy">
+          <p className="kicker">02 / Anatomy</p>
           <h2>
-            Before brilliance,
+            Four layers.
             <br />
-            there is potential.
+            One masterpiece.
           </h2>
+          <p className="lede">
+            Stone, collet, pavé shoulders, and shank — revealed.
+          </p>
         </Fade>
 
-        <Fade opacity={cut} className="copy">
-          <p className="kicker">02 / Cut</p>
-          <h2>Precision creates brilliance.</h2>
+        <Fade opacity={assemble} className="copy">
+          <p className="kicker">03 / Assemble</p>
+          <h2>Returned to form.</h2>
         </Fade>
 
-        <Fade opacity={polish} className="copy">
-          <p className="kicker">03 / Polish</p>
-          <h2>Every facet, perfected.</h2>
+        <Fade opacity={encase} className="copy">
+          <p className="kicker">04 / Encase</p>
+          <h2>A home worthy of it.</h2>
         </Fade>
 
-        <Fade opacity={set} className="copy">
-          <p className="kicker">04 / Set</p>
-          <h2>
-            Where craftsmanship
-            <br />
-            meets brilliance.
-          </h2>
-        </Fade>
-
-        <Fade opacity={finale} className="copy copy-finale">
-          <p className="kicker">05 / Become Timeless</p>
-          <h2>Crafted to last beyond a lifetime.</h2>
+        <Fade opacity={seal} className="copy copy-finale">
+          <p className="kicker">05 / Seal</p>
+          <h2>Closed. Kept. Timeless.</h2>
         </Fade>
       </div>
 

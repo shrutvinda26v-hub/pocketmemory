@@ -118,7 +118,7 @@ function Glow() {
 
   useFrame(() => {
     if (!ref.current || !tex) return;
-    const frame = getJourney(useJourney.getState().progress);
+    const frame = getJourney(useJourney.getState().progress, useJourney.getState().intro);
     const mat = ref.current.material as THREE.MeshBasicMaterial;
     mat.opacity = 0.42 + frame.glow * 0.38;
     ref.current.scale.setScalar(2.4 + frame.glow * 0.55);
@@ -143,14 +143,14 @@ function LightRays() {
   const group = useRef<THREE.Group>(null);
 
   useFrame((state) => {
-    const frame = getJourney(useJourney.getState().progress);
+    const frame = getJourney(useJourney.getState().progress, useJourney.getState().intro);
     if (!group.current) return;
-    group.current.visible = frame.lightRays > 0.01;
+    group.current.visible = frame.explode > 0.08;
     group.current.rotation.y = state.clock.elapsedTime * 0.08;
     group.current.children.forEach((child, i) => {
       const mesh = child as THREE.Mesh;
       const mat = mesh.material as THREE.MeshBasicMaterial;
-      mat.opacity = frame.lightRays * (0.045 + (i % 3) * 0.012);
+      mat.opacity = frame.explode * (0.04 + (i % 3) * 0.01);
     });
   });
 

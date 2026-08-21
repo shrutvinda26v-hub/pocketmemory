@@ -7,7 +7,7 @@ import * as THREE from "three";
 import { CameraRig } from "./CameraRig";
 import { Lighting } from "./Lighting";
 import { Atmosphere } from "./Atmosphere";
-import { Jewelry } from "./Jewelry";
+import { GoldRing } from "./GoldRing";
 import { useJourney } from "@/store/useJourney";
 
 export function Scene() {
@@ -16,33 +16,36 @@ export function Scene() {
   return (
     <Canvas
       className="scene-canvas"
-      dpr={[1, 1.35]}
+      dpr={[1, 1.5]}
       gl={{
         antialias: true,
-        alpha: false,
+        alpha: true,
         powerPreference: "default",
         failIfMajorPerformanceCaveat: false,
         toneMapping: THREE.ACESFilmicToneMapping,
-        toneMappingExposure: 1.02,
+        toneMappingExposure: 1.05,
       }}
       onCreated={({ gl, scene }) => {
-        gl.setClearColor("#11100E", 1);
-        scene.background = new THREE.Color("#11100E");
+        gl.setClearColor("#07122a", 1);
+        scene.background = new THREE.Color("#07122a");
         setWebgl("ok");
         const canvas = gl.domElement;
-        const onLost = (event: Event) => {
-          event.preventDefault();
-          setWebgl("lost");
-        };
-        canvas.addEventListener("webglcontextlost", onLost, false);
+        canvas.addEventListener(
+          "webglcontextlost",
+          (event) => {
+            event.preventDefault();
+            setWebgl("lost");
+          },
+          false
+        );
       }}
     >
       <AdaptiveDpr pixelated={false} />
       <CameraRig />
       <Lighting />
-      <Environment preset="studio" environmentIntensity={0.68} />
+      <Environment preset="studio" environmentIntensity={0.55} />
       <Atmosphere />
-      <Jewelry />
+      <GoldRing />
       <WebglWatchdog />
     </Canvas>
   );

@@ -1,3 +1,4 @@
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { pieceCount } from "./composition.js";
 import { buildExperience, mountOrnaments } from "./timeline.js";
 
@@ -25,10 +26,7 @@ if (sheep.complete) {
 window.addEventListener(
   "load",
   () => {
-    // Fonts + images can shift pin math; refresh after first paint.
-    import("gsap/ScrollTrigger").then(({ ScrollTrigger }) => {
-      ScrollTrigger.refresh();
-    });
+    ScrollTrigger.refresh();
   },
   { once: true }
 );

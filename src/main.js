@@ -1,17 +1,16 @@
-const IMAGE = { w: 1280, h: 720 };
+const IMAGE = { w: 1536, h: 1024 };
 
-/**
- * Native-pixel eye sockets on sheep.webp.
- * Tight ellipses sit inside the palpebral fissure so only the globe
- * translates — wool, lashes, jewelry, and the head stay still.
- */
 const EYES = [
-  { cx: 578, cy: 218, rx: 20.4, ry: 13.6 },
-  { cx: 712, cy: 217, rx: 21.2, ry: 13.6 },
+  { cx: 624, cy: 447, rx: 53, ry: 62, outer: -1 },
+  { cx: 911, cy: 447, rx: 53, ry: 62, outer: 1 },
 ];
 
-const MAX_LOOK = { x: 10.6, y: 6.4 };
-const RANGE = { x: 0.32, y: 0.28 };
+const IRIS = 40;
+const PUPIL = { rx: 17.5, ry: 15.5 };
+const MAX_LOOK = { x: 26, y: 20 };
+const RANGE = { x: 0.38, y: 0.34 };
+const LID = "#eadbc9";
+const LASH = "#3d1c14";
 
 const portrait = document.getElementById("portrait");
 const still = document.getElementById("still");
@@ -20,10 +19,9 @@ const ctx = canvas.getContext("2d", { alpha: true });
 
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const coarse = window.matchMedia("(pointer: coarse)").matches;
-const debug = new URLSearchParams(location.search).has("debug");
 
-const pointer = { x: innerWidth / 2, y: innerHeight / 2, inside: false };
-const cursorPos = { x: -80, y: -80, tx: -80, ty: -80 };
+const pointer = { x: innerWidth / 2, y: innerHeight / 2 };
+const cursorPos = { x: -80, y: -80 };
 
 const eyes = EYES.map((eye) => ({
   ...eye,
@@ -48,36 +46,12 @@ let cssW = 0;
 let cssH = 0;
 let dpr = 1;
 let last = performance.now();
-let nextBlink = 1100;
-const maskCache = new Map();
+let nextBlink = 900;
+let restTimer = 0;
 
 const cursorEl = document.createElement("div");
 cursorEl.className = "cursor";
 if (!coarse && !reduceMotion) document.body.appendChild(cursorEl);
-
-function eyeMask(rx, ry) {
-  const key = `${rx.toFixed(2)}x${ry.toFixed(2)}`;
-  if (maskCache.has(key)) return maskCache.get(key);
-
-  const blur = 1.15;
-  const pad = blur * 4;
-  const mw = Math.ceil(rx * 2 + pad * 2);
-  const mh = Math.ceil(ry * 2 + pad * 2);
-  const c = document.createElement("canvas");
-  c.width = mw;
-  c.height = mh;
-  const g = c.getContext("2d");
-  g.filter = `blur(${blur}px)`;
-  g.fillStyle = "#fff";
-  g.beginPath();
-  g.ellipse(mw / 2, mh / 2, Math.max(1, rx - 0.7), Math.max(1, ry - 0.7), 0, 0, Math.PI * 2);
-  g.fill();
-  maskCache.set(key, c);
-  return c;
-}
-
-const layer = document.createElement("canvas");
-const lctx = layer.getContext("2d");
 
 function sizeCanvas() {
   const rect = portrait.getBoundingClientRect();
@@ -89,7 +63,6 @@ function sizeCanvas() {
   canvas.style.width = `${cssW}px`;
   canvas.style.height = `${cssH}px`;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  maskCache.clear();
 }
 
 function clamp(v, a, b) {
@@ -103,28 +76,31 @@ function spring(pos, vel, target, dt, omega, zeta) {
   return [pos, vel];
 }
 
+function toCss(nx, ny) {
+  return [(nx / IMAGE.w) * cssW, (ny / IMAGE.h) * cssH];
+}
+
 function lookAt(clientX, clientY) {
   if (reduceMotion) return;
   const rect = portrait.getBoundingClientRect();
-  const sx = rect.width / IMAGE.w;
-  const sy = rect.height / IMAGE.h;
-  const rangeX = Math.max(160, innerWidth * RANGE.x);
-  const rangeY = Math.max(120, innerHeight * RANGE.y);
+  const rangeX = Math.max(180, innerWidth * RANGE.x);
+  const rangeY = Math.max(140, innerHeight * RANGE.y);
 
   for (const eye of eyes) {
-    const ex = rect.left + eye.cx * sx;
-    const ey = rect.top + eye.cy * sy;
-    const nx = clamp((clientX - ex) / rangeX, -1, 1);
-    const ny = clamp((clientY - ey) / rangeY, -1, 1);
-    // Ease-out near the extremes so the globe never hits the lid.
-    const ux = Math.sign(nx) * (1 - (1 - Math.abs(nx)) ** 1.35);
-    const uy = Math.sign(ny) * (1 - (1 - Math.abs(ny)) ** 1.45);
-    eye.tx = ux * MAX_LOOK.x;
-    eye.ty = uy * MAX_LOOK.y;
+    const [ex, ey] = toCss(eye.cx, eye.cy);
+    const nx = clamp((clientX - (rect.left + ex)) / rangeX, -1, 1);
+    const ny = clamp((clientY - (rect.top + ey)) / rangeY, -1, 1);
+    let tx = nx * MAX_LOOK.x;
+    let ty = ny * MAX_LOOK.y;
+    const m = Math.hypot(tx / MAX_LOOK.x, ty / MAX_LOOK.y);
+    if (m > 1) {
+      tx /= m;
+      ty /= m;
+    }
+    eye.tx = tx;
+    eye.ty = ty;
   }
 }
-
-let restTimer = 0;
 
 function restEyes() {
   for (const eye of eyes) {
@@ -139,10 +115,7 @@ function cancelRest() {
 
 function scheduleRest() {
   cancelRest();
-  restTimer = window.setTimeout(() => {
-    pointer.inside = false;
-    restEyes();
-  }, 480);
+  restTimer = window.setTimeout(restEyes, 500);
 }
 
 function triggerBlink(double = false) {
@@ -157,7 +130,7 @@ function triggerBlink(double = false) {
 }
 
 function scheduleBlink() {
-  nextBlink = 2800 + Math.random() * 2600;
+  nextBlink = 2600 + Math.random() * 2800;
 }
 
 function stepBlink(dt) {
@@ -168,17 +141,17 @@ function stepBlink(dt) {
 
   nextBlink -= dt * 1000;
   if (nextBlink <= 0 && blink.phase === "open") {
-    triggerBlink(Math.random() < 0.26);
+    triggerBlink(Math.random() < 0.28);
     scheduleBlink();
   }
 
   if (blink.phase === "closing") {
     blink.t += dt;
-    const u = clamp(blink.t / 0.085, 0, 1);
+    const u = clamp(blink.t / 0.08, 0, 1);
     blink.amount = 1 - (1 - u) ** 2;
     if (u >= 1) {
       blink.phase = "shut";
-      blink.hold = 0.055 + Math.random() * 0.03;
+      blink.hold = 0.05 + Math.random() * 0.04;
       blink.t = 0;
     }
   } else if (blink.phase === "shut") {
@@ -190,7 +163,7 @@ function stepBlink(dt) {
     }
   } else if (blink.phase === "opening") {
     blink.t += dt;
-    const u = clamp(blink.t / 0.16, 0, 1);
+    const u = clamp(blink.t / 0.15, 0, 1);
     blink.amount = (1 - u) ** 2;
     if (u >= 1) {
       blink.amount = 0;
@@ -209,69 +182,117 @@ function stepBlink(dt) {
   }
 }
 
+function drawIris(ix, iy, irisR) {
+  const g = ctx.createRadialGradient(
+    ix - irisR * 0.18,
+    iy - irisR * 0.22,
+    irisR * 0.08,
+    ix,
+    iy,
+    irisR
+  );
+  g.addColorStop(0, "#c8e8fb");
+  g.addColorStop(0.22, "#5eb4ea");
+  g.addColorStop(0.55, "#2b8fd4");
+  g.addColorStop(0.82, "#1a6aae");
+  g.addColorStop(1, "#0e3f72");
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.arc(ix, iy, irisR, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = "#12100e";
+  ctx.beginPath();
+  ctx.ellipse(ix, iy, PUPIL.rx * (irisR / IRIS), PUPIL.ry * (irisR / IRIS), 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = "rgba(255,255,255,0.92)";
+  ctx.beginPath();
+  ctx.arc(ix - irisR * 0.28, iy - irisR * 0.32, irisR * 0.16, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(ix + irisR * 0.22, iy + irisR * 0.18, irisR * 0.07, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawLashes(cx, cy, rx, ry, outer) {
+  ctx.save();
+  ctx.strokeStyle = LASH;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  for (let i = 0; i < 8; i++) {
+    const t = 0.06 + i * 0.1;
+    const ang = -Math.PI * 0.58 + outer * (0.12 + t * 1.02);
+    const x0 = cx + Math.cos(ang) * rx * 0.94;
+    const y0 = cy + Math.sin(ang) * ry * 0.72 - ry * 0.14;
+    const flare = 0.5 + t * 0.4;
+    const x1 = x0 + outer * rx * 0.2 * flare;
+    const y1 = y0 - ry * (0.34 + t * 0.1);
+    ctx.lineWidth = Math.max(1.5, rx * (0.05 - t * 0.016));
+    ctx.beginPath();
+    ctx.moveTo(x0, y0);
+    ctx.quadraticCurveTo(x0 + outer * rx * 0.05, y0 - ry * 0.16, x1, y1);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawLids(cx, cy, rx, ry, amount) {
+  if (amount < 0.02) return;
+  const t = amount;
+  ctx.fillStyle = LID;
+  ctx.beginPath();
+  ctx.ellipse(cx, cy - ry + ry * t * 1.05, rx * 1.12, ry * t * 1.12, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(cx, cy + ry - ry * t * 0.55, rx * 1.08, ry * t * 0.58, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = LASH;
+  ctx.lineWidth = Math.max(2, rx * 0.065);
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  const lidY = cy - ry + ry * 2 * t * 0.92;
+  ctx.moveTo(cx - rx * 0.92, lidY);
+  ctx.quadraticCurveTo(cx, lidY + ry * 0.06 * (1 - t), cx + rx * 0.92, lidY);
+  ctx.stroke();
+}
+
 function draw() {
-  if (!cssW || !still.naturalWidth) return;
+  if (!cssW) return;
   ctx.clearRect(0, 0, cssW, cssH);
 
   const sx = cssW / IMAGE.w;
   const sy = cssH / IMAGE.h;
 
   eyes.forEach((eye, index) => {
-    const cx = eye.cx * sx;
-    const cy = eye.cy * sy;
+    const [cx, cy] = toCss(eye.cx, eye.cy);
     const rx = eye.rx * sx;
     const ry = eye.ry * sy;
+    const irisR = IRIS * sx;
     const ox = eye.x * sx;
     const oy = eye.y * sy;
+    const lid = clamp(blink.amount + (index ? -0.05 : 0), 0, 1);
 
-    const lid = clamp(blink.amount + (index ? -0.06 : 0), 0, 1);
-    const open = 1 - lid;
-    const ryOpen = ry * (0.08 + 0.92 * open);
-    const cyOpen = cy + (ry - ryOpen) * 0.7;
-    const lidPull = lid * ry * 1.55;
-
-    const mask = eyeMask(rx, ryOpen);
-    const lw = mask.width;
-    const lh = mask.height;
-    const lx = cx - lw / 2;
-    const ly = cyOpen - lh / 2;
-
-    if (layer.width !== lw || layer.height !== lh) {
-      layer.width = lw;
-      layer.height = lh;
-    }
-
-    lctx.setTransform(1, 0, 0, 1, 0, 0);
-    lctx.globalCompositeOperation = "source-over";
-    lctx.clearRect(0, 0, lw, lh);
-    lctx.drawImage(still, ox - lx, oy - ly + lidPull, cssW, cssH);
-
-    lctx.globalCompositeOperation = "destination-in";
-    lctx.drawImage(mask, 0, 0);
-    ctx.drawImage(layer, lx, ly);
-
-    if (debug) {
-      ctx.save();
-      ctx.strokeStyle = "rgba(255, 80, 80, 0.85)";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.restore();
-    }
-  });
-
-  if (debug) {
     ctx.save();
-    ctx.fillStyle = "rgba(255, 60, 60, 0.9)";
-    ctx.font = "12px ui-monospace, monospace";
-    ctx.fillText(
-      `L ${eyes[0].x.toFixed(1)},${eyes[0].y.toFixed(1)}   R ${eyes[1].x.toFixed(1)},${eyes[1].y.toFixed(1)}`,
-      14,
-      22
-    );
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+    ctx.clip();
+
+    ctx.fillStyle = "#fbfcfd";
+    ctx.fill();
+
+    ctx.fillStyle = "rgba(40, 24, 16, 0.12)";
+    ctx.beginPath();
+    ctx.ellipse(cx, cy - ry * 0.62, rx * 0.92, ry * 0.32, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    drawIris(cx + ox, cy + oy, irisR);
     ctx.restore();
-  }
+
+    drawLashes(cx, cy, rx, ry, eye.outer);
+    drawLids(cx, cy, rx, ry, lid);
+  });
 }
 
 function tick(now) {
@@ -281,17 +302,15 @@ function tick(now) {
   if (!reduceMotion) {
     for (const eye of eyes) {
       const err = Math.hypot(eye.tx - eye.x, eye.ty - eye.y);
-      const saccade = err > 1.8;
-      const omega = saccade ? 28 : 17.5;
-      const zeta = saccade ? 0.76 : 0.86;
+      const saccade = err > 4;
+      const omega = saccade ? 26 : 16;
+      const zeta = saccade ? 0.78 : 0.88;
       [eye.x, eye.vx] = spring(eye.x, eye.vx, eye.tx, dt, omega, zeta);
-      [eye.y, eye.vy] = spring(eye.y, eye.vy, eye.ty, dt, omega * 0.92, zeta);
+      [eye.y, eye.vy] = spring(eye.y, eye.vy, eye.ty, dt, omega * 0.9, zeta);
     }
 
-    cursorPos.tx = pointer.x;
-    cursorPos.ty = pointer.y;
-    cursorPos.x += (cursorPos.tx - cursorPos.x) * (1 - Math.exp(-dt * 18));
-    cursorPos.y += (cursorPos.ty - cursorPos.y) * (1 - Math.exp(-dt * 18));
+    cursorPos.x += (pointer.x - cursorPos.x) * (1 - Math.exp(-dt * 18));
+    cursorPos.y += (pointer.y - cursorPos.y) * (1 - Math.exp(-dt * 18));
     if (cursorEl.isConnected) {
       cursorEl.style.transform = `translate3d(${cursorPos.x}px, ${cursorPos.y}px, 0)`;
     }
@@ -305,7 +324,6 @@ function tick(now) {
 function onPointer(event) {
   pointer.x = event.clientX;
   pointer.y = event.clientY;
-  pointer.inside = true;
   cancelRest();
   lookAt(event.clientX, event.clientY);
 }
@@ -327,7 +345,7 @@ function start() {
   last = performance.now();
   requestAnimationFrame(tick);
   if (!reduceMotion) {
-    window.setTimeout(() => triggerBlink(false), 700);
+    window.setTimeout(() => triggerBlink(false), 800);
     scheduleBlink();
   }
 }

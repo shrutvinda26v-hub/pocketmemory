@@ -157,7 +157,7 @@ function triggerBlink(double = false) {
 }
 
 function scheduleBlink() {
-  nextBlink = 2400 + Math.random() * 3400;
+  nextBlink = 2800 + Math.random() * 2600;
 }
 
 function stepBlink(dt) {
@@ -174,11 +174,11 @@ function stepBlink(dt) {
 
   if (blink.phase === "closing") {
     blink.t += dt;
-    const u = clamp(blink.t / 0.068, 0, 1);
+    const u = clamp(blink.t / 0.085, 0, 1);
     blink.amount = 1 - (1 - u) ** 2;
     if (u >= 1) {
       blink.phase = "shut";
-      blink.hold = 0.04 + Math.random() * 0.03;
+      blink.hold = 0.055 + Math.random() * 0.03;
       blink.t = 0;
     }
   } else if (blink.phase === "shut") {
@@ -190,7 +190,7 @@ function stepBlink(dt) {
     }
   } else if (blink.phase === "opening") {
     blink.t += dt;
-    const u = clamp(blink.t / 0.13, 0, 1);
+    const u = clamp(blink.t / 0.16, 0, 1);
     blink.amount = (1 - u) ** 2;
     if (u >= 1) {
       blink.amount = 0;

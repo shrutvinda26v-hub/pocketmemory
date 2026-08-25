@@ -6,12 +6,12 @@ const IMAGE = { w: 1280, h: 720 };
  * translates — wool, lashes, jewelry, and the head stay still.
  */
 const EYES = [
-  { cx: 578, cy: 218, rx: 18.6, ry: 12.8, lid: [118, 104, 90] },
-  { cx: 712, cy: 217, rx: 19.4, ry: 12.8, lid: [112, 96, 84] },
+  { cx: 578, cy: 218, rx: 20.4, ry: 13.6 },
+  { cx: 712, cy: 217, rx: 21.2, ry: 13.6 },
 ];
 
-const MAX_LOOK = { x: 6.15, y: 3.85 };
-const RANGE = { x: 0.42, y: 0.36 };
+const MAX_LOOK = { x: 8.4, y: 5.2 };
+const RANGE = { x: 0.34, y: 0.3 };
 
 const portrait = document.getElementById("portrait");
 const still = document.getElementById("still");
@@ -195,20 +195,6 @@ function stepBlink(dt) {
   }
 }
 
-function drawLids(lctx, lw, lh, rx, ry, amount, rgb) {
-  if (amount < 0.02) return;
-  const cx = lw / 2;
-  const cy = lh / 2;
-  const topH = (ry * 2 + 6) * (0.62 * amount);
-  const botH = (ry * 2 + 6) * (0.46 * amount);
-  lctx.fillStyle = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
-  lctx.fillRect(0, 0, lw, cy - ry + topH);
-  lctx.fillRect(0, cy + ry - botH, lw, lh);
-  lctx.fillStyle = `rgba(32, 24, 18, ${0.28 * amount})`;
-  lctx.fillRect(cx - rx, cy - ry + topH - 1.2, rx * 2, 2.2);
-  lctx.fillRect(cx - rx, cy + ry - botH - 0.4, rx * 2, 1.6);
-}
-
 function draw() {
   if (!cssW || !still.naturalWidth) return;
   ctx.clearRect(0, 0, cssW, cssH);
@@ -216,18 +202,25 @@ function draw() {
   const sx = cssW / IMAGE.w;
   const sy = cssH / IMAGE.h;
 
-  for (const eye of eyes) {
+  eyes.forEach((eye, index) => {
     const cx = eye.cx * sx;
     const cy = eye.cy * sy;
     const rx = eye.rx * sx;
     const ry = eye.ry * sy;
     const ox = eye.x * sx;
     const oy = eye.y * sy;
-    const mask = eyeMask(rx, ry);
+
+    const lid = clamp(blink.amount + (index ? -0.06 : 0), 0, 1);
+    const open = 1 - lid;
+    const ryOpen = ry * (0.08 + 0.92 * open);
+    const cyOpen = cy + (ry - ryOpen) * 0.7;
+    const lidPull = lid * ry * 1.55;
+
+    const mask = eyeMask(rx, ryOpen);
     const lw = mask.width;
     const lh = mask.height;
     const lx = cx - lw / 2;
-    const ly = cy - lh / 2;
+    const ly = cyOpen - lh / 2;
 
     if (layer.width !== lw || layer.height !== lh) {
       layer.width = lw;
@@ -237,10 +230,7 @@ function draw() {
     lctx.setTransform(1, 0, 0, 1, 0, 0);
     lctx.globalCompositeOperation = "source-over";
     lctx.clearRect(0, 0, lw, lh);
-    lctx.drawImage(still, ox - lx, oy - ly, cssW, cssH);
-
-    const lidAmount = clamp(blink.amount, 0, 1);
-    if (lidAmount > 0.01) drawLids(lctx, lw, lh, rx, ry, lidAmount, eye.lid);
+    lctx.drawImage(still, ox - lx, oy - ly + lidPull, cssW, cssH);
 
     lctx.globalCompositeOperation = "destination-in";
     lctx.drawImage(mask, 0, 0);
@@ -255,7 +245,7 @@ function draw() {
       ctx.stroke();
       ctx.restore();
     }
-  }
+  });
 }
 
 function tick(now) {
@@ -265,9 +255,9 @@ function tick(now) {
   if (!reduceMotion) {
     for (const eye of eyes) {
       const err = Math.hypot(eye.tx - eye.x, eye.ty - eye.y);
-      const saccade = err > 2.4;
-      const omega = saccade ? 26 : 15.5;
-      const zeta = saccade ? 0.78 : 0.84;
+      const saccade = err > 1.8;
+      const omega = saccade ? 28 : 17.5;
+      const zeta = saccade ? 0.76 : 0.86;
       [eye.x, eye.vx] = spring(eye.x, eye.vx, eye.tx, dt, omega, zeta);
       [eye.y, eye.vy] = spring(eye.y, eye.vy, eye.ty, dt, omega * 0.92, zeta);
     }

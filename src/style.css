@@ -19,9 +19,6 @@ body {
   color: var(--ink);
   font-family: Outfit, system-ui, sans-serif;
   overflow: hidden;
-}
-
-body {
   cursor: none;
 }
 
@@ -105,12 +102,12 @@ body {
   position: fixed;
   top: 0;
   left: 0;
-  width: 11px;
-  height: 11px;
-  margin: -5.5px 0 0 -5.5px;
+  width: 13px;
+  height: 13px;
+  margin: -6.5px 0 0 -6.5px;
   border-radius: 50%;
-  border: 1px solid rgba(243, 238, 228, 0.72);
-  background: rgba(243, 238, 228, 0.08);
+  border: 1px solid rgba(243, 238, 228, 0.85);
+  background: rgba(243, 238, 228, 0.12);
   pointer-events: none;
   z-index: 20;
   transform: translate3d(-120px, -120px, 0);

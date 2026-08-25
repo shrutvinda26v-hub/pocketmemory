@@ -17,13 +17,23 @@ function waitForImage(img) {
   });
 }
 
+function withTimeout(promise, ms) {
+  return Promise.race([
+    promise,
+    new Promise((resolve) => setTimeout(resolve, ms)),
+  ]);
+}
+
 async function start() {
   const ornamentImages = [...ornamentsRoot.querySelectorAll("img")];
-  await Promise.all([
-    document.fonts.ready.catch(() => {}),
-    waitForImage(sheep),
-    ...ornamentImages.map(waitForImage),
-  ]);
+  await withTimeout(
+    Promise.all([
+      document.fonts.ready.catch(() => {}),
+      waitForImage(sheep),
+      ...ornamentImages.map(waitForImage),
+    ]),
+    4000
+  );
 
   buildExperience(pieces);
   ScrollTrigger.refresh();

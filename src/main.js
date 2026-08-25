@@ -3,12 +3,11 @@ import gsap from "gsap";
 const IMAGE = { w: 1536, h: 1024 };
 
 const EYES = [
-  { id: "left", pupilX: 631, pupilY: 500, clipX: 624, clipY: 488, rx: 52, ry: 54, irisR: 43 },
-  { id: "right", pupilX: 911, pupilY: 499, clipX: 916, clipY: 488, rx: 54, ry: 54, irisR: 44 },
+  { id: "left", pupilX: 631, pupilY: 500, clipX: 626, clipY: 496, rx: 46, ry: 48, irisR: 43 },
+  { id: "right", pupilX: 911, pupilY: 499, clipX: 914, clipY: 496, rx: 48, ry: 48, irisR: 44 },
 ];
 
-const MOUTH = { x: 812, y: 652, rx: 38, ry: 10 };
-const MAX_LOOK = 40;
+const MAX_LOOK = 28;
 const EASE = 0.16;
 
 const portrait = document.getElementById("portrait");

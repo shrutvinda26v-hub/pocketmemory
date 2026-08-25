@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Specimen 002 — She is watching</title>
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <meta
+      name="description"
+      content="A jeweled cartoon sheep who chews a daisy and watches you back."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Outfit:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="wordmark" href="#observatory">Specimen 002</a>
+      <nav class="nav" aria-label="Primary">
+        <a href="#observatory">Observatory</a>
+        <a href="#notes">Field notes</a>
+        <a href="#keep">The keep</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" id="observatory">
+        <div class="hero-copy">
+          <p class="kicker">Jewel house · live study</p>
+          <h1>She is watching.</h1>
+          <p class="lede">
+            A jeweled ewe of uncertain origin. She chews a daisy, blinks when she
+            likes, and her eyes follow the pointer around the page.
+          </p>
+          <dl class="facts">
+            <div>
+              <dt>Status</dt>
+              <dd>Observant</dd>
+            </div>
+            <div>
+              <dt>Diet</dt>
+              <dd>One daisy, slowly</dd>
+            </div>
+            <div>
+              <dt>Temper</dt>
+              <dd>Uncanny, polite</dd>
+            </div>
+          </dl>
+          <p class="hint">Move your pointer. She will look.</p>
+        </div>
+
+        <div class="portrait" id="portrait" aria-label="A jeweled sheep watching you and chewing a daisy">
+          <img
+            class="still"
+            id="still"
+            src="./assets/sheep-cartoon.webp"
+            width="1536"
+            height="1024"
+            alt="A cartoon white sheep in a jeweled floral crown, chewing a daisy, looking at you with very large blue eyes"
+          />
+          <img
+            class="daisy"
+            id="daisy"
+            src="./assets/daisy.png"
+            width="141"
+            height="126"
+            alt=""
+            aria-hidden="true"
+          />
+          <canvas class="eyes" id="eyes" aria-hidden="true"></canvas>
+        </div>
+      </section>
+
+      <section class="notes" id="notes">
+        <p class="section-kicker">Field notes</p>
+        <h2>What we know so far</h2>
+        <div class="cards">
+          <article class="card">
+            <p class="card-index">01</p>
+            <h3>The gaze</h3>
+            <p>
+              Pupils track left, right, up, and down with a soft ease. Leave the
+              window and she looks forward again. She blinks every few seconds,
+              sometimes twice.
+            </p>
+          </article>
+          <article class="card">
+            <p class="card-index">02</p>
+            <h3>The daisy</h3>
+            <p>
+              The flower in her mouth is from the original study reel. She works
+              it the way sheep do — a small, stubborn chew, never quite finished.
+            </p>
+          </article>
+          <article class="card">
+            <p class="card-index">03</p>
+            <h3>The jewels</h3>
+            <p>
+              Crown, collar, and drop earrings stay put. Fur, lighting, and the
+              sky behind her are still. Only the eyes and the daisy are alive.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="keep" id="keep">
+        <div class="keep-inner">
+          <p class="section-kicker">The keep</p>
+          <h2>Not a zoo. A sitting room.</h2>
+          <p>
+            Visiting hours are whenever you open the page. Speak softly. Do not
+            offer a second daisy until she has finished the first.
+          </p>
+          <ul class="hours">
+            <li><span>Dawn</span><span>She is already looking</span></li>
+            <li><span>Noon</span><span>Chewing, mostly</span></li>
+            <li><span>Dusk</span><span>Still watching</span></li>
+          </ul>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>Specimen 002 · Jewel house</p>
+      <p>Eyes follow. Daisy lasts.</p>
+    </footer>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

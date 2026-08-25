@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>She is watching</title>
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <meta
+      name="description"
+      content="A still jeweled sheep whose eyes follow you."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Outfit:wght@300;400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <main class="stage" id="stage">
+      <div class="portrait" id="portrait" aria-label="A jeweled sheep watching you">
+        <img
+          class="still"
+          id="still"
+          src="./assets/sheep.webp"
+          width="1280"
+          height="720"
+          alt="A white sheep in a jeweled floral crown and collar, holding a daisy, looking directly at you"
+        />
+
+        <div class="eye eye-l" id="eyeL" aria-hidden="true">
+          <div class="socket">
+            <img class="eyeball" id="ballL" src="./assets/sheep.webp" alt="" />
+            <span class="catch"></span>
+          </div>
+          <img class="lid" id="lidL" src="./assets/lid-left.png" alt="" />
+        </div>
+
+        <div class="eye eye-r" id="eyeR" aria-hidden="true">
+          <div class="socket">
+            <img class="eyeball" id="ballR" src="./assets/sheep.webp" alt="" />
+            <span class="catch"></span>
+          </div>
+          <img class="lid" id="lidR" src="./assets/lid-right.png" alt="" />
+        </div>
+      </div>
+
+      <p class="hud hud-left">SPECIMEN 002</p>
+      <p class="hud hud-right">SHE IS WATCHING</p>
+    </main>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

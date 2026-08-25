@@ -1,8 +1,8 @@
 # SPECIMEN 002
 
-A still jeweled sheep. She does not move. Her eyes follow you.
+A jeweled cartoon sheep. She stays still. Her big eyes follow you.
 
-The portrait is a single frame from the source film. Pupils track the pointer with eased motion. She blinks, occasionally twice. Jewelry, wool, light, and sky stay exactly as they were.
+Move the pointer around the portrait. Leave the window and her gaze returns to center. She blinks every few seconds.
 
 ## Run locally
 

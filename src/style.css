@@ -1,7 +1,7 @@
 :root {
-  --sky: #4282a8;
+  --sky: #3ca6f7;
   --ink: #f4efe6;
-  --mute: rgba(244, 239, 230, 0.58);
+  --mute: rgba(255, 255, 255, 0.62);
 }
 
 *,
@@ -21,10 +21,6 @@ body {
   overflow: hidden;
 }
 
-body {
-  cursor: none;
-}
-
 .stage {
   position: relative;
   width: 100vw;
@@ -36,8 +32,8 @@ body {
 
 .portrait {
   position: relative;
-  width: min(100vw, calc(100vh * 1280 / 720));
-  height: min(100vh, calc(100vw * 720 / 1280));
+  width: min(100vw, calc(100vh * 1536 / 1024));
+  height: min(100vh, calc(100vw * 1024 / 1536));
   overflow: hidden;
 }
 
@@ -71,7 +67,6 @@ body {
   text-transform: uppercase;
   color: var(--mute);
   pointer-events: none;
-  mix-blend-mode: soft-light;
 }
 
 .hud-left {
@@ -80,41 +75,4 @@ body {
 
 .hud-right {
   right: 1.6rem;
-}
-
-.cursor {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 12px;
-  height: 12px;
-  margin: -6px 0 0 -6px;
-  border-radius: 50%;
-  border: 1px solid rgba(244, 239, 230, 0.75);
-  background: rgba(244, 239, 230, 0.1);
-  pointer-events: none;
-  z-index: 20;
-  transform: translate3d(-100px, -100px, 0);
-  will-change: transform;
-  mix-blend-mode: difference;
-}
-
-@media (hover: none) {
-  body {
-    cursor: auto;
-  }
-
-  .cursor {
-    display: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .cursor {
-    display: none;
-  }
-
-  body {
-    cursor: auto;
-  }
 }

@@ -1,63 +1,59 @@
 import gsap from "gsap";
 
-const IMAGE = { w: 1280, h: 720 };
+const IMAGE = { w: 1536, h: 1024 };
 
 const EYES = [
-  { cx: 580, cy: 226, rx: 28, ry: 20, lid: "left" },
-  { cx: 712, cy: 224, rx: 28, ry: 20, lid: "right" },
+  {
+    id: "left",
+    pupilX: 631,
+    pupilY: 500,
+    clipX: 624,
+    clipY: 490,
+    rx: 52,
+    ry: 56,
+    side: -1,
+  },
+  {
+    id: "right",
+    pupilX: 911,
+    pupilY: 499,
+    clipX: 916,
+    clipY: 490,
+    rx: 54,
+    ry: 56,
+    side: 1,
+  },
 ];
 
-const MAX_LOOK = { x: 15.5, y: 10.0 };
-const LOOK_RANGE = { x: 0.46, y: 0.42 };
-const EASE = 0.12;
+const MAX_LOOK = 34;
+const EASE = 0.13;
 
 const portrait = document.getElementById("portrait");
 const still = document.getElementById("still");
 const canvas = document.getElementById("eyes");
-const ctx = canvas.getContext("2d");
+const ctx = canvas.getContext("2d", { alpha: true });
 
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const coarse = window.matchMedia("(hover: none)").matches;
 
 const look = { x: 0, y: 0, tx: 0, ty: 0 };
 const lids = { amount: 0 };
 
-const lidImages = { left: new Image(), right: new Image() };
-lidImages.left.src = "./assets/lid-left.png";
-lidImages.right.src = "./assets/lid-right.png";
+function loadImage(src) {
+  const image = new Image();
+  image.src = src;
+  return image;
+}
 
-let source = still;
+const irisImages = {
+  left: loadImage("./assets/iris-left.png"),
+  right: loadImage("./assets/iris-right.png"),
+};
+const eyeMask = loadImage("./assets/eye-mask.png");
+const lashes = loadImage("./assets/lashes.png");
+
 let dpr = 1;
 let cssW = 0;
 let cssH = 0;
-const maskCache = new Map();
-
-function eyeMask(rx, ry) {
-  const key = `${rx.toFixed(2)}x${ry.toFixed(2)}`;
-  if (maskCache.has(key)) return maskCache.get(key);
-
-  const blur = 1.35;
-  const pad = blur * 4;
-  const mw = Math.ceil(rx * 2 + pad * 2);
-  const mh = Math.ceil(ry * 2 + pad * 2);
-  const c = document.createElement("canvas");
-  c.width = mw;
-  c.height = mh;
-  const g = c.getContext("2d");
-  g.filter = `blur(${blur}px)`;
-  g.fillStyle = "#fff";
-  g.beginPath();
-  g.ellipse(mw / 2, mh / 2, Math.max(1, rx - 1.1), Math.max(1, ry - 1.1), 0, 0, Math.PI * 2);
-  g.fill();
-  maskCache.set(key, c);
-  return c;
-}
-
-const cursor = document.createElement("div");
-cursor.className = "cursor";
-if (!coarse && !reduceMotion) document.body.appendChild(cursor);
-const cursorX = gsap.quickTo(cursor, "x", { duration: 0.18, ease: "power3.out" });
-const cursorY = gsap.quickTo(cursor, "y", { duration: 0.18, ease: "power3.out" });
 
 function sizeCanvas() {
   const rect = portrait.getBoundingClientRect();
@@ -69,18 +65,94 @@ function sizeCanvas() {
   canvas.style.width = `${cssW}px`;
   canvas.style.height = `${cssH}px`;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  maskCache.clear();
 }
 
-function nativeToCss(nx, ny) {
+function toCss(nx, ny) {
   return [(nx / IMAGE.w) * cssW, (ny / IMAGE.h) * cssH];
 }
 
-const layer = document.createElement("canvas");
-const lctx = layer.getContext("2d");
+function drawLashesOnTop(eye) {
+  const [cx, cy] = toCss(eye.clipX, eye.clipY);
+  const rx = (eye.rx / IMAGE.w) * cssW;
+  const ry = (eye.ry / IMAGE.h) * cssH;
+  const outer = eye.side;
+
+  ctx.save();
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.strokeStyle = "#1a0e0a";
+
+  for (let i = 0; i < 7; i++) {
+    const t = 0.08 + i * 0.11;
+    const ang = -Math.PI * 0.55 + outer * (0.15 + t * 0.95);
+    const x0 = cx + Math.cos(ang) * rx * 0.92;
+    const y0 = cy + Math.sin(ang) * ry * 0.78 - ry * 0.12;
+    const flare = 0.55 + t * 0.35;
+    const x1 = x0 + outer * rx * 0.22 * flare;
+    const y1 = y0 - ry * (0.38 + t * 0.12);
+    ctx.lineWidth = Math.max(1.6, rx * (0.055 - t * 0.018));
+    ctx.beginPath();
+    ctx.moveTo(x0, y0);
+    ctx.quadraticCurveTo(x0 + outer * rx * 0.06, y0 - ry * 0.18, x1, y1);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+function drawEyeInterior(eye, ox, oy) {
+  const [cx, cy] = toCss(eye.clipX, eye.clipY);
+  const rx = (eye.rx / IMAGE.w) * cssW;
+  const ry = (eye.ry / IMAGE.h) * cssH;
+  const [px, py] = toCss(eye.pupilX, eye.pupilY);
+
+  ctx.fillStyle = "rgba(42, 24, 16, 0.16)";
+  ctx.beginPath();
+  ctx.ellipse(cx, cy - ry * 0.62, rx * 0.9, ry * 0.34, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  const img = irisImages[eye.id];
+  const irisR = img.naturalWidth
+    ? ((img.naturalWidth / 2) / IMAGE.w) * cssW
+    : (43 / IMAGE.w) * cssW;
+
+  if (img.complete && img.naturalWidth) {
+    ctx.drawImage(img, px + ox - irisR, py + oy - irisR, irisR * 2, irisR * 2);
+  } else {
+    ctx.fillStyle = "#2f90d4";
+    ctx.beginPath();
+    ctx.arc(px + ox, py + oy, irisR * 0.92, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#111";
+    ctx.beginPath();
+    ctx.arc(px + ox, py + oy, irisR * 0.48, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#fff";
+    ctx.beginPath();
+    ctx.arc(px + ox + irisR * 0.22, py + oy - irisR * 0.26, irisR * 0.13, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  if (lids.amount > 0.02) {
+    const t = lids.amount;
+    ctx.fillStyle = "#e9d3b7";
+    ctx.beginPath();
+    ctx.ellipse(cx, cy - ry + ry * t, rx * 1.08, ry * t * 1.05, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = "#1c100c";
+    ctx.lineWidth = Math.max(2.2, rx * 0.07);
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    const lidY = cy - ry + ry * 2 * t * 0.96;
+    ctx.moveTo(cx - rx * 0.9, lidY);
+    ctx.quadraticCurveTo(cx, lidY + ry * 0.08 * (1 - t), cx + rx * 0.9, lidY);
+    ctx.stroke();
+  }
+}
 
 function draw() {
-  if (!cssW || !source.naturalWidth) return;
+  if (!cssW) return;
 
   look.x += (look.tx - look.x) * (reduceMotion ? 1 : EASE);
   look.y += (look.ty - look.y) * (reduceMotion ? 1 : EASE);
@@ -90,42 +162,41 @@ function draw() {
   const ox = look.x * (cssW / IMAGE.w);
   const oy = look.y * (cssH / IMAGE.h);
 
-  for (const eye of EYES) {
-    const [cx, cy] = nativeToCss(eye.cx, eye.cy);
-    const rx = eye.rx * (cssW / IMAGE.w);
-    const ry = eye.ry * (cssH / IMAGE.h);
-    const mask = eyeMask(rx, ry);
-    const lw = mask.width;
-    const lh = mask.height;
-    const lx = cx - lw / 2;
-    const ly = cy - lh / 2;
+  if (eyeMask.complete && eyeMask.naturalWidth) {
+    ctx.save();
+    ctx.drawImage(eyeMask, 0, 0, cssW, cssH);
+    ctx.globalCompositeOperation = "source-in";
 
-    if (layer.width !== lw || layer.height !== lh) {
-      layer.width = lw;
-      layer.height = lh;
+    const sclera = ctx.createLinearGradient(0, cssH * 0.38, 0, cssH * 0.58);
+    sclera.addColorStop(0, "#f6e6d0");
+    sclera.addColorStop(0.35, "#fbf4e8");
+    sclera.addColorStop(1, "#f3e4cc");
+    ctx.fillStyle = sclera;
+    ctx.fillRect(0, 0, cssW, cssH);
+
+    ctx.globalCompositeOperation = "source-atop";
+    for (const eye of EYES) drawEyeInterior(eye, ox, oy);
+    ctx.restore();
+  } else {
+    for (const eye of EYES) {
+      ctx.save();
+      const [cx, cy] = toCss(eye.clipX, eye.clipY);
+      const rx = (eye.rx / IMAGE.w) * cssW;
+      const ry = (eye.ry / IMAGE.h) * cssH;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+      ctx.clip();
+      ctx.fillStyle = "#fbf4e8";
+      ctx.fillRect(cx - rx, cy - ry, rx * 2, ry * 2);
+      drawEyeInterior(eye, ox, oy);
+      ctx.restore();
     }
-    lctx.setTransform(1, 0, 0, 1, 0, 0);
-    lctx.globalCompositeOperation = "source-over";
-    lctx.clearRect(0, 0, lw, lh);
-    lctx.drawImage(source, ox - lx, oy - ly, cssW, cssH);
-
-    if (lids.amount > 0.01) {
-      const lid = lidImages[eye.lid];
-      const h = Math.max(1, ry * 2 * lids.amount);
-      if (lid.complete && lid.naturalWidth) {
-        lctx.drawImage(lid, lw / 2 - rx, lh / 2 - ry + (ry * 2 - h) * 0.05, rx * 2, h);
-      } else {
-        lctx.fillStyle = "rgba(52, 40, 32, 0.72)";
-        lctx.beginPath();
-        lctx.ellipse(lw / 2, lh / 2, rx, h / 2, 0, 0, Math.PI * 2);
-        lctx.fill();
-      }
-    }
-
-    lctx.globalCompositeOperation = "destination-in";
-    lctx.drawImage(mask, 0, 0);
-    ctx.drawImage(layer, lx, ly);
   }
+
+  if (lashes.complete && lashes.naturalWidth) {
+    ctx.drawImage(lashes, 0, 0, cssW, cssH);
+  }
+  for (const eye of EYES) drawLashesOnTop(eye);
 }
 
 function tick() {
@@ -136,10 +207,15 @@ function tick() {
 function lookAt(clientX, clientY) {
   if (reduceMotion) return;
   const rect = portrait.getBoundingClientRect();
-  const midX = rect.left + ((EYES[0].cx + EYES[1].cx) / 2 / IMAGE.w) * rect.width;
-  const midY = rect.top + (EYES[0].cy / IMAGE.h) * rect.height;
-  look.tx = gsap.utils.clamp(-1, 1, (clientX - midX) / (rect.width * LOOK_RANGE.x)) * MAX_LOOK.x;
-  look.ty = gsap.utils.clamp(-1, 1, (clientY - midY) / (rect.height * LOOK_RANGE.y)) * MAX_LOOK.y;
+  const midX =
+    rect.left + (((EYES[0].pupilX + EYES[1].pupilX) / 2) / IMAGE.w) * rect.width;
+  const midY = rect.top + (EYES[0].pupilY / IMAGE.h) * rect.height;
+  const nx = (clientX - midX) / (rect.width * 0.38);
+  const ny = (clientY - midY) / (rect.height * 0.4);
+  const len = Math.hypot(nx, ny) || 1;
+  const cap = Math.min(1, len);
+  look.tx = (nx / len) * cap * MAX_LOOK;
+  look.ty = (ny / len) * cap * MAX_LOOK * 0.78;
 }
 
 function restEyes() {
@@ -150,34 +226,30 @@ function restEyes() {
 function blinkOnce() {
   return gsap
     .timeline()
-    .to(lids, { amount: 1, duration: 0.078, ease: "power2.in", overwrite: "auto" })
-    .to(lids, { amount: 1, duration: 0.05 })
-    .to(lids, { amount: 0, duration: 0.15, ease: "power2.out" });
+    .to(lids, { amount: 1, duration: 0.1, ease: "power2.in", overwrite: "auto" })
+    .to(lids, { amount: 1, duration: 0.07 })
+    .to(lids, { amount: 0, duration: 0.18, ease: "power2.out" });
 }
 
 function blink(double = false) {
   const tl = blinkOnce();
-  if (double) tl.add(blinkOnce(), "+=0.08");
+  if (double) tl.add(blinkOnce(), "+=0.12");
   return tl;
 }
 
 function scheduleBlink() {
-  gsap.delayedCall(gsap.utils.random(2.2, 5.5), () => {
-    blink(Math.random() < 0.28);
+  gsap.delayedCall(gsap.utils.random(2.8, 6.2), () => {
+    blink(Math.random() < 0.24);
     scheduleBlink();
   });
 }
 
-function onPointer(event) {
-  if (!coarse) {
-    cursorX(event.clientX);
-    cursorY(event.clientY);
-  }
-  lookAt(event.clientX, event.clientY);
-}
-
-window.addEventListener("pointermove", onPointer, { passive: true });
-window.addEventListener("pointerdown", onPointer, { passive: true });
+window.addEventListener("pointermove", (event) => lookAt(event.clientX, event.clientY), {
+  passive: true,
+});
+window.addEventListener("pointerdown", (event) => lookAt(event.clientX, event.clientY), {
+  passive: true,
+});
 window.addEventListener("pointerleave", restEyes);
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) restEyes();
@@ -189,11 +261,10 @@ if (typeof ResizeObserver !== "undefined") {
 }
 
 function start() {
-  source = still;
   sizeCanvas();
   requestAnimationFrame(tick);
   if (!reduceMotion) {
-    gsap.delayedCall(1.05, () => blink(false));
+    gsap.delayedCall(1.6, () => blink(false));
     scheduleBlink();
   }
 }

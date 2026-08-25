@@ -1,6 +1,6 @@
-# She is watching
+# Atelier — SS26
 
-A cartoon jeweled sheep. The big irises follow the cursor. The head does not move.
+Editorial hero: a cartoon jeweled sheep whose irises follow the cursor.
 
 ```bash
 npm install

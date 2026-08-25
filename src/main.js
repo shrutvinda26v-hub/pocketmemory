@@ -7,7 +7,7 @@ const EYES = [
   { cx: 712, cy: 224, rx: 28, ry: 20, lid: "right" },
 ];
 
-const MAX_LOOK = { x: 11.5, y: 7.4 };
+const MAX_LOOK = { x: 15.5, y: 10.0 };
 const LOOK_RANGE = { x: 0.46, y: 0.42 };
 const EASE = 0.12;
 

@@ -24,6 +24,7 @@ body {
   color: var(--ink);
   font-family: Outfit, system-ui, sans-serif;
   cursor: none;
+  overflow-x: clip;
 }
 
 a {
@@ -82,19 +83,74 @@ a {
 
 .hero {
   position: relative;
-  min-height: 100vh;
-  display: grid;
-  grid-template-columns: minmax(240px, 0.4fr) minmax(0, 1fr);
-  align-items: center;
-  gap: 1.5rem;
-  padding: 5.8rem 4vw 2.4rem 5vw;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 36rem;
   overflow: hidden;
+}
+
+.portrait {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 1;
+  width: max(100%, calc(100vh * 1536 / 1024));
+  height: max(100%, calc(100vw * 1024 / 1536));
+  transform: translate(-46%, -50%);
+  margin: 0;
+  overflow: hidden;
+}
+
+.hero-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom, rgba(28, 72, 108, 0.28) 0%, transparent 18%),
+    linear-gradient(
+      105deg,
+      rgba(58, 136, 184, 0.42) 0%,
+      rgba(82, 167, 217, 0.18) 28%,
+      transparent 54%
+    );
 }
 
 .hero-copy {
   position: relative;
   z-index: 3;
-  max-width: 22rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+  max-width: 24rem;
+  padding: 6.2rem 5vw 4rem;
+  pointer-events: none;
+}
+
+.hero-copy a {
+  pointer-events: auto;
+  align-self: flex-start;
+}
+
+.scroll-cue {
+  position: absolute;
+  z-index: 3;
+  left: 5vw;
+  bottom: 1.55rem;
+  font-size: 0.64rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.scroll-cue::after {
+  content: "";
+  display: block;
+  width: 1px;
+  height: 1.6rem;
+  margin: 0.55rem auto 0;
+  background: rgba(255, 255, 255, 0.45);
 }
 
 .eyebrow {
@@ -130,14 +186,6 @@ h1 {
   font-size: 0.72rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-}
-
-.portrait {
-  position: relative;
-  width: min(100%, 1080px);
-  aspect-ratio: 1536 / 1024;
-  justify-self: end;
-  overflow: hidden;
 }
 
 .still,
@@ -264,21 +312,33 @@ h1 {
   }
 
   .hero {
-    grid-template-columns: 1fr;
-    padding: 5.2rem 1.25rem 1.5rem;
-    min-height: auto;
+    height: auto;
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding-top: 3.4rem;
+  }
+
+  .portrait {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1536 / 1024;
+    transform: none;
+  }
+
+  .hero-veil,
+  .scroll-cue {
+    display: none;
   }
 
   .hero-copy {
     max-width: none;
-    order: 2;
-    padding: 0.4rem 0.2rem 1.6rem;
-  }
-
-  .portrait {
-    width: 100%;
-    justify-self: center;
-    order: 1;
+    height: auto;
+    padding: 0.35rem 1.25rem 1.8rem;
   }
 
   .looks {

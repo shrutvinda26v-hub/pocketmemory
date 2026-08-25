@@ -1,6 +1,6 @@
 # Atelier — SS26
 
-Editorial hero: a cartoon jeweled sheep whose irises follow the cursor.
+Full-viewport campaign hero: a cartoon jeweled sheep whose irises follow the cursor.
 
 ```bash
 npm install

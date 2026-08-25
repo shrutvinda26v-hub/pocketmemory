@@ -92,7 +92,7 @@ function add(p) {
 }
 
 function img(src, extra) {
-  add({ kind: "img", src: `/assets/${src}`, ...extra });
+  add({ kind: "img", src: `${import.meta.env.BASE_URL}assets/${src}`, ...extra });
 }
 
 function svg(kind, html, extra) {

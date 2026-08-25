@@ -2,7 +2,13 @@
 
 A full-viewport **2D scroll-driven** fashion editorial. A jeweled sheep is pinned to the screen while scroll position scrubs a single reversible timeline: ornaments separate, explode, freeze, typeset, then magnetically return.
 
-## Run
+## Live
+
+https://shrutvinda26v-hub.github.io/pocketmemory/
+
+(Published by GitHub Pages from this branch.)
+
+## Run locally
 
 ```bash
 npm install

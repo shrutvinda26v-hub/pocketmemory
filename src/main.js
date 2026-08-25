@@ -9,19 +9,31 @@ const sheep = document.querySelector("#sheep");
 const pieces = mountOrnaments(ornamentsRoot);
 document.title = `SPECIMEN 001 — ${pieceCount()} layers`;
 
-function ready() {
-  buildExperience(pieces);
-  requestAnimationFrame(() => {
-    boot.classList.add("is-done");
+function waitForImage(img) {
+  if (!img || img.complete) return Promise.resolve();
+  return new Promise((resolve) => {
+    img.addEventListener("load", resolve, { once: true });
+    img.addEventListener("error", resolve, { once: true });
   });
 }
 
-if (sheep.complete) {
-  ready();
-} else {
-  sheep.addEventListener("load", ready, { once: true });
-  sheep.addEventListener("error", ready, { once: true });
+async function start() {
+  const ornamentImages = [...ornamentsRoot.querySelectorAll("img")];
+  await Promise.all([
+    document.fonts.ready.catch(() => {}),
+    waitForImage(sheep),
+    ...ornamentImages.map(waitForImage),
+  ]);
+
+  buildExperience(pieces);
+  ScrollTrigger.refresh();
+  requestAnimationFrame(() => {
+    boot.classList.add("is-done");
+    ScrollTrigger.refresh();
+  });
 }
+
+start();
 
 window.addEventListener(
   "load",

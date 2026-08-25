@@ -4,9 +4,11 @@ A full-viewport **2D scroll-driven** fashion editorial. A jeweled sheep is pinne
 
 ## Live
 
-https://htmlpreview.github.io/?https://github.com/shrutvinda26v-hub/pocketmemory/blob/specimen-001b/docs/index.html
+https://merry-cables-relate-instant.trycloudflare.com/
 
 Scroll down to disassemble. Scroll up to rebuild.
+
+Pull request: https://github.com/shrutvinda26v-hub/pocketmemory/pull/9
 
 ## Run locally
 

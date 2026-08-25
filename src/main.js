@@ -118,28 +118,6 @@ function drawEye(eye, ox, oy) {
   ctx.restore();
 }
 
-function drawMouth() {
-  if (chew.amount < 0.04) return;
-  const [mx, my] = toCss(MOUTH.x, MOUTH.y);
-  const rx = (MOUTH.rx / IMAGE.w) * cssW;
-  const ry = ((MOUTH.ry + chew.amount * 11) / IMAGE.h) * cssH;
-  const open = chew.amount;
-
-  ctx.save();
-  ctx.fillStyle = `rgba(62, 28, 28, ${0.18 + open * 0.35})`;
-  ctx.beginPath();
-  ctx.ellipse(mx, my + open * ry * 0.35, rx, ry, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = "rgba(28, 14, 12, 0.55)";
-  ctx.lineWidth = Math.max(1.4, rx * 0.05);
-  ctx.lineCap = "round";
-  ctx.beginPath();
-  ctx.moveTo(mx - rx * 0.95, my);
-  ctx.quadraticCurveTo(mx, my + ry * 1.15, mx + rx * 0.55, my + open * 2);
-  ctx.stroke();
-  ctx.restore();
-}
-
 function draw() {
   if (!cssW) return;
 
@@ -152,7 +130,6 @@ function draw() {
   const oy = look.y * (cssH / IMAGE.h);
 
   for (const eye of EYES) drawEye(eye, ox, oy);
-  drawMouth();
 }
 
 function tick() {

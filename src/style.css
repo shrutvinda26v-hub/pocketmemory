@@ -46,9 +46,11 @@ a {
   align-items: center;
   justify-content: space-between;
   gap: 1.5rem;
-  padding: 1.1rem 1.8rem;
-  background: linear-gradient(180deg, rgba(43, 141, 224, 0.92), rgba(60, 166, 247, 0.55) 70%, transparent);
-  backdrop-filter: blur(8px);
+  padding: 1.05rem 1.8rem;
+  background: rgba(247, 240, 228, 0.94);
+  color: var(--ink);
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(10px);
 }
 
 .wordmark {
@@ -155,8 +157,7 @@ h1 {
 
 .still,
 .eyes,
-.daisy,
-.daisy-cover {
+.daisy {
   position: absolute;
   pointer-events: none;
   user-select: none;
@@ -179,17 +180,6 @@ h1 {
   z-index: 3;
 }
 
-.daisy-cover {
-  left: calc(839 / 1536 * 100%);
-  top: calc(640 / 1024 * 100%);
-  width: calc(141 / 1536 * 100%);
-  height: calc(126 / 1024 * 100%);
-  border-radius: 50%;
-  background: radial-gradient(circle at 42% 48%, #f6ead8 0 52%, #ead6bc 68%, transparent 74%);
-  transform: scale(1.12);
-  z-index: 1;
-}
-
 .daisy {
   left: calc(839 / 1536 * 100%);
   top: calc(640 / 1024 * 100%);
@@ -197,6 +187,7 @@ h1 {
   height: auto;
   transform-origin: 11.35% 55.56%;
   z-index: 2;
+  scale: 1.06;
   -webkit-user-drag: none;
 }
 

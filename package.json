@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0 --port 5173",
     "build": "vite build",
-    "build:docs": "vite build && rm -rf docs && cp -a dist docs",
+    "build:docs": "ASSET_BASE=https://cdn.jsdelivr.net/gh/shrutvinda26v-hub/pocketmemory@specimen-001b/docs/ vite build && rm -rf docs && cp -a dist docs && touch docs/.nojekyll",
     "preview": "vite preview --host 0.0.0.0 --port 4173"
   },
   "dependencies": {

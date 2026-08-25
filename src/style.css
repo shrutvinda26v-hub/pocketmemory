@@ -1,0 +1,380 @@
+:root {
+  --sky: #52a7d9;
+  --ink: #f7f1e6;
+  --mute: rgba(255, 255, 255, 0.72);
+  --deep: #1c1814;
+  --paper: #f4eee3;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html,
+body {
+  background: var(--sky);
+  color: var(--ink);
+  font-family: Outfit, system-ui, sans-serif;
+  cursor: none;
+  overflow-x: clip;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  cursor: none;
+}
+
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.15rem 2.2rem;
+  pointer-events: none;
+}
+
+.site-header a {
+  pointer-events: auto;
+}
+
+.logo {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.05rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+}
+
+.nav {
+  display: flex;
+  gap: 1.75rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.nav a:hover,
+.header-cta:hover,
+.btn:hover {
+  color: #fff;
+}
+
+.header-cta {
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  padding: 0.55rem 0.95rem;
+}
+
+.hero {
+  position: relative;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 36rem;
+  overflow: hidden;
+}
+
+.portrait {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 1;
+  width: max(100%, calc(100vh * 1536 / 1024));
+  height: max(100%, calc(100vw * 1024 / 1536));
+  transform: translate(-46%, -50%);
+  margin: 0;
+  overflow: hidden;
+}
+
+.hero-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom, rgba(28, 72, 108, 0.28) 0%, transparent 18%),
+    linear-gradient(
+      105deg,
+      rgba(58, 136, 184, 0.42) 0%,
+      rgba(82, 167, 217, 0.18) 28%,
+      transparent 54%
+    );
+}
+
+.hero-copy {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+  max-width: 24rem;
+  padding: 6.2rem 5vw 4rem;
+  pointer-events: none;
+}
+
+.hero-copy a {
+  pointer-events: auto;
+  align-self: flex-start;
+}
+
+.scroll-cue {
+  position: absolute;
+  z-index: 3;
+  left: 5vw;
+  bottom: 1.55rem;
+  font-size: 0.64rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.scroll-cue::after {
+  content: "";
+  display: block;
+  width: 1px;
+  height: 1.6rem;
+  margin: 0.55rem auto 0;
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.eyebrow {
+  font-size: 0.7rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--mute);
+  margin-bottom: 1.1rem;
+}
+
+h1 {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(3.4rem, 7vw, 6.4rem);
+  font-weight: 500;
+  line-height: 0.92;
+  letter-spacing: -0.02em;
+}
+
+.lede {
+  margin-top: 1.25rem;
+  max-width: 16.5rem;
+  font-size: 0.95rem;
+  font-weight: 300;
+  line-height: 1.55;
+  color: var(--mute);
+}
+
+.btn {
+  display: inline-block;
+  margin-top: 1.8rem;
+  padding: 0.78rem 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.still,
+.eyes {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+}
+
+.still {
+  object-fit: fill;
+  -webkit-user-drag: none;
+}
+
+.eyes {
+  z-index: 2;
+}
+
+.band {
+  background: var(--paper);
+  color: var(--deep);
+  padding: 5.5rem 8vw 5rem;
+}
+
+.band-dark {
+  background: #3e8ab8;
+  color: var(--ink);
+}
+
+.band-kicker {
+  font-size: 0.68rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  opacity: 0.55;
+  margin-bottom: 0.85rem;
+}
+
+.band h2 {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  font-weight: 500;
+  line-height: 1.1;
+  max-width: 14ch;
+}
+
+.looks {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2.5rem;
+  margin-top: 3rem;
+}
+
+.look-no {
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  opacity: 0.45;
+  margin-bottom: 0.55rem;
+}
+
+.looks h3 {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.7rem;
+  font-weight: 500;
+  margin-bottom: 0.45rem;
+}
+
+.looks p,
+.band-note {
+  font-size: 0.92rem;
+  font-weight: 300;
+  line-height: 1.55;
+  opacity: 0.72;
+  max-width: 28ch;
+}
+
+.band-note {
+  margin-top: 1.25rem;
+}
+
+.site-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.4rem 2.2rem 1.6rem;
+  background: var(--sky);
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 13px;
+  height: 13px;
+  margin: -6.5px 0 0 -6.5px;
+  border-radius: 50%;
+  border: 1px solid rgba(243, 238, 228, 0.85);
+  background: rgba(243, 238, 228, 0.12);
+  pointer-events: none;
+  z-index: 20;
+  transform: translate3d(-120px, -120px, 0);
+  will-change: transform;
+  mix-blend-mode: difference;
+}
+
+.cursor::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: rgba(243, 238, 228, 0.55);
+}
+
+@media (max-width: 860px) {
+  .nav {
+    display: none;
+  }
+
+  .hero {
+    height: auto;
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding-top: 3.4rem;
+  }
+
+  .portrait {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1536 / 1024;
+    transform: none;
+  }
+
+  .hero-veil,
+  .scroll-cue {
+    display: none;
+  }
+
+  .hero-copy {
+    max-width: none;
+    height: auto;
+    padding: 0.35rem 1.25rem 1.8rem;
+  }
+
+  .looks {
+    grid-template-columns: 1fr;
+    gap: 1.6rem;
+  }
+
+  h1 {
+    font-size: clamp(3rem, 14vw, 4.4rem);
+  }
+}
+
+@media (pointer: coarse) {
+  html,
+  body,
+  a {
+    cursor: auto;
+  }
+
+  .cursor {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  html,
+  body,
+  a {
+    cursor: auto;
+  }
+
+  .cursor {
+    display: none;
+  }
+}

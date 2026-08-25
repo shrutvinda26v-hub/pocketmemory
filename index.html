@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>She is watching</title>
+    <meta
+      name="description"
+      content="A still jeweled sheep. The eyes follow you."
+    />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Outfit:wght@300;400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <main class="stage" id="stage">
+      <p class="mark mark-left">Atelier</p>
+      <p class="mark mark-right">SS26</p>
+
+      <figure class="portrait" id="portrait">
+        <img
+          class="still"
+          id="still"
+          src="./assets/sheep.webp"
+          width="1280"
+          height="720"
+          alt="A white sheep in a jeweled floral crown and collar, holding a daisy, looking directly at you"
+        />
+        <canvas class="eyes" id="eyes" aria-hidden="true"></canvas>
+      </figure>
+
+      <p class="caption">
+        <em>The pupils keep the secret.</em>
+      </p>
+    </main>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

@@ -10,8 +10,8 @@ const EYES = [
   { cx: 712, cy: 217, rx: 21.2, ry: 13.6 },
 ];
 
-const MAX_LOOK = { x: 8.4, y: 5.2 };
-const RANGE = { x: 0.34, y: 0.3 };
+const MAX_LOOK = { x: 10.6, y: 6.4 };
+const RANGE = { x: 0.32, y: 0.28 };
 
 const portrait = document.getElementById("portrait");
 const still = document.getElementById("still");
@@ -19,7 +19,7 @@ const canvas = document.getElementById("eyes");
 const ctx = canvas.getContext("2d", { alpha: true });
 
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const coarse = window.matchMedia("(hover: none)").matches;
+const coarse = window.matchMedia("(pointer: coarse)").matches;
 const debug = new URLSearchParams(location.search).has("debug");
 
 const pointer = { x: innerWidth / 2, y: innerHeight / 2, inside: false };
@@ -124,11 +124,25 @@ function lookAt(clientX, clientY) {
   }
 }
 
+let restTimer = 0;
+
 function restEyes() {
   for (const eye of eyes) {
     eye.tx = 0;
     eye.ty = 0;
   }
+}
+
+function cancelRest() {
+  window.clearTimeout(restTimer);
+}
+
+function scheduleRest() {
+  cancelRest();
+  restTimer = window.setTimeout(() => {
+    pointer.inside = false;
+    restEyes();
+  }, 480);
 }
 
 function triggerBlink(double = false) {
@@ -246,6 +260,18 @@ function draw() {
       ctx.restore();
     }
   });
+
+  if (debug) {
+    ctx.save();
+    ctx.fillStyle = "rgba(255, 60, 60, 0.9)";
+    ctx.font = "12px ui-monospace, monospace";
+    ctx.fillText(
+      `L ${eyes[0].x.toFixed(1)},${eyes[0].y.toFixed(1)}   R ${eyes[1].x.toFixed(1)},${eyes[1].y.toFixed(1)}`,
+      14,
+      22
+    );
+    ctx.restore();
+  }
 }
 
 function tick(now) {
@@ -280,15 +306,13 @@ function onPointer(event) {
   pointer.x = event.clientX;
   pointer.y = event.clientY;
   pointer.inside = true;
+  cancelRest();
   lookAt(event.clientX, event.clientY);
 }
 
 window.addEventListener("pointermove", onPointer, { passive: true });
 window.addEventListener("pointerdown", onPointer, { passive: true });
-window.addEventListener("pointerleave", () => {
-  pointer.inside = false;
-  restEyes();
-});
+window.addEventListener("pointerleave", scheduleRest);
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) restEyes();
 });
@@ -302,7 +326,10 @@ function start() {
   sizeCanvas();
   last = performance.now();
   requestAnimationFrame(tick);
-  if (!reduceMotion) scheduleBlink();
+  if (!reduceMotion) {
+    window.setTimeout(() => triggerBlink(false), 700);
+    scheduleBlink();
+  }
 }
 
 if (still.complete && still.naturalWidth) start();

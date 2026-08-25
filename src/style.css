@@ -123,7 +123,8 @@ body {
   background: rgba(243, 238, 228, 0.55);
 }
 
-@media (hover: none) {
+@media (pointer: coarse) {
+  html,
   body {
     cursor: auto;
   }

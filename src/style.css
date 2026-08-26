@@ -380,6 +380,19 @@ body {
 
 .stf__parent {
   background: var(--paper);
+  overflow: hidden;
+}
+
+.stf__wrapper {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  padding-bottom: 0 !important;
+}
+
+.stf__block {
+  inset: 0;
 }
 
 .stf__item img,

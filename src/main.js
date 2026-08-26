@@ -16,8 +16,6 @@ const fx = new ParticleField(document.getElementById("fx"));
 
 let index = 0;
 let busy = false;
-let autoplay = !reduced;
-let autoTimer = 0;
 
 const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
 
@@ -44,19 +42,6 @@ function render(current = index, next = index + 1) {
 
 function burst(kind, side) {
   fx.burst(kind, fx.originFromBook(bookShell, side), 1.25);
-}
-
-function stopAutoplay() {
-  autoplay = false;
-  window.clearTimeout(autoTimer);
-}
-
-function scheduleAutoplay() {
-  if (!autoplay) return;
-  autoTimer = window.setTimeout(() => {
-    turn(1);
-    scheduleAutoplay();
-  }, 2800);
 }
 
 async function turn(direction) {
@@ -99,33 +84,25 @@ function bindParallax() {
     "mousemove",
     (event) => {
       if (busy) return;
-      const x = (event.clientX / window.innerWidth - 0.5) * 4.5;
-      const y = (event.clientY / window.innerHeight - 0.5) * -3;
-      bookRig.style.setProperty("--tilt-x", `${8 + y}deg`);
-      bookRig.style.setProperty("--tilt-y", `${x}deg`);
+      const x = (event.clientX / window.innerWidth - 0.5) * 6;
+      const y = (event.clientY / window.innerHeight - 0.5) * -4;
+      bookRig.style.setProperty("--tilt-x", `${18 + y}deg`);
+      bookRig.style.setProperty("--tilt-y", `${-8 + x}deg`);
     },
     { passive: true },
   );
 }
 
-leftLeaf.addEventListener("click", () => {
-  stopAutoplay();
-  turn(-1);
-});
-rightLeaf.addEventListener("click", () => {
-  stopAutoplay();
-  turn(1);
-});
+leftLeaf.addEventListener("click", () => turn(-1));
+rightLeaf.addEventListener("click", () => turn(1));
 
 window.addEventListener("keydown", (event) => {
   if (event.key === "ArrowRight" || event.key === " ") {
     event.preventDefault();
-    stopAutoplay();
     turn(1);
   }
   if (event.key === "ArrowLeft") {
     event.preventDefault();
-    stopAutoplay();
     turn(-1);
   }
 });
@@ -138,4 +115,3 @@ for (const world of WORLDS) {
 render(0, 1);
 studio.classList.add("is-ready");
 bindParallax();
-window.setTimeout(() => scheduleAutoplay(), 1200);

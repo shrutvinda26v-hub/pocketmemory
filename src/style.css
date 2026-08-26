@@ -3,8 +3,8 @@
   --studio: #07060b;
   --paper: #f3ead4;
   --gold: #c9a44c;
-  --tilt-x: 8deg;
-  --tilt-y: -1.5deg;
+  --tilt-x: 18deg;
+  --tilt-y: -8deg;
   --flip-ms: 1600ms;
 }
 
@@ -116,13 +116,14 @@ body {
   height: min(90vh, 920px);
   display: grid;
   place-items: center;
-  perspective: 2000px;
-  perspective-origin: 50% 40%;
+  perspective: 1180px;
+  perspective-origin: 50% 22%;
 }
 
 .book-rig {
-  width: min(92vw, 1360px);
-  transform: rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
+  width: min(92vw, 1360px, 148vh);
+  transform-origin: 50% 78%;
+  transform: rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) rotateZ(1.4deg) translateZ(-40px);
   transform-style: preserve-3d;
   transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
   animation: rise 1.3s cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -133,11 +134,11 @@ body {
 @keyframes rise {
   from {
     opacity: 0;
-    transform: rotateX(16deg) translate3d(0, 40px, -70px) scale(0.96);
+    transform: rotateX(26deg) rotateY(-8deg) translate3d(0, 56px, -90px) scale(0.94);
   }
   to {
     opacity: 1;
-    transform: rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
+    transform: rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) rotateZ(1.4deg) translateZ(-40px);
   }
 }
 
@@ -258,8 +259,8 @@ body {
   z-index: 6;
 }
 
-.leaf-left { left: 0; }
-.leaf-right { right: 0; }
+.leaf:focus { outline: none; }
+.leaf:focus-visible { outline: 2px solid rgba(201, 164, 76, 0.65); outline-offset: -3px; }
 
 .leaf-right::after {
   content: "";

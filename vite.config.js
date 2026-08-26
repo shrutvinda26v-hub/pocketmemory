@@ -5,6 +5,7 @@ import { defineConfig } from "vite";
 const root = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
+  base: process.env.BASE_PATH || "/",
   resolve: {
     alias: {
       "page-flip": path.resolve(
@@ -17,10 +18,12 @@ export default defineConfig({
     host: "0.0.0.0",
     port: 5173,
     strictPort: true,
+    allowedHosts: true,
   },
   preview: {
     host: "0.0.0.0",
     port: 4173,
     strictPort: true,
+    allowedHosts: true,
   },
 });

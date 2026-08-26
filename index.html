@@ -15,12 +15,12 @@
   <body>
     <h1 class="sr-only">Interactive fantasy storybook</h1>
     <p class="sr-only">
-      Click the right page to turn forward, or the left page to turn back. Each
-      page is a different world.
+      The book turns through six illustrated worlds. Click the right page to go
+      forward, or the left page to go back.
     </p>
 
     <div class="studio" data-world="dragon" id="studio">
-      <div class="studio-wash" id="studioWash"></div>
+      <div class="studio-wash"></div>
       <div class="studio-light"></div>
       <div class="studio-floor"></div>
       <div class="studio-vignette"></div>
@@ -30,15 +30,21 @@
       <div class="stage">
         <div class="book-rig" id="bookRig">
           <div class="book" id="bookShell">
-            <div class="cover-lip cover-lip-left" aria-hidden="true"></div>
-            <div class="folios">
-              <div class="gutter-glow" aria-hidden="true"></div>
-              <div id="flipbook" class="flipbook"></div>
-              <div class="folio-stack folio-stack-right" aria-hidden="true"></div>
-              <div class="folio-stack folio-stack-bottom" aria-hidden="true"></div>
-              <div class="corner-hint" aria-hidden="true"></div>
+            <div class="cover-board left-board"></div>
+            <div class="spread">
+              <button class="leaf leaf-left" id="leftLeaf" type="button" aria-label="Turn to previous world"></button>
+              <button class="leaf leaf-right" id="rightLeaf" type="button" aria-label="Turn to next world"></button>
+              <div class="sheet sheet-left" id="leftSheet"></div>
+              <div class="sheet sheet-under" id="underSheet"></div>
+              <div class="flipper" id="flipper">
+                <div class="face face-front" id="flipFront"></div>
+                <div class="face face-back" id="flipBack"></div>
+              </div>
+              <div class="gutter" aria-hidden="true"></div>
+              <div class="stack-right" aria-hidden="true"></div>
+              <div class="stack-bottom" aria-hidden="true"></div>
             </div>
-            <div class="cover-lip cover-lip-right" aria-hidden="true"></div>
+            <div class="cover-board right-board"></div>
             <div class="clasp" aria-hidden="true"></div>
           </div>
           <div class="book-shadow" aria-hidden="true"></div>

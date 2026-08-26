@@ -14,6 +14,8 @@ const flipBack = document.getElementById("flipBack");
 const leftLeaf = document.getElementById("leftLeaf");
 const rightLeaf = document.getElementById("rightLeaf");
 const fx = new ParticleField(document.getElementById("fx"));
+const skyLeft = document.getElementById("skyLeft");
+const skyRight = document.getElementById("skyRight");
 
 let index = 0;
 let busy = false;
@@ -47,8 +49,10 @@ function applySpread(left, right) {
   studio.dataset.world = left.id;
   studio.dataset.left = left.id;
   studio.dataset.right = right.id;
-  studio.style.setProperty("--glow-left", glow(left.tint, 0.22));
-  studio.style.setProperty("--glow-right", glow(right.tint, 0.22));
+  studio.style.setProperty("--glow-left", glow(left.tint, 0.38));
+  studio.style.setProperty("--glow-right", glow(right.tint, 0.38));
+  skyLeft.style.backgroundImage = `url("${left.src}")`;
+  skyRight.style.backgroundImage = `url("${right.src}")`;
 
   for (const realm of document.querySelectorAll(".realm")) {
     realm.classList.toggle("is-left", realm.classList.contains(`realm-${left.id}`));

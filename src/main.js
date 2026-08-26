@@ -19,25 +19,30 @@ let busy = false;
 
 const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
 
-function worldAt(offset) {
-  const count = WORLDS.length;
-  return WORLDS[((offset % count) + count) % count];
+const SPREADS = [
+  [WORLDS[0], WORLDS[1]],
+  [WORLDS[2], WORLDS[3]],
+  [WORLDS[4], WORLDS[5]],
+];
+
+function wrap(offset) {
+  const count = SPREADS.length;
+  return ((offset % count) + count) % count;
 }
 
-function paintSheet(el, world, side) {
+function paintSheet(el, world) {
   el.style.backgroundImage = `url("${world.src}")`;
-  el.style.backgroundPosition = side === "left" ? "left center" : "right center";
 }
 
 function render(current = index, next = index + 1) {
-  const here = worldAt(current);
-  const there = worldAt(next);
-  paintSheet(leftSheet, here, "left");
-  paintSheet(flipFront, here, "right");
-  paintSheet(flipBack, there, "left");
-  paintSheet(underSheet, there, "right");
-  studio.dataset.world = here.id;
-  fx.setTint(here.tint);
+  const [left, right] = SPREADS[wrap(current)];
+  const [nextLeft, nextRight] = SPREADS[wrap(next)];
+  paintSheet(leftSheet, left);
+  paintSheet(flipFront, right);
+  paintSheet(flipBack, nextLeft);
+  paintSheet(underSheet, nextRight);
+  studio.dataset.world = left.id;
+  fx.setTint(left.tint);
 }
 
 function burst(kind, side) {
@@ -48,7 +53,7 @@ async function turn(direction) {
   if (busy) return;
   busy = true;
   const goingForward = direction > 0;
-  const from = worldAt(index);
+  const from = SPREADS[wrap(index)][goingForward ? 1 : 0];
   const nextIndex = index + direction;
 
   bookRig.classList.add("is-flipping");
@@ -68,7 +73,7 @@ async function turn(direction) {
   }
 
   await wait(reduced ? 280 : 1600);
-  index = ((nextIndex % WORLDS.length) + WORLDS.length) % WORLDS.length;
+  index = wrap(nextIndex);
   render(index, index + 1);
   flipper.classList.add("snap");
   flipper.classList.remove("turn", "backward");
@@ -86,8 +91,8 @@ function bindParallax() {
       if (busy) return;
       const x = (event.clientX / window.innerWidth - 0.5) * 6;
       const y = (event.clientY / window.innerHeight - 0.5) * -4;
-      bookRig.style.setProperty("--tilt-x", `${18 + y}deg`);
-      bookRig.style.setProperty("--tilt-y", `${-8 + x}deg`);
+      bookRig.style.setProperty("--tilt-x", `${14 + y}deg`);
+      bookRig.style.setProperty("--tilt-y", `${-6 + x}deg`);
     },
     { passive: true },
   );

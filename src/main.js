@@ -21,29 +21,51 @@ let lastPointer = { x: window.innerWidth * 0.72, y: window.innerHeight * 0.55 };
 
 const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
 
+const SPREADS = [
+  [WORLDS[0], WORLDS[1]],
+  [WORLDS[2], WORLDS[3]],
+  [WORLDS[4], WORLDS[5]],
+];
+
 function wrap(offset) {
-  const count = WORLDS.length;
+  const count = SPREADS.length;
   return ((offset % count) + count) % count;
 }
 
-function paintSheet(el, world, side = "center") {
-  el.style.backgroundImage = `url("${world.src}")`;
-  el.style.backgroundPosition = side === "left" ? "42% center" : side === "right" ? "58% center" : "center";
+function glow(hex, alpha = 0.2) {
+  const n = hex.replace("#", "");
+  const v = parseInt(n, 16);
+  return `rgba(${(v >> 16) & 255}, ${(v >> 8) & 255}, ${v & 255}, ${alpha})`;
 }
 
-function applyWorld(world) {
-  studio.dataset.world = world.id;
-  fx.setWorld(world.id, world.tint);
+function paintSheet(el, world) {
+  el.style.backgroundImage = `url("${world.src}")`;
+  el.style.backgroundPosition = "center";
+}
+
+function applySpread(left, right) {
+  studio.dataset.world = left.id;
+  studio.dataset.left = left.id;
+  studio.dataset.right = right.id;
+  studio.style.setProperty("--glow-left", glow(left.tint, 0.22));
+  studio.style.setProperty("--glow-right", glow(right.tint, 0.22));
+
+  for (const realm of document.querySelectorAll(".realm")) {
+    realm.classList.toggle("is-left", realm.classList.contains(`realm-${left.id}`));
+    realm.classList.toggle("is-right", realm.classList.contains(`realm-${right.id}`));
+  }
+
+  fx.setSpread(left.id, left.tint, right.id, right.tint);
 }
 
 function render(current = index, next = index + 1) {
-  const world = WORLDS[wrap(current)];
-  const nextWorld = WORLDS[wrap(next)];
-  paintSheet(leftSheet, world, "left");
-  paintSheet(flipFront, world, "right");
-  paintSheet(flipBack, nextWorld, "left");
-  paintSheet(underSheet, nextWorld, "right");
-  applyWorld(world);
+  const [left, right] = SPREADS[wrap(current)];
+  const [nextLeft, nextRight] = SPREADS[wrap(next)];
+  paintSheet(leftSheet, left);
+  paintSheet(flipFront, right);
+  paintSheet(flipBack, nextLeft);
+  paintSheet(underSheet, nextRight);
+  applySpread(left, right);
 }
 
 function burst(kind, side) {
@@ -62,9 +84,10 @@ async function turn(direction) {
   if (busy) return;
   busy = true;
   const goingForward = direction > 0;
-  const from = WORLDS[wrap(index)];
+  const [left, right] = SPREADS[wrap(index)];
+  const from = goingForward ? right : left;
   const nextIndex = index + direction;
-  const nextWorld = WORLDS[wrap(nextIndex)];
+  const [nextLeft, nextRight] = SPREADS[wrap(nextIndex)];
   const side = goingForward ? "right" : "left";
 
   bookRig.classList.add("is-flipping");
@@ -77,7 +100,7 @@ async function turn(direction) {
     flipper.classList.add("turn");
   } else {
     render(nextIndex, index);
-    applyWorld(from);
+    applySpread(left, right);
     flipper.classList.add("snap", "backward");
     await wait(40);
     flipper.classList.remove("snap");
@@ -86,7 +109,7 @@ async function turn(direction) {
   }
 
   await wait(reduced ? 140 : 820);
-  applyWorld(nextWorld);
+  applySpread(nextLeft, nextRight);
 
   await wait(reduced ? 140 : 780);
   index = wrap(nextIndex);

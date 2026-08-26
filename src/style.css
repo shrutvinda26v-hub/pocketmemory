@@ -52,35 +52,10 @@ body {
 
 .studio-wash {
   background:
-    radial-gradient(ellipse 70% 55% at 50% 42%, rgba(196, 90, 18, 0.18), transparent 62%),
+    radial-gradient(ellipse 48% 55% at 22% 42%, var(--glow-left, rgba(196, 90, 18, 0.2)), transparent 62%),
+    radial-gradient(ellipse 48% 55% at 78% 42%, var(--glow-right, rgba(29, 107, 92, 0.22)), transparent 62%),
     radial-gradient(ellipse 90% 80% at 50% 100%, #05040a, transparent 55%);
   transition: background 900ms ease;
-}
-
-.studio[data-world="forest"] .studio-wash {
-  background:
-    radial-gradient(ellipse 70% 55% at 50% 42%, rgba(29, 107, 92, 0.22), transparent 62%),
-    radial-gradient(ellipse 90% 80% at 50% 100%, #05040a, transparent 55%);
-}
-.studio[data-world="castle"] .studio-wash {
-  background:
-    radial-gradient(ellipse 70% 55% at 50% 42%, rgba(212, 160, 84, 0.2), transparent 62%),
-    radial-gradient(ellipse 90% 80% at 50% 100%, #05040a, transparent 55%);
-}
-.studio[data-world="underwater"] .studio-wash {
-  background:
-    radial-gradient(ellipse 70% 55% at 50% 42%, rgba(26, 106, 138, 0.24), transparent 62%),
-    radial-gradient(ellipse 90% 80% at 50% 100%, #05040a, transparent 55%);
-}
-.studio[data-world="galaxy"] .studio-wash {
-  background:
-    radial-gradient(ellipse 70% 55% at 50% 42%, rgba(106, 60, 184, 0.26), transparent 62%),
-    radial-gradient(ellipse 90% 80% at 50% 100%, #05040a, transparent 55%);
-}
-.studio[data-world="garden"] .studio-wash {
-  background:
-    radial-gradient(ellipse 70% 55% at 50% 42%, rgba(196, 122, 138, 0.2), transparent 62%),
-    radial-gradient(ellipse 90% 80% at 50% 100%, #05040a, transparent 55%);
 }
 
 .studio-light {
@@ -133,29 +108,27 @@ body {
   animation-play-state: paused;
 }
 
-.studio[data-world="dragon"] .realm-dragon,
-.studio[data-world="forest"] .realm-forest,
-.studio[data-world="castle"] .realm-castle,
-.studio[data-world="underwater"] .realm-underwater,
-.studio[data-world="galaxy"] .realm-galaxy,
-.studio[data-world="garden"] .realm-garden {
+.realm.is-left,
+.realm.is-right {
   opacity: 1;
   visibility: visible;
 }
 
-.studio[data-world="dragon"] .realm-dragon,
-.studio[data-world="dragon"] .realm-dragon *,
-.studio[data-world="forest"] .realm-forest,
-.studio[data-world="forest"] .realm-forest *,
-.studio[data-world="castle"] .realm-castle,
-.studio[data-world="castle"] .realm-castle *,
-.studio[data-world="underwater"] .realm-underwater,
-.studio[data-world="underwater"] .realm-underwater *,
-.studio[data-world="galaxy"] .realm-galaxy,
-.studio[data-world="galaxy"] .realm-galaxy *,
-.studio[data-world="garden"] .realm-garden,
-.studio[data-world="garden"] .realm-garden * {
+.realm.is-left,
+.realm.is-left *,
+.realm.is-right,
+.realm.is-right * {
   animation-play-state: running;
+}
+
+.realm.is-left {
+  -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 46%, transparent 64%);
+  mask-image: linear-gradient(90deg, #000 0%, #000 46%, transparent 64%);
+}
+
+.realm.is-right {
+  -webkit-mask-image: linear-gradient(90deg, transparent 36%, #000 54%, #000 100%);
+  mask-image: linear-gradient(90deg, transparent 36%, #000 54%, #000 100%);
 }
 
 .sil {

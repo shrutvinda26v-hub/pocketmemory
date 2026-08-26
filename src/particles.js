@@ -35,7 +35,7 @@ export class ParticleField {
     this.tick = this.tick.bind(this);
     this.resize();
     window.addEventListener("resize", this.resize, { passive: true });
-    this.seedAmbient("dragon");
+    this.setSpread("dragon", "#c45a12", "forest", "#1d6b5c");
     this.raf = requestAnimationFrame(this.tick);
   }
 
@@ -48,44 +48,50 @@ export class ParticleField {
   }
 
   setWorld(id, hex) {
-    this.world = id;
-    this.tint = hexToRgb(hex);
-    this.seedAmbient(id);
+    this.setSpread(id, hex, id, hex);
   }
 
-  seedAmbient(id) {
-    const count = this.reduced ? 16 : 70;
-    this.ambient = Array.from({ length: count }, (_, i) => {
-      const base = {
-        x: Math.random(),
-        y: Math.random(),
-        r: rand(0.5, 2.2),
-        s: rand(0.03, 0.16),
-        a: rand(0.12, 0.42),
-        p: rand(0, Math.PI * 2),
-        kind: "dust",
-      };
-      if (id === "dragon") {
-        base.kind = i % 5 === 0 ? "spark" : "ember";
-        base.r = rand(0.8, 3.2);
-      } else if (id === "forest") {
-        base.kind = i % 3 === 0 ? "leaf" : "firefly";
-        base.r = rand(1.1, 3.4);
-      } else if (id === "castle") {
-        base.kind = i % 4 === 0 ? "mote" : "sparkle";
-        base.r = rand(0.7, 2.6);
-      } else if (id === "underwater") {
-        base.kind = "bubble";
-        base.r = rand(1.4, 5.5);
-      } else if (id === "galaxy") {
-        base.kind = i % 8 === 0 ? "shoot" : "star";
-        base.r = rand(0.5, 2.1);
-      } else {
-        base.kind = i % 4 === 0 ? "petal" : "pollen";
-        base.r = rand(1.2, 3.8);
-      }
-      return base;
-    });
+  setSpread(leftId, leftHex, rightId, rightHex) {
+    this.world = rightId;
+    this.tint = hexToRgb(rightHex);
+    const count = this.reduced ? 10 : 36;
+    this.ambient = [
+      ...Array.from({ length: count }, (_, i) => this.particleFor(leftId, "left", leftHex, i)),
+      ...Array.from({ length: count }, (_, i) => this.particleFor(rightId, "right", rightHex, i)),
+    ];
+  }
+
+  particleFor(id, side, hex, i) {
+    const base = {
+      x: side === "left" ? rand(0.02, 0.48) : rand(0.52, 0.98),
+      y: Math.random(),
+      r: rand(0.5, 2.2),
+      s: rand(0.03, 0.16),
+      a: rand(0.12, 0.42),
+      p: rand(0, Math.PI * 2),
+      kind: "dust",
+      tint: hexToRgb(hex),
+    };
+    if (id === "dragon") {
+      base.kind = i % 5 === 0 ? "spark" : "ember";
+      base.r = rand(0.8, 3.2);
+    } else if (id === "forest") {
+      base.kind = i % 3 === 0 ? "leaf" : "firefly";
+      base.r = rand(1.1, 3.4);
+    } else if (id === "castle") {
+      base.kind = i % 4 === 0 ? "mote" : "sparkle";
+      base.r = rand(0.7, 2.6);
+    } else if (id === "underwater") {
+      base.kind = "bubble";
+      base.r = rand(1.4, 5.5);
+    } else if (id === "galaxy") {
+      base.kind = i % 8 === 0 ? "shoot" : "star";
+      base.r = rand(0.5, 2.1);
+    } else {
+      base.kind = i % 4 === 0 ? "petal" : "pollen";
+      base.r = rand(1.2, 3.8);
+    }
+    return base;
   }
 
   burst(kind, origin, intensity = 1) {
@@ -154,7 +160,7 @@ export class ParticleField {
       ctx.save();
       ctx.translate(x, y);
       if (p.kind === "leaf" || p.kind === "petal") ctx.rotate(t + p.p);
-      this.drawAmbientKind(ctx, p, tint);
+      this.drawAmbientKind(ctx, p, p.tint || tint);
       ctx.restore();
     }
   }

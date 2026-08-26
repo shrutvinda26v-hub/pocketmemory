@@ -93,8 +93,22 @@ function bindParallax() {
   );
 }
 
-leftLeaf.addEventListener("click", () => turn(-1));
-rightLeaf.addEventListener("click", () => turn(1));
+leftLeaf.addEventListener("click", (event) => {
+  event.stopPropagation();
+  turn(-1);
+});
+rightLeaf.addEventListener("click", (event) => {
+  event.stopPropagation();
+  turn(1);
+});
+
+bookShell.addEventListener("click", (event) => {
+  if (busy) return;
+  const rect = bookShell.getBoundingClientRect();
+  const x = (event.clientX - rect.left) / rect.width;
+  if (x >= 0.5) turn(1);
+  else turn(-1);
+});
 
 window.addEventListener("keydown", (event) => {
   if (event.key === "ArrowRight" || event.key === " ") {

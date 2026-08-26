@@ -170,12 +170,7 @@ body {
 .right-board { border-radius: 0 8px 10px 0; margin-left: 0.55%; }
 
 .spread {
-  position: relative;
-  flex: 1 1 auto;
-  aspect-ratio: 3 / 2;
-  background: var(--paper);
-  transform-style: preserve-3d;
-  box-shadow: inset 0 0 0 1px rgba(92, 68, 32, 0.16);
+  cursor: pointer;
 }
 
 .sheet,
@@ -205,6 +200,13 @@ body {
   right: 0;
   width: 50%;
   background-position: right center;
+}
+
+.sheet-left,
+.sheet-under,
+.flipper,
+.face {
+  pointer-events: none;
 }
 
 .flipper {
@@ -256,7 +258,18 @@ body {
   padding: 0;
   background: transparent;
   cursor: pointer;
-  z-index: 6;
+  z-index: 30;
+  pointer-events: auto;
+}
+
+.leaf-left {
+  left: 0;
+  width: 46%;
+}
+
+.leaf-right {
+  right: 0;
+  width: 54%;
 }
 
 .leaf:focus { outline: none; }

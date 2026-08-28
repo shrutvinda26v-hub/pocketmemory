@@ -55,19 +55,6 @@ export async function createChameleonScene(canvas) {
   chameleon.position.y = 0.02;
   scene.add(chameleon);
 
-  const floor = new THREE.Mesh(
-    new THREE.CircleGeometry(1.8, 64),
-    new THREE.MeshStandardMaterial({
-      color: 0x07080a,
-      roughness: 0.32,
-      metalness: 0.28,
-    })
-  );
-  floor.rotation.x = -Math.PI / 2;
-  floor.position.y = -0.62;
-  floor.receiveShadow = false;
-  scene.add(floor);
-
   const key = new THREE.SpotLight(0xfff1dc, 18, 14, 0.4, 0.65, 1);
   key.position.set(0.15, 3.2, 2.0);
   key.target.position.set(0, 0.1, 0.15);

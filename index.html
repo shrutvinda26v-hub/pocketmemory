@@ -6,7 +6,7 @@
     <title>Pocket Memory — Adaptive Skin</title>
     <meta
       name="description"
-      content="An interactive hero: click a textured material and watch the chameleon change colour from head to tail."
+      content="An interactive 3D chameleon hero: click a textured material and watch colour walk from head to tail."
     />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -38,25 +38,12 @@
 
       <section class="stage" id="stage">
         <div class="specimen">
-        <div class="specimen">
           <div class="specimen-inner" id="specimen">
-            <div class="skin skin-from" id="skin-from">
-              <img src="assets/chameleon.webp" alt="" draggable="false" />
-              <div class="wash" id="wash-from"></div>
-            </div>
-            <div class="skin-clip" id="skin-clip" aria-hidden="true">
-              <div class="skin skin-to" id="skin-to">
-                <img src="assets/chameleon.webp" alt="" draggable="false" />
-                <div class="wash" id="wash-to"></div>
-              </div>
-            </div>
-            <img
-              class="chameleon-sr"
-              src="assets/chameleon.webp"
-              alt="A veiled chameleon that changes colour from head to tail"
-            />
+            <canvas
+              id="chameleon-3d"
+              aria-label="A 3D veiled chameleon. Drag to turn. Colour changes from head to tail when you click a material."
+            ></canvas>
           </div>
-        </div>
         </div>
         <div class="swatches" id="swatches"></div>
       </section>
@@ -65,11 +52,11 @@
         <p class="kicker">Hero · Adaptive wardrobe</p>
         <h1>Touch a material.<br /><em>The skin follows.</em></h1>
         <p class="lede" id="lede">
-          Click any textured object. Colour walks from crest to tail — the chameleon only.
+          Drag to turn the chameleon. Click a textured object and colour walks from crest to tail.
         </p>
       </div>
 
-      <p class="hint" id="hint">CLICK A MATERIAL</p>
+      <p class="hint" id="hint">DRAG TO TURN · CLICK A MATERIAL</p>
     </main>
 
     <script type="module" src="/src/main.js"></script>

@@ -138,70 +138,36 @@ body {
 .specimen {
   position: absolute;
   left: 50%;
-  top: 52%;
+  top: 50%;
   transform: translate(-50%, -50%);
-  width: min(68vw, 720px);
-  aspect-ratio: 1 / 1;
+  width: min(78vw, 920px);
+  height: min(78vh, 820px);
+  z-index: 1;
 }
 
 .specimen-inner {
   width: 100%;
   height: 100%;
   position: relative;
-  transform-origin: 50% 42%;
-  filter: drop-shadow(0 22px 42px rgba(0, 0, 0, 0.55));
 }
 
-.chameleon-sr {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-}
-
-.skin {
-  position: absolute;
-  inset: 0;
-  isolation: isolate;
-  -webkit-mask-image: url("/assets/chameleon.webp");
-  mask-image: url("/assets/chameleon.webp");
-  -webkit-mask-size: contain;
-  mask-size: contain;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  mask-position: center;
-}
-
-.skin img {
+#chameleon-3d {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  pointer-events: none;
-  user-select: none;
+  touch-action: none;
+  cursor: grab;
 }
 
-.wash {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  mix-blend-mode: color;
-  opacity: 0;
-  background: transparent;
-}
-
-.skin-clip {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  clip-path: inset(0 0 100% 0);
+#chameleon-3d:active {
+  cursor: grabbing;
 }
 
 .swatches {
   position: absolute;
   inset: 0;
+  z-index: 4;
+  pointer-events: none;
 }
 
 .swatch {
@@ -214,6 +180,7 @@ body {
   cursor: pointer;
   transform: translate(-50%, -50%);
   isolation: isolate;
+  pointer-events: auto;
 }
 
 .swatch img {
@@ -347,8 +314,9 @@ h1 em {
   }
 
   .specimen {
-    width: min(88vw, 360px);
-    top: 36%;
+    width: min(96vw, 520px);
+    height: min(52vh, 420px);
+    top: 38%;
   }
 
   .swatches {

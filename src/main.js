@@ -1,7 +1,6 @@
 import gsap from "gsap";
 import { startDust } from "./particles.js";
-
-const SKIN = "assets/chameleon.webp";
+import { createChameleonScene } from "./chameleon3d.js";
 
 const MATERIALS = [
   {
@@ -56,11 +55,6 @@ const MATERIALS = [
 
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-function paintWash(el, color, on) {
-  el.style.background = color || "transparent";
-  el.style.opacity = on ? "0.92" : "0";
-}
-
 function mountSwatches(root) {
   const buttons = [];
   for (const material of MATERIALS) {
@@ -93,43 +87,25 @@ function mountSwatches(root) {
   return buttons;
 }
 
-function preload(src) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = src;
-  });
-}
-
 async function boot() {
   const swatchRoot = document.querySelector("#swatches");
   const bootEl = document.querySelector("#boot");
   const hudMeta = document.querySelector("#hud-meta");
   const lede = document.querySelector("#lede");
   const hint = document.querySelector("#hint");
-  const clip = document.querySelector("#skin-clip");
-  const washFrom = document.querySelector("#wash-from");
-  const washTo = document.querySelector("#wash-to");
-  const skins = document.querySelectorAll(".skin");
-
-  const mask = `url("${SKIN}")`;
-  for (const skin of skins) {
-    skin.style.webkitMaskImage = mask;
-    skin.style.maskImage = mask;
-  }
+  const canvas = document.querySelector("#chameleon-3d");
 
   startDust(document.querySelector("#dust"));
-  await Promise.all([SKIN, ...MATERIALS.map((item) => item.file)].map(preload));
+  const scene = await createChameleonScene(canvas);
+  if (reduceMotion) scene.controls.autoRotate = false;
+
   const buttons = mountSwatches(swatchRoot);
+  const uniforms = scene.uniforms;
 
   let activeId = null;
-  let currentColor = null;
-  let incomingColor = null;
+  let incoming = null;
   let tween = null;
-  const wave = { p: 0 };
-
-  clip.style.clipPath = "inset(0 0 100% 0)";
+  const wave = { p: 1 };
 
   const applyMaterial = (material) => {
     if (activeId === material.id && wave.p >= 1) return;
@@ -140,42 +116,41 @@ async function boot() {
     }
 
     hudMeta.textContent = material.name.toUpperCase();
-    lede.textContent = `${material.name} moves from the casque, across the scales, and down to the tail.`;
+    lede.textContent = `${material.name} moves from the casque, across the scales, and down the tail.`;
     hint.textContent = "COLOUR IN MOTION";
 
     if (tween) tween.kill();
-    if (incomingColor) {
-      paintWash(washFrom, incomingColor, true);
-      currentColor = incomingColor;
+    if (incoming) {
+      uniforms.uFrom.value.set(incoming);
+      uniforms.uFromAmt.value = 1;
     }
 
-    incomingColor = material.glow;
-    paintWash(washFrom, currentColor, Boolean(currentColor));
-    paintWash(washTo, material.glow, true);
-
+    incoming = material.glow;
+    uniforms.uTo.value.set(material.glow);
+    uniforms.uToAmt.value = 1;
     wave.p = 0;
-    clip.style.clipPath = "inset(0 0 100% 0)";
+    uniforms.uProgress.value = 0;
 
     tween = gsap.to(wave, {
       p: 1,
       duration: reduceMotion ? 0.9 : 2.6,
       ease: "none",
       onUpdate: () => {
-        const remain = Math.max(0, (1 - wave.p) * 100);
-        clip.style.clipPath = `inset(0 0 ${remain}% 0)`;
+        uniforms.uProgress.value = wave.p;
       },
       onComplete: () => {
-        clip.style.clipPath = "inset(0 0 0 0)";
-        paintWash(washFrom, material.glow, true);
-        currentColor = material.glow;
-        incomingColor = null;
-        hint.textContent = "CLICK ANOTHER MATERIAL";
+        uniforms.uProgress.value = 1;
+        uniforms.uFrom.value.copy(uniforms.uTo.value);
+        uniforms.uFromAmt.value = 1;
+        incoming = null;
+        hint.textContent = "DRAG TO TURN · CLICK ANOTHER";
       },
     });
   };
 
   for (const button of buttons) {
-    button.addEventListener("click", () => {
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
       const material = MATERIALS.find((item) => item.id === button.dataset.id);
       applyMaterial(material);
     });
@@ -206,5 +181,5 @@ async function boot() {
 boot().catch((error) => {
   console.error(error);
   const hint = document.querySelector("#hint");
-  if (hint) hint.textContent = "UNABLE TO LOAD SCENE";
+  if (hint) hint.textContent = "UNABLE TO LOAD 3D SCENE";
 });

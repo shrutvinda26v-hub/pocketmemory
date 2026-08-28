@@ -178,7 +178,7 @@ void main() {
     float att = uCrystalGlow[i] / (1.0 + dist * dist * 6.5);
     light += uCrystalCol[i] * att;
   }
-  color += color * light * 0.38 * (0.25 + body);
+  color += color * light * 0.12 * body;
 
   float pulse = uPulse * exp(-length(p - origin) * 4.2) * body;
   color += tintCol * pulse * 0.28;

@@ -22,6 +22,8 @@ export function Chameleon() {
     map.colorSpace = THREE.SRGBColorSpace;
     map.minFilter = THREE.LinearMipmapLinearFilter;
     map.anisotropy = 8;
+    depth.colorSpace = THREE.NoColorSpace;
+    mask.colorSpace = THREE.NoColorSpace;
     depth.minFilter = THREE.LinearFilter;
     mask.minFilter = THREE.LinearFilter;
     const mat = new THREE.ShaderMaterial({

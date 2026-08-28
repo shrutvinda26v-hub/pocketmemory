@@ -195,20 +195,8 @@ body {
 .skin-clip {
   position: absolute;
   inset: 0;
-  -webkit-mask-image: linear-gradient(
-    188deg,
-    #000 0%,
-    #000 var(--wipe, 0%),
-    transparent calc(var(--wipe, 0%) + 18%)
-  );
-  mask-image: linear-gradient(
-    188deg,
-    #000 0%,
-    #000 var(--wipe, 0%),
-    transparent calc(var(--wipe, 0%) + 18%)
-  );
-  -webkit-mask-size: 100% 100%;
-  mask-size: 100% 100%;
+  overflow: hidden;
+  clip-path: inset(0 0 100% 0);
 }
 
 .swatches {

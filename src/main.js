@@ -129,7 +129,7 @@ async function boot() {
   let tween = null;
   const wave = { p: 0 };
 
-  clip.style.setProperty("--wipe", "0%");
+  clip.style.clipPath = "inset(0 0 100% 0)";
 
   const applyMaterial = (material) => {
     if (activeId === material.id && wave.p >= 1) return;
@@ -154,18 +154,18 @@ async function boot() {
     paintWash(washTo, material.glow, true);
 
     wave.p = 0;
-    clip.style.setProperty("--wipe", "-8%");
+    clip.style.clipPath = "inset(0 0 100% 0)";
 
     tween = gsap.to(wave, {
       p: 1,
-      duration: reduceMotion ? 0.9 : 2.5,
+      duration: reduceMotion ? 0.9 : 2.6,
       ease: "none",
       onUpdate: () => {
-        const pct = (-8 + wave.p * 126).toFixed(2);
-        clip.style.setProperty("--wipe", `${pct}%`);
+        const remain = Math.max(0, (1 - wave.p) * 100);
+        clip.style.clipPath = `inset(0 0 ${remain}% 0)`;
       },
       onComplete: () => {
-        clip.style.setProperty("--wipe", "130%");
+        clip.style.clipPath = "inset(0 0 0 0)";
         paintWash(washFrom, material.glow, true);
         currentColor = material.glow;
         incomingColor = null;

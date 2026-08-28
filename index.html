@@ -38,10 +38,25 @@
 
       <section class="stage" id="stage">
         <div class="specimen">
+        <div class="specimen">
           <div class="specimen-inner" id="specimen">
-            <canvas id="chameleon" aria-label="A veiled chameleon that changes colour from head to tail"></canvas>
-            <div class="reflection" id="reflection" aria-hidden="true"></div>
+            <div class="skin skin-from" id="skin-from">
+              <img src="assets/chameleon.webp" alt="" draggable="false" />
+              <div class="wash" id="wash-from"></div>
+            </div>
+            <div class="skin-clip" id="skin-clip" aria-hidden="true">
+              <div class="skin skin-to" id="skin-to">
+                <img src="assets/chameleon.webp" alt="" draggable="false" />
+                <div class="wash" id="wash-to"></div>
+              </div>
+            </div>
+            <img
+              class="chameleon-sr"
+              src="assets/chameleon.webp"
+              alt="A veiled chameleon that changes colour from head to tail"
+            />
           </div>
+        </div>
         </div>
         <div class="swatches" id="swatches"></div>
       </section>

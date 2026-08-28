@@ -1,12 +1,12 @@
 import gsap from "gsap";
-import { createChameleon } from "./chameleonRenderer.js";
 import { startDust } from "./particles.js";
+
+const SKIN = "assets/chameleon.webp";
 
 const MATERIALS = [
   {
     id: "silk",
     name: "Ocean silk",
-    color: [0.14, 0.38, 0.78],
     glow: "#3a6ec8",
     file: "assets/swatch-silk.webp",
     x: 16,
@@ -15,7 +15,6 @@ const MATERIALS = [
   {
     id: "velvet",
     name: "Crimson velvet",
-    color: [0.82, 0.07, 0.14],
     glow: "#c41224",
     file: "assets/swatch-velvet.webp",
     x: 11,
@@ -24,7 +23,6 @@ const MATERIALS = [
   {
     id: "moss",
     name: "Forest moss",
-    color: [0.28, 0.55, 0.18],
     glow: "#4a8a28",
     file: "assets/swatch-moss.webp",
     x: 20,
@@ -33,7 +31,6 @@ const MATERIALS = [
   {
     id: "leather",
     name: "Amethyst leather",
-    color: [0.52, 0.18, 0.72],
     glow: "#8a3cb8",
     file: "assets/swatch-leather.webp",
     x: 84,
@@ -42,7 +39,6 @@ const MATERIALS = [
   {
     id: "gold",
     name: "Hammered gold",
-    color: [0.86, 0.64, 0.16],
     glow: "#d4a024",
     file: "assets/swatch-gold.webp",
     x: 90,
@@ -51,7 +47,6 @@ const MATERIALS = [
   {
     id: "terracotta",
     name: "Terracotta clay",
-    color: [0.82, 0.36, 0.16],
     glow: "#d45a28",
     file: "assets/swatch-terracotta.webp",
     x: 80,
@@ -60,6 +55,11 @@ const MATERIALS = [
 ];
 
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function paintWash(el, color, on) {
+  el.style.background = color || "transparent";
+  el.style.opacity = on ? "0.92" : "0";
+}
 
 function mountSwatches(root) {
   const buttons = [];
@@ -93,25 +93,46 @@ function mountSwatches(root) {
   return buttons;
 }
 
+function preload(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
 async function boot() {
-  const canvas = document.querySelector("#chameleon");
   const swatchRoot = document.querySelector("#swatches");
   const bootEl = document.querySelector("#boot");
   const hudMeta = document.querySelector("#hud-meta");
   const lede = document.querySelector("#lede");
   const hint = document.querySelector("#hint");
+  const clip = document.querySelector("#skin-clip");
+  const washFrom = document.querySelector("#wash-from");
+  const washTo = document.querySelector("#wash-to");
+  const skins = document.querySelectorAll(".skin");
+
+  const mask = `url("${SKIN}")`;
+  for (const skin of skins) {
+    skin.style.webkitMaskImage = mask;
+    skin.style.maskImage = mask;
+  }
 
   startDust(document.querySelector("#dust"));
-  const chameleon = await createChameleon(canvas, "assets/chameleon.webp");
+  await Promise.all([SKIN, ...MATERIALS.map((item) => item.file)].map(preload));
   const buttons = mountSwatches(swatchRoot);
 
   let activeId = null;
+  let currentColor = null;
+  let incomingColor = null;
   let tween = null;
+  const wave = { p: 0 };
 
-  gsap.ticker.add(() => chameleon.draw());
+  clip.style.setProperty("--wipe", "0%");
 
   const applyMaterial = (material) => {
-    if (activeId === material.id && chameleon.state.progress >= 1) return;
+    if (activeId === material.id && wave.p >= 1) return;
     activeId = material.id;
 
     for (const button of buttons) {
@@ -123,24 +144,31 @@ async function boot() {
     hint.textContent = "COLOUR IN MOTION";
 
     if (tween) tween.kill();
+    if (incomingColor) {
+      paintWash(washFrom, incomingColor, true);
+      currentColor = incomingColor;
+    }
 
-    const previous = {
-      color: chameleon.state.to.slice(),
-      amt: chameleon.state.toAmt,
-    };
+    incomingColor = material.glow;
+    paintWash(washFrom, currentColor, Boolean(currentColor));
+    paintWash(washTo, material.glow, true);
 
-    chameleon.state.from = previous.color;
-    chameleon.state.fromAmt = previous.amt;
-    chameleon.state.to = material.color.slice();
-    chameleon.state.toAmt = 1;
-    chameleon.state.progress = 0;
+    wave.p = 0;
+    clip.style.setProperty("--wipe", "-8%");
 
-    const duration = reduceMotion ? 0.8 : 2.4;
-    tween = gsap.to(chameleon.state, {
-      progress: 1,
-      duration,
+    tween = gsap.to(wave, {
+      p: 1,
+      duration: reduceMotion ? 0.9 : 2.5,
       ease: "none",
+      onUpdate: () => {
+        const pct = (-8 + wave.p * 126).toFixed(2);
+        clip.style.setProperty("--wipe", `${pct}%`);
+      },
       onComplete: () => {
+        clip.style.setProperty("--wipe", "130%");
+        paintWash(washFrom, material.glow, true);
+        currentColor = material.glow;
+        incomingColor = null;
         hint.textContent = "CLICK ANOTHER MATERIAL";
       },
     });
@@ -152,8 +180,6 @@ async function boot() {
       applyMaterial(material);
     });
   }
-
-  window.addEventListener("resize", () => chameleon.draw());
 
   gsap.to(bootEl, {
     opacity: 0,

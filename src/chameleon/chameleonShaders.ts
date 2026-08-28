@@ -186,6 +186,9 @@ void main() {
   float energyBand = uEnergy * smoothstep(0.12, 0.0, abs(d - uTransition * 0.9)) * body;
   color += tintCol * energyBand * 0.08;
 
-  gl_FragColor = vec4(color, 1.0);
+  float edge = smoothstep(0.0, 0.06, uv.x) * smoothstep(1.0, 0.94, uv.x)
+             * smoothstep(0.0, 0.07, uv.y) * smoothstep(1.0, 0.93, uv.y);
+
+  gl_FragColor = vec4(color, edge);
 }
 `;

@@ -124,29 +124,29 @@ export function ReachingArm() {
   return (
     <group ref={group} visible={false} renderOrder={2}>
       <mesh ref={upper} material={skin}>
-        <capsuleGeometry args={[0.018, 1, 6, 12]} />
+        <capsuleGeometry args={[0.032, 1, 6, 14]} />
       </mesh>
       <mesh ref={lower} material={skin}>
-        <capsuleGeometry args={[0.015, 1, 6, 12]} />
+        <capsuleGeometry args={[0.026, 1, 6, 14]} />
       </mesh>
       <group ref={hand}>
         <mesh material={skin}>
-          <sphereGeometry args={[0.024, 14, 14]} />
+          <sphereGeometry args={[0.04, 16, 16]} />
         </mesh>
         <group>
-          <mesh position={[0.018, 0.004, 0.028]} rotation={[0.55, 0.15, 0.1]} material={skin}>
-            <capsuleGeometry args={[0.007, 0.034, 4, 8]} />
+          <mesh position={[0.022, 0.006, 0.034]} rotation={[0.55, 0.15, 0.1]} material={skin}>
+            <capsuleGeometry args={[0.01, 0.042, 4, 8]} />
           </mesh>
-          <mesh position={[0.028, 0.002, 0.02]} rotation={[0.45, 0.55, 0.2]} material={skin}>
-            <capsuleGeometry args={[0.006, 0.028, 4, 8]} />
+          <mesh position={[0.034, 0.002, 0.022]} rotation={[0.45, 0.55, 0.2]} material={skin}>
+            <capsuleGeometry args={[0.009, 0.034, 4, 8]} />
           </mesh>
         </group>
         <group>
-          <mesh position={[-0.018, 0.004, 0.028]} rotation={[0.55, -0.15, -0.1]} material={skin}>
-            <capsuleGeometry args={[0.007, 0.034, 4, 8]} />
+          <mesh position={[-0.022, 0.006, 0.034]} rotation={[0.55, -0.15, -0.1]} material={skin}>
+            <capsuleGeometry args={[0.01, 0.042, 4, 8]} />
           </mesh>
-          <mesh position={[-0.028, 0.002, 0.02]} rotation={[0.45, -0.55, -0.2]} material={skin}>
-            <capsuleGeometry args={[0.006, 0.028, 4, 8]} />
+          <mesh position={[-0.034, 0.002, 0.022]} rotation={[0.45, -0.55, -0.2]} material={skin}>
+            <capsuleGeometry args={[0.009, 0.034, 4, 8]} />
           </mesh>
         </group>
       </group>

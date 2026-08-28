@@ -29,6 +29,8 @@ export function Chameleon() {
     mask.minFilter = THREE.LinearFilter;
     const mat = new THREE.ShaderMaterial({
       toneMapped: false,
+      transparent: true,
+      depthWrite: false,
       uniforms: {
         tMap: { value: map },
         tDepth: { value: depth },

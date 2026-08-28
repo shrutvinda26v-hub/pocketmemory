@@ -79,7 +79,7 @@ function Scene({ onReady }: { onReady: () => void }) {
 
   return (
     <>
-      <color attach="background" args={["#ead9c0"]} />
+      <color attach="background" args={["#f0dbbc"]} />
       <ambientLight intensity={0.85} color="#ffffff" />
       <directionalLight position={[2, 3, 4]} intensity={0.45} color="#ffffff" />
 
@@ -115,7 +115,7 @@ export function Experience({ onReady }: { onReady: () => void }) {
       }}
       camera={{ position: [0, 0, 2.85], fov: 34, near: 0.08, far: 24 }}
       onCreated={({ gl }) => {
-        gl.setClearColor("#ead9c0", 1);
+        gl.setClearColor("#f0dbbc", 1);
         gl.toneMapping = THREE.NoToneMapping;
         gl.outputColorSpace = THREE.SRGBColorSpace;
       }}

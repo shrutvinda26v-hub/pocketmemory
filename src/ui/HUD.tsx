@@ -27,7 +27,7 @@ export function HUD({ ready }: { ready: boolean }) {
             style={{
               position: "absolute",
               inset: 0,
-              background: "#ead9c0",
+              background: "#f0dbbc",
             }}
           />
         )}
@@ -104,7 +104,7 @@ export function HUD({ ready }: { ready: boolean }) {
           height: 40,
           borderRadius: 999,
           border: "1px solid rgba(74,59,42,0.2)",
-          background: "#ead9c0",
+          background: "#f0dbbc",
           color: "#4a3b2a",
           cursor: "pointer",
           display: "grid",

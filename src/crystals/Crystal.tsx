@@ -36,7 +36,7 @@ export function Crystal({ index, color, position, onActivate }: Props) {
   return (
     <group ref={group} position={position} renderOrder={3}>
       <mesh>
-        <planeGeometry args={[0.16, 0.22]} />
+        <planeGeometry args={[0.14, 0.2]} />
         <meshBasicMaterial
           map={map}
           transparent

@@ -19,34 +19,11 @@ export function makeDiamondTexture(hex: string) {
   ctx.clearRect(0, 0, size, size);
 
   const cx = 256;
-  const top = 28;
-  const bot = 484;
-  const left = 96;
-  const right = 416;
-  const midY = 250;
-  const girdleL = 118;
-  const girdleR = 394;
-
-  const k = shade(hex, -18);
-  const mid = hex;
-  const hi = shade(hex, 46);
-  const edge = shade(hex, 90);
-
-  const facet = (pts: [number, number][], fill: string) => {
-    ctx.beginPath();
-    ctx.moveTo(pts[0][0], pts[0][1]);
-    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
-    ctx.closePath();
-    ctx.fillStyle = fill;
-    ctx.fill();
-  };
-
-  facet([[cx, top], [girdleR, midY], [cx, midY]], hi);
-  facet([[cx, top], [cx, midY], [girdleL, midY]], mid);
-  facet([[girdleL, midY], [left, midY], [cx, bot]], k);
-  facet([[girdleR, midY], [cx, bot], [right, midY]], shade(hex, -40));
-  facet([[cx, midY], [girdleR, midY], [cx, bot]], shade(hex, -8));
-  facet([[cx, midY], [cx, bot], [girdleL, midY]], shade(hex, 12));
+  const top = 36;
+  const bot = 476;
+  const left = 118;
+  const right = 394;
+  const midY = 248;
 
   ctx.beginPath();
   ctx.moveTo(cx, top);
@@ -54,25 +31,29 @@ export function makeDiamondTexture(hex: string) {
   ctx.lineTo(cx, bot);
   ctx.lineTo(left, midY);
   ctx.closePath();
-  ctx.strokeStyle = edge;
-  ctx.lineWidth = 5;
+  ctx.fillStyle = hex;
+  ctx.fill();
+  ctx.strokeStyle = shade(hex, -48);
+  ctx.lineWidth = 10;
+  ctx.lineJoin = "miter";
   ctx.stroke();
 
   ctx.beginPath();
-  ctx.moveTo(girdleL, midY);
-  ctx.lineTo(girdleR, midY);
-  ctx.moveTo(cx, top);
-  ctx.lineTo(cx, bot);
-  ctx.strokeStyle = "rgba(255,255,255,0.35)";
-  ctx.lineWidth = 2;
-  ctx.stroke();
-
-  ctx.beginPath();
-  ctx.moveTo(cx - 18, top + 36);
-  ctx.lineTo(cx + 8, top + 70);
-  ctx.lineTo(cx - 6, top + 78);
+  ctx.moveTo(cx, top + 22);
+  ctx.lineTo(right - 28, midY);
+  ctx.lineTo(cx, bot - 22);
+  ctx.lineTo(left + 28, midY);
   ctx.closePath();
-  ctx.fillStyle = "rgba(255,255,255,0.7)";
+  ctx.strokeStyle = shade(hex, 70);
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(cx - 14, top + 48);
+  ctx.lineTo(cx + 22, top + 108);
+  ctx.lineTo(cx - 2, top + 118);
+  ctx.closePath();
+  ctx.fillStyle = "#ffffff";
   ctx.fill();
 
   const tex = new THREE.CanvasTexture(canvas);

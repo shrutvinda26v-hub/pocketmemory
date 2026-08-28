@@ -116,10 +116,6 @@ export function createSkinMaterial(albedo, bump, uniforms) {
     shader.fragmentShader = shader.fragmentShader.replace(
       "#include <color_fragment>",
       `#include <color_fragment>
-       float facing = smoothstep(0.05, 0.72, dot(normalize(vWorldN), vec3(0.0, 0.12, 1.0)));
-       vec3 proc = mix(vec3(0.22, 0.48, 0.42), vec3(0.55, 0.72, 0.48), facing);
-       diffuseColor.rgb = mix(proc, diffuseColor.rgb, facing);
-
        float t = mix(-0.12, 1.12, uProgress);
        float reveal = 1.0 - smoothstep(t - 0.11, t + 0.11, vAlong);
        vec3 fromCol = tintSkin(diffuseColor.rgb, uFrom, uFromAmt);
@@ -130,6 +126,6 @@ export function createSkinMaterial(albedo, bump, uniforms) {
     );
   };
 
-  material.customProgramCacheKey = () => "chameleon-skin-v2";
+  material.customProgramCacheKey = () => "chameleon-skin-v3";
   return material;
 }

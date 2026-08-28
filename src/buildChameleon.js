@@ -119,11 +119,11 @@ function stitchRim(front, back, solid) {
 
 export function buildChameleon(material, colorImage, depthImage) {
   const size = 512;
-  const segs = 140;
+  const segs = 72;
   const width = 1.72;
   const maps = readMaps(colorImage, depthImage, size);
-  const front = buildShell(maps.color, maps.depth, size, segs, width, 0.62, 0, false);
-  const back = buildShell(maps.color, maps.depth, size, segs, width, 0.62, -0.22, true);
+  const front = buildShell(maps.color, maps.depth, size, segs, width, 0.34, 0, false);
+  const back = buildShell(maps.color, maps.depth, size, segs, width, 0.34, -0.16, true);
   const rim = stitchRim(front.geo, back.geo, front.solid);
 
   const group = new THREE.Group();

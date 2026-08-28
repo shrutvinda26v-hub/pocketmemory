@@ -77,6 +77,23 @@ function distanceField(live, cols) {
   return dist;
 }
 
+function averageBody(color, size) {
+  let r = 0;
+  let g = 0;
+  let b = 0;
+  let n = 0;
+  for (let i = 0; i < size * size; i++) {
+    const o = i * 4;
+    if (color[o + 3] < 200) continue;
+    r += color[o];
+    g += color[o + 1];
+    b += color[o + 2];
+    n++;
+  }
+  if (!n) return new THREE.Color("#3aa38a");
+  return new THREE.Color(r / n / 255, g / n / 255, b / n / 255);
+}
+
 function buildSolid(color, depth, size, segs, width, depthScale, backScale) {
   const cols = segs + 1;
   const n = cols * cols;
@@ -86,6 +103,10 @@ function buildSolid(color, depth, size, segs, width, depthScale, backScale) {
   const uvFront = new Float32Array(n * 2);
   const xy = new Float32Array(n * 2);
 
+  let chestU = 0;
+  let chestV = 0;
+  let chestN = 0;
+
   for (let iy = 0; iy < cols; iy++) {
     for (let ix = 0; ix < cols; ix++) {
       const i = iy * cols + ix;
@@ -93,52 +114,88 @@ function buildSolid(color, depth, size, segs, width, depthScale, backScale) {
       const v = 1 - iy / segs;
       const c = sample(color, size, u, v);
       const d = sample(depth, size, u, v);
-      live[i] = c.a > 40 ? 1 : 0;
+      live[i] = c.a > 48 ? 1 : 0;
       depth01[i] = d.r / 255;
       alongFront[i] = THREE.MathUtils.clamp(1 - v + Math.max(0, u - 0.52) * 0.18, 0, 1);
       uvFront[i * 2] = u;
       uvFront[i * 2 + 1] = v;
       xy[i * 2] = (u - 0.5) * width;
       xy[i * 2 + 1] = (v - 0.5) * width;
+      if (live[i]) {
+        chestU += u;
+        chestV += v;
+        chestN++;
+      }
     }
   }
 
+  chestU = chestN ? chestU / chestN : 0.5;
+  chestV = chestN ? chestV / chestN : 0.45;
+
   const dist = distanceField(live, cols);
-  const positions = new Float32Array(n * 2 * 3);
-  const uvs = new Float32Array(n * 2 * 2);
-  const along = new Float32Array(n * 2);
-  const shell = new Float32Array(n * 2);
+  const pos = [];
+  const uvs = [];
+  const along = [];
+  const shell = [];
+
+  const pushVert = (x, y, z, u, v, alongV, shellV) => {
+    const index = pos.length / 3;
+    pos.push(x, y, z);
+    uvs.push(u, v);
+    along.push(alongV);
+    shell.push(shellV);
+    return index;
+  };
+
+  const frontOf = new Int32Array(n);
+  const backOf = new Int32Array(n);
+  frontOf.fill(-1);
+  backOf.fill(-1);
 
   for (let i = 0; i < n; i++) {
-    const fade = smoothstep(0.45, 7.2, dist[i]);
-    const puff = Math.min(1, dist[i] / 13);
-    const zF = depth01[i] * depthScale * (0.12 + 0.88 * fade);
-    const zB = -backScale * puff * (0.18 + 0.82 * fade) - (1 - depth01[i]) * 0.03 * fade;
+    if (!live[i]) continue;
+    const fade = smoothstep(0.2, 6.5, dist[i]);
+    const puff = Math.min(1, dist[i] / 11);
+    const zF = Math.max(0.07, depth01[i] * depthScale) * (0.4 + 0.6 * fade);
+    const zB = -Math.max(0.1, backScale * (0.35 + 0.65 * puff));
 
-    positions[i * 3] = xy[i * 2];
-    positions[i * 3 + 1] = xy[i * 2 + 1];
-    positions[i * 3 + 2] = zF;
-    uvs[i * 2] = uvFront[i * 2];
-    uvs[i * 2 + 1] = uvFront[i * 2 + 1];
-    along[i] = alongFront[i];
-    shell[i] = 0;
-
-    const b = n + i;
-    positions[b * 3] = xy[i * 2];
-    positions[b * 3 + 1] = xy[i * 2 + 1];
-    positions[b * 3 + 2] = zB;
-    uvs[b * 2] = uvFront[i * 2];
-    uvs[b * 2 + 1] = uvFront[i * 2 + 1];
-    along[b] = alongFront[i];
-    shell[b] = 1;
+    frontOf[i] = pushVert(
+      xy[i * 2],
+      xy[i * 2 + 1],
+      zF,
+      uvFront[i * 2],
+      uvFront[i * 2 + 1],
+      alongFront[i],
+      0
+    );
+    backOf[i] = pushVert(
+      xy[i * 2],
+      xy[i * 2 + 1],
+      zB,
+      chestU,
+      chestV,
+      alongFront[i],
+      1
+    );
   }
 
-  const frontIndex = [];
+  const indices = [];
   const edgeUse = new Map();
+  const frontIndex = [];
 
   const addEdge = (a, b) => {
     const key = a < b ? `${a},${b}` : `${b},${a}`;
     edgeUse.set(key, (edgeUse.get(key) || 0) + 1);
+  };
+
+  const tri = (i0, i1, i2) => {
+    if (!live[i0] || !live[i1] || !live[i2]) return;
+    frontIndex.push(i0, i1, i2);
+    addEdge(i0, i1);
+    addEdge(i1, i2);
+    addEdge(i2, i0);
+    indices.push(frontOf[i0], frontOf[i1], frontOf[i2]);
+    indices.push(backOf[i0], backOf[i2], backOf[i1]);
   };
 
   for (let iy = 0; iy < segs; iy++) {
@@ -147,49 +204,70 @@ function buildSolid(color, depth, size, segs, width, depthScale, backScale) {
       const b = (iy + 1) * cols + ix;
       const c = iy * cols + (ix + 1);
       const d = (iy + 1) * cols + (ix + 1);
-
-      const tri = (i0, i1, i2) => {
-        if (!live[i0] || !live[i1] || !live[i2]) return;
-        frontIndex.push(i0, i1, i2);
-        addEdge(i0, i1);
-        addEdge(i1, i2);
-        addEdge(i2, i0);
-      };
-
       tri(a, b, c);
       tri(b, d, c);
     }
   }
 
-  const indices = [];
-  for (let i = 0; i < frontIndex.length; i += 3) {
-    const a = frontIndex[i];
-    const b = frontIndex[i + 1];
-    const c = frontIndex[i + 2];
-    indices.push(a, b, c);
-    indices.push(a + n, c + n, b + n);
-  }
-
   const seenRim = new Set();
   for (let i = 0; i < frontIndex.length; i += 3) {
-    const tri = [frontIndex[i], frontIndex[i + 1], frontIndex[i + 2]];
+    const triIds = [frontIndex[i], frontIndex[i + 1], frontIndex[i + 2]];
     for (let e = 0; e < 3; e++) {
-      const a = tri[e];
-      const b = tri[(e + 1) % 3];
+      const a = triIds[e];
+      const b = triIds[(e + 1) % 3];
       const key = a < b ? `${a},${b}` : `${b},${a}`;
-      if (edgeUse.get(key) !== 1) continue;
-      if (seenRim.has(key)) continue;
+      if (edgeUse.get(key) !== 1 || seenRim.has(key)) continue;
       seenRim.add(key);
-      indices.push(a, b, b + n);
-      indices.push(a, b + n, a + n);
+
+      const rfA = pushVert(
+        xy[a * 2],
+        xy[a * 2 + 1],
+        pos[frontOf[a] * 3 + 2],
+        chestU,
+        chestV,
+        alongFront[a],
+        2
+      );
+      const rfB = pushVert(
+        xy[b * 2],
+        xy[b * 2 + 1],
+        pos[frontOf[b] * 3 + 2],
+        chestU,
+        chestV,
+        alongFront[b],
+        2
+      );
+      const rbA = pushVert(
+        xy[a * 2],
+        xy[a * 2 + 1],
+        pos[backOf[a] * 3 + 2],
+        chestU,
+        chestV,
+        alongFront[a],
+        2
+      );
+      const rbB = pushVert(
+        xy[b * 2],
+        xy[b * 2 + 1],
+        pos[backOf[b] * 3 + 2],
+        chestU,
+        chestV,
+        alongFront[b],
+        2
+      );
+
+      // Outward winding: interior is to the left of a→b on the front,
+      // so a→back→b faces out of the silhouette.
+      indices.push(rfA, rbA, rbB);
+      indices.push(rfA, rbB, rfB);
     }
   }
 
   const geo = new THREE.BufferGeometry();
-  geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-  geo.setAttribute("uv", new THREE.BufferAttribute(uvs, 2));
-  geo.setAttribute("along", new THREE.BufferAttribute(along, 1));
-  geo.setAttribute("shell", new THREE.BufferAttribute(shell, 1));
+  geo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  geo.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
+  geo.setAttribute("along", new THREE.Float32BufferAttribute(along, 1));
+  geo.setAttribute("shell", new THREE.Float32BufferAttribute(shell, 1));
   geo.setIndex(indices);
   geo.computeVertexNormals();
   geo.computeBoundingBox();
@@ -207,7 +285,12 @@ function buildSolid(color, depth, size, segs, width, depthScale, backScale) {
 
 export function buildChameleon(material, colorImage, depthImage) {
   const maps = readMaps(colorImage, depthImage, 512);
-  const geo = buildSolid(maps.color, maps.depth, 512, 80, 1.72, 0.5, 0.34);
+  const body = averageBody(maps.color, 512);
+  if (material.userData.uniforms?.uBody) {
+    material.userData.uniforms.uBody.value.copy(body);
+  }
+
+  const geo = buildSolid(maps.color, maps.depth, 512, 96, 1.72, 0.48, 0.36);
 
   const group = new THREE.Group();
   const mesh = new THREE.Mesh(geo, material);
@@ -218,6 +301,6 @@ export function buildChameleon(material, colorImage, depthImage) {
 
   group.userData.eyes = [];
   group.userData.skin = group;
-  group.rotation.x = -0.05;
+  group.rotation.x = -0.04;
   return group;
 }

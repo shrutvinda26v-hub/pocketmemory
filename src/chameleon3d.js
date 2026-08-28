@@ -28,8 +28,8 @@ export async function createChameleonScene(canvas) {
   renderer.shadowMap.enabled = false;
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 40);
-  camera.position.set(0.62, 0.1, 2.45);
+  const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 40);
+  camera.position.set(0.55, 0.1, 2.45);
 
   const pmrem = new THREE.PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
@@ -52,6 +52,7 @@ export async function createChameleonScene(canvas) {
   const uniforms = createSkinUniforms();
   const skinMat = createSkinMaterial(albedo, bump, uniforms);
   const chameleon = buildChameleon(skinMat, colorImage, depthImage);
+  chameleon.position.y = 0.02;
   scene.add(chameleon);
 
   const key = new THREE.SpotLight(0xfff1dc, 18, 14, 0.4, 0.65, 1);
@@ -63,13 +64,9 @@ export async function createChameleonScene(canvas) {
   fill.position.set(-2.8, 1.2, 2.2);
   scene.add(fill);
 
-  const rim = new THREE.DirectionalLight(0xffe6c2, 1.15);
+  const rim = new THREE.DirectionalLight(0xffe6c2, 0.9);
   rim.position.set(2.2, 2.4, -2.6);
   scene.add(rim);
-
-  const backFill = new THREE.DirectionalLight(0x7a8a94, 0.35);
-  backFill.position.set(-1.2, 0.4, -3.0);
-  scene.add(backFill);
 
   const hemi = new THREE.HemisphereLight(0x5a6a78, 0x08090c, 0.38);
   scene.add(hemi);
@@ -78,13 +75,15 @@ export async function createChameleonScene(canvas) {
   controls.enablePan = false;
   controls.enableDamping = true;
   controls.dampingFactor = 0.07;
-  controls.minDistance = 1.7;
-  controls.maxDistance = 4.0;
-  controls.minPolarAngle = Math.PI * 0.34;
-  controls.maxPolarAngle = Math.PI * 0.66;
-  controls.target.set(0, 0.02, 0);
+  controls.minDistance = 1.8;
+  controls.maxDistance = 3.8;
+  controls.minPolarAngle = Math.PI * 0.44;
+  controls.maxPolarAngle = Math.PI * 0.56;
+  controls.minAzimuthAngle = -0.62;
+  controls.maxAzimuthAngle = 0.62;
+  controls.target.set(0, 0.06, 0);
   controls.autoRotate = true;
-  controls.autoRotateSpeed = 2.2;
+  controls.autoRotateSpeed = 1.15;
   controls.update();
 
   canvas.addEventListener("pointerdown", () => {
@@ -103,7 +102,7 @@ export async function createChameleonScene(canvas) {
   const start = performance.now();
   function tick() {
     const t = (performance.now() - start) / 1000;
-    chameleon.position.y = Math.sin(t * 1.15) * 0.01;
+    chameleon.position.y = 0.02 + Math.sin(t * 1.35) * 0.01;
     controls.update();
     renderer.render(scene, camera);
     requestAnimationFrame(tick);

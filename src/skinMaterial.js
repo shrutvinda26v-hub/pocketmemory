@@ -7,7 +7,6 @@ export function createSkinUniforms() {
     uTo: { value: new THREE.Color("#3aa38a") },
     uFromAmt: { value: 0 },
     uToAmt: { value: 0 },
-    uBody: { value: new THREE.Color("#4a7a62") },
   };
 }
 
@@ -30,22 +29,18 @@ export function createSkinMaterial(albedo, bump, uniforms) {
     shader.uniforms.uTo = uniforms.uTo;
     shader.uniforms.uFromAmt = uniforms.uFromAmt;
     shader.uniforms.uToAmt = uniforms.uToAmt;
-    shader.uniforms.uBody = uniforms.uBody;
 
     shader.vertexShader = shader.vertexShader.replace(
       "#include <common>",
       `#include <common>
        attribute float along;
-       attribute float shell;
        varying float vAlong;
-       varying float vShell;
        varying vec3 vWorldN;`
     );
     shader.vertexShader = shader.vertexShader.replace(
       "#include <begin_vertex>",
       `#include <begin_vertex>
-       vAlong = along;
-       vShell = shell;`
+       vAlong = along;`
     );
     shader.vertexShader = shader.vertexShader.replace(
       "#include <defaultnormal_vertex>",
@@ -61,9 +56,7 @@ export function createSkinMaterial(albedo, bump, uniforms) {
        uniform vec3 uTo;
        uniform float uFromAmt;
        uniform float uToAmt;
-       uniform vec3 uBody;
        varying float vAlong;
-       varying float vShell;
        varying vec3 vWorldN;
 
        vec3 rgb2hsl(vec3 color) {
@@ -125,21 +118,14 @@ export function createSkinMaterial(albedo, bump, uniforms) {
       `#include <color_fragment>
        float t = mix(-0.12, 1.12, uProgress);
        float reveal = 1.0 - smoothstep(t - 0.11, t + 0.11, vAlong);
-       float wrap = smoothstep(0.15, 0.55, vShell);
-       vec3 photoFrom = tintSkin(diffuseColor.rgb, uFrom, uFromAmt);
-       vec3 photoTo = tintSkin(diffuseColor.rgb, uTo, uToAmt);
-       vec3 bodyFrom = tintSkin(uBody, uFrom, uFromAmt);
-       vec3 bodyTo = tintSkin(uBody, uTo, uToAmt);
-       vec3 photoCol = mix(photoFrom, photoTo, reveal);
-       vec3 bodyCol = mix(bodyFrom, bodyTo, reveal);
-       bodyCol *= mix(0.72, 0.42, smoothstep(0.8, 1.6, vShell));
-       diffuseColor.rgb = mix(photoCol, bodyCol, wrap);
+       vec3 fromCol = tintSkin(diffuseColor.rgb, uFrom, uFromAmt);
+       vec3 toCol = tintSkin(diffuseColor.rgb, uTo, uToAmt);
+       diffuseColor.rgb = mix(fromCol, toCol, reveal);
        float front = exp(-pow((vAlong - t) * 12.0, 2.0));
-       diffuseColor.rgb += mix(photoTo, bodyTo, wrap) * front * 0.14;`
+       diffuseColor.rgb += toCol * front * 0.16;`
     );
   };
 
-  material.customProgramCacheKey = () => "chameleon-skin-v5";
-  material.userData.uniforms = uniforms;
+  material.customProgramCacheKey = () => "chameleon-skin-v3";
   return material;
 }

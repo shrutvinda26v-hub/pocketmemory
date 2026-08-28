@@ -28,6 +28,7 @@ export function activateCrystal(id: CrystalId) {
   activeTl?.kill();
   sim.busy = true;
   const store = useExperience.getState();
+  store.setColorName(def.name);
   store.setActive(id);
   store.setPhase("reaching");
   store.dismissInstruction();
@@ -71,7 +72,6 @@ export function activateCrystal(id: CrystalId) {
     sim.pulse = 1;
     sim.energy = 1;
     useExperience.getState().setPhase("transforming");
-    useExperience.getState().setColorName(def.name);
     soundscape.transform(def.gem);
   }, 1.0);
 

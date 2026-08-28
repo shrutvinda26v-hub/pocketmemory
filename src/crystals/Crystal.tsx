@@ -40,7 +40,7 @@ export function Crystal({ index, color, position, onActivate }: Props) {
       mat.opacity = 0.35 + glow * 0.4;
     }
     if (light.current) {
-      light.current.intensity = 0.35 + glow * 1.8;
+      light.current.intensity = 0.25 + glow * 0.9;
     }
     if (halo.current) {
       const s = 0.42 + glow * 0.55;

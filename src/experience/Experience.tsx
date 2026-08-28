@@ -1,6 +1,5 @@
 import { Preload } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Bloom, EffectComposer, Vignette } from "@react-three/postprocessing";
 import { Suspense, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { ReachingArm } from "../chameleon/Arm";
@@ -102,17 +101,6 @@ function Scene({ onReady }: { onReady: () => void }) {
       <EnergyStream />
       <CursorGlow />
       <CameraRig />
-      {isCoarse ? null : (
-        <EffectComposer enableNormalPass={false} multisampling={0}>
-          <Bloom
-            luminanceThreshold={1.15}
-            luminanceSmoothing={0.22}
-            intensity={0.45}
-            mipmapBlur
-          />
-          <Vignette eskil={false} offset={0.25} darkness={0.42} />
-        </EffectComposer>
-      )}
       <Preload all />
     </>
   );

@@ -180,11 +180,11 @@ void main() {
   }
   color += color * light * 0.38 * (0.25 + body);
 
-  float pulse = uPulse * exp(-length(p - origin) * 3.4) * body;
-  color += tintCol * pulse * 0.55;
+  float pulse = uPulse * exp(-length(p - origin) * 4.2) * body;
+  color += tintCol * pulse * 0.28;
 
-  float energyBand = uEnergy * smoothstep(0.22, 0.0, abs(d - uTransition * 0.9)) * body;
-  color += tintCol * energyBand * 0.28;
+  float energyBand = uEnergy * smoothstep(0.16, 0.0, abs(d - uTransition * 0.9)) * body;
+  color += tintCol * energyBand * 0.16;
 
   float luma = dot(color, vec3(0.299, 0.587, 0.114));
   color += vec3(0.04, 0.035, 0.02) * pow(luma, 1.4) * body * 0.15;

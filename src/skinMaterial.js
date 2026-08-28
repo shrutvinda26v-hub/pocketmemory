@@ -14,7 +14,7 @@ export function createSkinMaterial(albedo, bump, uniforms) {
   const material = new THREE.MeshPhysicalMaterial({
     map: albedo,
     bumpMap: bump,
-    bumpScale: 0.14,
+    bumpScale: 0.06,
     roughness: 0.46,
     metalness: 0.05,
     sheen: 0.42,

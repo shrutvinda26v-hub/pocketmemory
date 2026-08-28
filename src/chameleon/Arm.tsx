@@ -4,105 +4,100 @@ import * as THREE from "three";
 import { sim } from "../experience/sim";
 import { makeScaleTexture } from "../lib/textures";
 
-function Toe({
-  position,
-  rotation,
-  length,
-}: {
-  position: [number, number, number];
-  rotation: [number, number, number];
-  length: number;
-}) {
-  return (
-    <group position={position} rotation={rotation}>
-      <mesh position={[0, 0, length / 2]} castShadow>
-        <capsuleGeometry args={[0.018, length, 4, 8]} />
-        <meshStandardMaterial color="#7ec9bc" roughness={0.62} />
-      </mesh>
-      <mesh position={[0, -0.006, length + 0.028]} rotation={[0.4, 0, 0]}>
-        <coneGeometry args={[0.01, 0.04, 6]} />
-        <meshPhysicalMaterial
-          color="#e8d8c8"
-          roughness={0.25}
-          metalness={0.15}
-          clearcoat={0.4}
-          transmission={0.15}
-        />
-      </mesh>
-    </group>
-  );
+const _from = new THREE.Vector3();
+const _to = new THREE.Vector3();
+const _mid = new THREE.Vector3();
+const _hand = new THREE.Vector3();
+const _dir = new THREE.Vector3();
+const _up = new THREE.Vector3(0, 1, 0);
+const _z = new THREE.Vector3();
+const _color = new THREE.Color();
+
+function aim(object: THREE.Object3D, from: THREE.Vector3, to: THREE.Vector3) {
+  _dir.copy(to).sub(from);
+  const len = _dir.length();
+  if (len < 0.0001) return 0;
+  _z.copy(_dir).normalize();
+  object.position.copy(from).addScaledVector(_z, len * 0.5);
+  object.quaternion.setFromUnitVectors(_up, _z);
+  return len;
 }
 
 export function ReachingArm() {
   const group = useRef<THREE.Group>(null);
+  const upper = useRef<THREE.Mesh>(null);
+  const lower = useRef<THREE.Mesh>(null);
   const hand = useRef<THREE.Group>(null);
   const scaleTex = useMemo(() => makeScaleTexture(), []);
-  const color = useMemo(() => new THREE.Color("#5ec4b6"), []);
-  const dummy = useMemo(() => new THREE.Vector3(), []);
-  const restQuat = useMemo(() => new THREE.Quaternion(), []);
-  const aimQuat = useMemo(() => new THREE.Quaternion(), []);
-  const up = useMemo(() => new THREE.Vector3(0, 1, 0), []);
-  const z = useMemo(() => new THREE.Vector3(), []);
-  const x = useMemo(() => new THREE.Vector3(), []);
-  const y = useMemo(() => new THREE.Vector3(), []);
-  const mat = useMemo(() => new THREE.Matrix4(), []);
+  const skin = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        map: scaleTex,
+        color: "#6ecabb",
+        roughness: 0.58,
+        metalness: 0.04,
+      }),
+    [scaleTex],
+  );
 
-  useFrame((_, dt) => {
+  useFrame(() => {
     const g = group.current;
     if (!g) return;
-    const p = THREE.MathUtils.smootherstep(sim.reach, 0, 1);
+    const p = THREE.MathUtils.smootherstep(sim.reach, 0.02, 1);
     g.visible = p > 0.02;
     if (!g.visible) return;
 
-    dummy.lerpVectors(sim.reachFrom, sim.reachTo, p);
-    const from = sim.reachFrom;
-    g.position.lerp(from, 1 - Math.pow(0.0001, dt));
-    g.position.copy(from);
+    _from.copy(sim.reachFrom);
+    _to.copy(sim.reachTo);
+    const full = _from.distanceTo(_to);
+    const maxReach = 0.52;
+    const reachLen = Math.min(full, maxReach) * p;
+    _dir.copy(_to).sub(_from).normalize();
+    _hand.copy(_from).addScaledVector(_dir, reachLen);
+    _mid.copy(_from).lerp(_hand, 0.48);
 
-    z.copy(dummy).sub(from).normalize();
-    x.crossVectors(up, z).normalize();
-    if (x.lengthSq() < 0.001) x.set(1, 0, 0);
-    y.crossVectors(z, x).normalize();
-    mat.makeBasis(x, y, z);
-    aimQuat.setFromRotationMatrix(mat);
-    restQuat.identity();
-    g.quaternion.slerpQuaternions(restQuat, aimQuat, p);
+    _color.copy(sim.toColor);
+    skin.color.lerp(_color, 0.2);
 
-    const stretch = from.distanceTo(dummy);
-    g.scale.set(1, 1, Math.max(0.15, stretch / 0.42));
-
-    color.copy(sim.toColor);
-    const skin = (g.children[0] as THREE.Mesh | undefined)?.material as THREE.MeshStandardMaterial | undefined;
-    if (skin) {
-      skin.color.lerp(color, 0.15);
+    if (upper.current) {
+      const len = aim(upper.current, _from, _mid);
+      upper.current.scale.set(1, Math.max(0.06, len), 1);
     }
-
+    if (lower.current) {
+      const len = aim(lower.current, _mid, _hand);
+      lower.current.scale.set(0.92, Math.max(0.06, len), 0.92);
+    }
     if (hand.current) {
-      hand.current.position.z = 0.42;
-      hand.current.rotation.z = (1 - p) * 0.4 * sim.reachSide;
+      hand.current.position.copy(_hand);
+      hand.current.lookAt(_to);
+      hand.current.scale.setScalar(0.7 + p * 0.45);
     }
   });
 
   return (
-    <group ref={group} visible={false}>
-      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0.18]} castShadow>
-        <capsuleGeometry args={[0.042, 0.28, 6, 12]} />
-        <meshStandardMaterial
-          map={scaleTex}
-          color="#6ecabb"
-          roughness={0.58}
-          metalness={0.04}
-        />
+    <group ref={group} visible={false} renderOrder={2}>
+      <mesh ref={upper} material={skin} scale={[1, 0.2, 1]} castShadow>
+        <capsuleGeometry args={[0.028, 1, 5, 10]} />
       </mesh>
-      <group ref={hand} position={[0, 0, 0.42]}>
-        <mesh>
-          <sphereGeometry args={[0.05, 12, 12]} />
-          <meshStandardMaterial color="#7acfc0" roughness={0.55} map={scaleTex} />
+      <mesh ref={lower} material={skin} scale={[1, 0.2, 1]} castShadow>
+        <capsuleGeometry args={[0.024, 1, 5, 10]} />
+      </mesh>
+      <group ref={hand}>
+        <mesh material={skin}>
+          <sphereGeometry args={[0.038, 12, 12]} />
         </mesh>
-        <Toe position={[0.03, 0.01, 0.03]} rotation={[-0.2, 0.4, 0.2]} length={0.07} />
-        <Toe position={[0.012, 0.02, 0.04]} rotation={[-0.1, 0.12, 0.05]} length={0.08} />
-        <Toe position={[-0.012, 0.02, 0.04]} rotation={[-0.1, -0.12, -0.05]} length={0.08} />
-        <Toe position={[-0.03, 0.01, 0.03]} rotation={[-0.2, -0.4, -0.2]} length={0.07} />
+        <mesh position={[0.028, 0.008, 0.03]} rotation={[0.5, 0.4, 0.2]} material={skin}>
+          <capsuleGeometry args={[0.009, 0.046, 3, 6]} />
+        </mesh>
+        <mesh position={[-0.028, 0.008, 0.03]} rotation={[0.5, -0.4, -0.2]} material={skin}>
+          <capsuleGeometry args={[0.009, 0.046, 3, 6]} />
+        </mesh>
+        <mesh position={[0.01, 0.014, 0.04]} rotation={[0.35, 0.1, 0]} material={skin}>
+          <capsuleGeometry args={[0.008, 0.05, 3, 6]} />
+        </mesh>
+        <mesh position={[-0.01, 0.014, 0.04]} rotation={[0.35, -0.1, 0]} material={skin}>
+          <capsuleGeometry args={[0.008, 0.05, 3, 6]} />
+        </mesh>
       </group>
     </group>
   );

@@ -14,6 +14,7 @@ function lerp(a: number, b: number, t: number) {
 
 export function Chameleon() {
   const { viewport, pointer, clock } = useThree();
+  const isCoarse = useExperience((s) => s.isCoarse);
   const map = useTexture("/chameleon.jpg");
   const depth = useTexture("/depth.png");
   const mask = useTexture("/body-mask.png");
@@ -182,12 +183,28 @@ export function Chameleon() {
     u.uEnergy.value = sim.energy;
   });
 
-  const w = viewport.width * 1.04;
-  const h = viewport.height * 1.04;
+  const imgAspect = 2048 / 1152;
+  const vw = viewport.width;
+  const vh = viewport.height;
+  let w = vw * 1.02;
+  let h = w / imgAspect;
+  if (isCoarse || vh / vw > 1.15) {
+    h = vh * 0.58;
+    w = h * imgAspect;
+    if (w > vw * 0.96) {
+      w = vw * 0.96;
+      h = w / imgAspect;
+    }
+  } else if (h < vh * 1.02) {
+    h = vh * 1.02;
+    w = h * imgAspect;
+  }
+  sim.planeWidth = w;
+  sim.planeHeight = h;
 
   return (
-    <mesh position={[0, 0, 0]} frustumCulled={false}>
-      <planeGeometry args={[w, h, 140, 80]} />
+    <mesh position={[0, isCoarse ? 0.04 : 0, 0]} frustumCulled={false} raycast={() => {}}>
+      <planeGeometry args={[w, h, 128, 72]} />
       <primitive object={material} attach="material" />
     </mesh>
   );

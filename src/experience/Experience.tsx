@@ -1,4 +1,4 @@
-import { AdaptiveDpr, Preload } from "@react-three/drei";
+import { Preload } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Bloom, EffectComposer, Vignette } from "@react-three/postprocessing";
 import { Suspense, useMemo, useRef } from "react";
@@ -92,7 +92,7 @@ function Scene({ onReady }: { onReady: () => void }) {
             index={i}
             color={c.gem}
             position={c.world}
-            onActivate={() => activateCrystal(c.id, viewport)}
+            onActivate={() => activateCrystal(c.id)}
           />
           <CrystalSpores index={i} color={c.gem} />
         </group>
@@ -102,16 +102,17 @@ function Scene({ onReady }: { onReady: () => void }) {
       <EnergyStream />
       <CursorGlow />
       <CameraRig />
-      <EffectComposer enableNormalPass={false} multisampling={0}>
-        <Bloom
-          luminanceThreshold={1.05}
-          luminanceSmoothing={0.2}
-          intensity={0.7}
-          mipmapBlur
-        />
-        <Vignette eskil={false} offset={0.22} darkness={0.48} />
-      </EffectComposer>
-      <AdaptiveDpr pixelated={false} />
+      {isCoarse ? null : (
+        <EffectComposer enableNormalPass={false} multisampling={0}>
+          <Bloom
+            luminanceThreshold={1.15}
+            luminanceSmoothing={0.22}
+            intensity={0.45}
+            mipmapBlur
+          />
+          <Vignette eskil={false} offset={0.25} darkness={0.42} />
+        </EffectComposer>
+      )}
       <Preload all />
     </>
   );
@@ -131,7 +132,7 @@ export function Experience({ onReady }: { onReady: () => void }) {
       onCreated={({ gl }) => {
         gl.setClearColor("#e6d3b4", 1);
         gl.toneMapping = THREE.ACESFilmicToneMapping;
-        gl.toneMappingExposure = 1.05;
+        gl.toneMappingExposure = 0.96;
       }}
     >
       <Suspense fallback={null}>

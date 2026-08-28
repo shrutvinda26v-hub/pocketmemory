@@ -65,7 +65,7 @@ export function Crystal({ index, color, position, onActivate }: Props) {
           transparent
           opacity={0.92}
           emissive={gemColor}
-          emissiveIntensity={0.35}
+          emissiveIntensity={0.55}
           clearcoat={1}
           clearcoatRoughness={0.1}
         />
@@ -112,7 +112,7 @@ export function Crystal({ index, color, position, onActivate }: Props) {
           document.body.style.cursor = "auto";
         }}
       >
-        <sphereGeometry args={[0.2, 12, 12]} />
+        <sphereGeometry args={[0.28, 12, 12]} />
         <meshBasicMaterial transparent opacity={0} depthWrite={false} />
       </mesh>
     </group>

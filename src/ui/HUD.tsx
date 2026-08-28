@@ -36,28 +36,31 @@ export function HUD({ ready }: { ready: boolean }) {
 
       <AnimatePresence>
         {ready && instructionVisible && (
-          <motion.p
+          <motion.div
             key="hint"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 0.82, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.9, delay: 0.45 }}
+            initial={{ opacity: 0, y: 10, x: "-50%" }}
+            animate={{ opacity: 1, y: 0, x: "-50%" }}
+            exit={{ opacity: 0, y: -8, x: "-50%" }}
+            transition={{ duration: 0.9, delay: 0.55 }}
             style={{
               position: "absolute",
-              left: 0,
-              right: 0,
-              bottom: isCoarse ? 28 : 36,
-              textAlign: "center",
+              left: "50%",
+              bottom: isCoarse ? 88 : 56,
+              padding: "10px 22px",
+              borderRadius: 999,
+              background: "rgba(255, 248, 236, 0.72)",
+              boxShadow: "0 8px 32px rgba(74, 59, 42, 0.12)",
+              backdropFilter: "blur(10px)",
               fontFamily: '"Cormorant Garamond", serif',
-              fontSize: isCoarse ? 22 : 26,
+              fontSize: isCoarse ? 20 : 24,
               letterSpacing: "0.18em",
               fontStyle: "italic",
-              color: "#4a3b2a",
-              margin: 0,
+              color: "#3d3124",
+              whiteSpace: "nowrap",
             }}
           >
             {isCoarse ? "Touch a crystal." : "Choose a color."}
-          </motion.p>
+          </motion.div>
         )}
       </AnimatePresence>
 

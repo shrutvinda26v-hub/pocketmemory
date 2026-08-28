@@ -28,6 +28,8 @@ export const sim = {
   pointerNdc: new THREE.Vector2(),
   pointerWorld: new THREE.Vector3(),
   cameraZoom: 0,
+  planeWidth: 3.2,
+  planeHeight: 1.8,
 };
 
 export const NATURAL_TINT = new THREE.Color("#5ec4b6");

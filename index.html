@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Memento Mori — Spring Release</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <main class="stage">
+      <figure class="poster">
+        <img
+          id="frame"
+          src="/memento-mori-hands-release-springs.png"
+          alt="Memento Mori poster: hands releasing glossy green toy eyes on metal springs"
+        />
+      </figure>
+
+      <nav class="filmstrip" aria-label="Poster frames">
+        <button type="button" data-src="/memento-mori-original.png" data-label="Eyes held in sockets">
+          Sockets
+        </button>
+        <button type="button" data-src="/memento-mori-springs.png" data-label="Eyes sprung out">
+          Springs
+        </button>
+        <button type="button" class="is-active" data-src="/memento-mori-hands-release-springs.png" data-label="Hands release">
+          Release
+        </button>
+      </nav>
+    </main>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

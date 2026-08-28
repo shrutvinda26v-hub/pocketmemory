@@ -25,8 +25,7 @@ export async function createChameleonScene(canvas) {
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.08;
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFShadowMap;
+  renderer.shadowMap.enabled = false;
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 40);
@@ -66,13 +65,11 @@ export async function createChameleonScene(canvas) {
   );
   floor.rotation.x = -Math.PI / 2;
   floor.position.y = -0.62;
-  floor.receiveShadow = true;
+  floor.receiveShadow = false;
   scene.add(floor);
 
-  const key = new THREE.SpotLight(0xfff1dc, 22, 14, 0.4, 0.6, 1);
-  key.position.set(0.15, 3.4, 1.8);
-  key.castShadow = true;
-  key.shadow.mapSize.set(1024, 1024);
+  const key = new THREE.SpotLight(0xfff1dc, 18, 14, 0.4, 0.65, 1);
+  key.position.set(0.15, 3.2, 2.0);
   key.target.position.set(0, 0.1, 0.15);
   scene.add(key, key.target);
 
@@ -93,10 +90,10 @@ export async function createChameleonScene(canvas) {
   controls.dampingFactor = 0.07;
   controls.minDistance = 1.8;
   controls.maxDistance = 3.8;
-  controls.minPolarAngle = Math.PI * 0.42;
-  controls.maxPolarAngle = Math.PI * 0.56;
-  controls.minAzimuthAngle = -1.05;
-  controls.maxAzimuthAngle = 1.05;
+  controls.minPolarAngle = Math.PI * 0.46;
+  controls.maxPolarAngle = Math.PI * 0.54;
+  controls.minAzimuthAngle = -0.48;
+  controls.maxAzimuthAngle = 0.48;
   controls.target.set(0, 0.06, 0);
   controls.autoRotate = true;
   controls.autoRotateSpeed = 0.7;

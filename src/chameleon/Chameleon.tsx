@@ -6,6 +6,7 @@ import { soundscape } from "../audio/soundscape";
 import { CRYSTALS } from "../experience/crystals";
 import { sim } from "../experience/sim";
 import { useExperience } from "../experience/store";
+import { getPlaneSize } from "../experience/layout";
 import { chameleonFragment, chameleonVertex } from "./chameleonShaders";
 
 function lerp(a: number, b: number, t: number) {
@@ -15,13 +16,13 @@ function lerp(a: number, b: number, t: number) {
 export function Chameleon() {
   const { viewport, pointer, clock } = useThree();
   const isCoarse = useExperience((s) => s.isCoarse);
-  const map = useTexture("/chameleon.jpg");
+  const map = useTexture("/chameleon.png");
   const depth = useTexture("/depth.png");
   const mask = useTexture("/body-mask.png");
   const material = useMemo(() => {
     map.colorSpace = THREE.SRGBColorSpace;
     map.minFilter = THREE.LinearMipmapLinearFilter;
-    map.anisotropy = 8;
+    map.anisotropy = 16;
     depth.colorSpace = THREE.NoColorSpace;
     mask.colorSpace = THREE.NoColorSpace;
     depth.minFilter = THREE.LinearFilter;
@@ -185,28 +186,13 @@ export function Chameleon() {
     u.uEnergy.value = sim.energy;
   });
 
-  const imgAspect = 2048 / 1152;
-  const vw = viewport.width;
-  const vh = viewport.height;
-  let w = vw * 1.02;
-  let h = w / imgAspect;
-  if (isCoarse || vh / vw > 1.15) {
-    h = vh * 0.58;
-    w = h * imgAspect;
-    if (w > vw * 0.96) {
-      w = vw * 0.96;
-      h = w / imgAspect;
-    }
-  } else if (h < vh * 1.02) {
-    h = vh * 1.02;
-    w = h * imgAspect;
-  }
+  const { width: w, height: h } = getPlaneSize(viewport.width, viewport.height, isCoarse);
   sim.planeWidth = w;
   sim.planeHeight = h;
 
   return (
-    <mesh position={[0, isCoarse ? 0.04 : 0, 0]} frustumCulled={false} raycast={() => {}}>
-      <planeGeometry args={[w, h, 128, 72]} />
+    <mesh position={[0, isCoarse ? 0.02 : 0, 0]} frustumCulled={false} raycast={() => {}}>
+      <planeGeometry args={[w, h, 96, 54]} />
       <primitive object={material} attach="material" />
     </mesh>
   );

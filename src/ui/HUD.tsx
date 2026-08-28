@@ -7,7 +7,6 @@ export function HUD({ ready }: { ready: boolean }) {
   const instructionVisible = useExperience((s) => s.instructionVisible);
   const muted = useExperience((s) => s.muted);
   const isCoarse = useExperience((s) => s.isCoarse);
-  const phase = useExperience((s) => s.phase);
 
   return (
     <div
@@ -24,11 +23,11 @@ export function HUD({ ready }: { ready: boolean }) {
             key="boot"
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
             style={{
               position: "absolute",
               inset: 0,
-              background: "#e6d3b4",
+              background: "#ead9c0",
             }}
           />
         )}
@@ -36,31 +35,27 @@ export function HUD({ ready }: { ready: boolean }) {
 
       <AnimatePresence>
         {ready && instructionVisible && (
-          <motion.div
+          <motion.p
             key="hint"
-            initial={{ opacity: 0, y: 10, x: "-50%" }}
+            initial={{ opacity: 0, y: 8, x: "-50%" }}
             animate={{ opacity: 1, y: 0, x: "-50%" }}
-            exit={{ opacity: 0, y: -8, x: "-50%" }}
-            transition={{ duration: 0.9, delay: 0.55 }}
+            exit={{ opacity: 0, y: -6, x: "-50%" }}
+            transition={{ duration: 0.8, delay: 0.4 }}
             style={{
               position: "absolute",
               left: "50%",
-              bottom: isCoarse ? 88 : 56,
-              padding: "10px 22px",
-              borderRadius: 999,
-              background: "rgba(255, 248, 236, 0.72)",
-              boxShadow: "0 8px 32px rgba(74, 59, 42, 0.12)",
-              backdropFilter: "blur(10px)",
+              bottom: isCoarse ? 72 : 44,
+              margin: 0,
               fontFamily: '"Cormorant Garamond", serif',
-              fontSize: isCoarse ? 20 : 24,
-              letterSpacing: "0.18em",
+              fontSize: isCoarse ? 20 : 22,
+              letterSpacing: "0.16em",
               fontStyle: "italic",
               color: "#3d3124",
               whiteSpace: "nowrap",
             }}
           >
             {isCoarse ? "Touch a crystal." : "Choose a color."}
-          </motion.div>
+          </motion.p>
         )}
       </AnimatePresence>
 
@@ -83,7 +78,7 @@ export function HUD({ ready }: { ready: boolean }) {
             marginTop: 4,
             fontFamily: '"Cormorant Garamond", serif',
             fontSize: 18,
-            letterSpacing: "0.22em",
+            letterSpacing: "0.2em",
             fontStyle: "italic",
             color: "#3d3124",
           }}
@@ -108,9 +103,8 @@ export function HUD({ ready }: { ready: boolean }) {
           width: 40,
           height: 40,
           borderRadius: 999,
-          border: "1px solid rgba(74,59,42,0.18)",
-          background: "rgba(255,248,236,0.32)",
-          backdropFilter: "blur(10px)",
+          border: "1px solid rgba(74,59,42,0.2)",
+          background: "#ead9c0",
           color: "#4a3b2a",
           cursor: "pointer",
           display: "grid",
@@ -129,23 +123,6 @@ export function HUD({ ready }: { ready: boolean }) {
           </svg>
         )}
       </button>
-
-      {phase === "transforming" && (
-        <div
-          style={{
-            position: "absolute",
-            left: 0,
-            right: 0,
-            bottom: 22,
-            textAlign: "center",
-            fontSize: 10,
-            letterSpacing: "0.32em",
-            color: "rgba(74,59,42,0.45)",
-          }}
-        >
-          A CHANGE TRAVELS THROUGH THE SKIN
-        </div>
-      )}
     </div>
   );
 }

@@ -7,17 +7,15 @@ import { useExperience } from "./store";
 
 let activeTl: gsap.core.Timeline | null = null;
 
-function uvForSide(side: -1 | 1) {
-  return side < 0 ? new THREE.Vector2(0.40, 0.30) : new THREE.Vector2(0.54, 0.29);
+function uvForSide(side: -1 | 1, high: boolean) {
+  if (high) {
+    return side < 0 ? new THREE.Vector2(0.38, 0.5) : new THREE.Vector2(0.56, 0.5);
+  }
+  return side < 0 ? new THREE.Vector2(0.4, 0.3) : new THREE.Vector2(0.54, 0.29);
 }
 
-function worldForSide(side: -1 | 1) {
-  const uv = uvForSide(side);
-  return new THREE.Vector3(
-    (uv.x - 0.5) * sim.planeWidth,
-    (uv.y - 0.5) * sim.planeHeight,
-    0.16,
-  );
+function worldForUv(uv: THREE.Vector2, z = 0.12) {
+  return new THREE.Vector3((uv.x - 0.5) * sim.planeWidth, (uv.y - 0.5) * sim.planeHeight, z);
 }
 
 export function activateCrystal(id: CrystalId) {
@@ -36,15 +34,17 @@ export function activateCrystal(id: CrystalId) {
   const idx = CRYSTALS.findIndex((c) => c.id === id);
   const target = sim.crystalWorld[idx]?.clone() ?? new THREE.Vector3();
   const side: -1 | 1 = target.x < 0 ? -1 : 1;
+  const high = target.y > 0.04;
+  const uv = uvForSide(side, high);
   sim.reachSide = side;
-  sim.reachFrom.copy(worldForSide(side));
+  sim.reachFrom.copy(worldForUv(uv));
   sim.reachTo.copy(target);
-  sim.spreadUv.copy(uvForSide(side));
+  sim.spreadUv.copy(uv);
 
   sim.fromColor.copy(sim.toColor);
   sim.fromAmount = sim.toAmount;
   sim.toColor.set(def.tint);
-  sim.toAmount = 0.86;
+  sim.toAmount = 0.82;
   sim.transition = 0;
   sim.lookTarget.set(
     THREE.MathUtils.clamp(target.x * 0.55, -0.85, 0.85),
@@ -65,25 +65,25 @@ export function activateCrystal(id: CrystalId) {
   });
   activeTl = tl;
 
-  tl.to(sim, { cameraZoom: 1, duration: 1.05, ease: "power2.out" }, 0);
-  tl.to(sim, { reach: 1, duration: 1.05, ease: "power2.inOut" }, 0.04);
+  tl.to(sim, { cameraZoom: 1, duration: 0.9, ease: "power2.out" }, 0);
+  tl.to(sim, { reach: 1, duration: 1.15, ease: "power3.inOut" }, 0.02);
 
   tl.add(() => {
     sim.pulse = 1;
     sim.energy = 1;
     useExperience.getState().setPhase("transforming");
     soundscape.transform(def.gem);
-  }, 1.0);
+  }, 1.12);
 
-  tl.to(sim, { transition: 1, duration: 1.55, ease: "power2.inOut" }, 1.0);
-  tl.to(sim, { pulse: 0, duration: 0.5, ease: "power2.out" }, 1.08);
-  tl.to(sim, { reach: 0, duration: 0.85, ease: "power2.inOut" }, 1.45);
-  tl.to(sim, { energy: 0, duration: 0.65, ease: "power1.out" }, 2.2);
-  tl.to(sim, { cameraZoom: 0, duration: 1.0, ease: "power2.inOut" }, 2.15);
+  tl.to(sim, { transition: 1, duration: 1.5, ease: "power2.inOut" }, 1.12);
+  tl.to(sim, { pulse: 0, duration: 0.4, ease: "power2.out" }, 1.2);
+  tl.to(sim, { reach: 0, duration: 0.9, ease: "power2.inOut" }, 1.55);
+  tl.to(sim, { energy: 0, duration: 0.55, ease: "power1.out" }, 2.2);
+  tl.to(sim, { cameraZoom: 0, duration: 0.95, ease: "power2.inOut" }, 2.15);
   tl.add(() => soundscape.resolve(), 2.35);
   tl.add(() => {
     sim.busy = false;
-  }, 1.9);
+  }, 1.95);
 }
 
 export function crystalById(id: CrystalId): CrystalDef | undefined {

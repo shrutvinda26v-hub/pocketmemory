@@ -20,7 +20,7 @@ void main() {
   vBody = body;
 
   vec3 pos = position;
-  pos.z += depth * 0.22;
+  pos.z += depth * 0.1;
 
   float chest = smoothstep(0.22, 0.48, uv.y) * smoothstep(0.72, 0.42, uv.y) * smoothstep(0.18, 0.4, uv.x) * smoothstep(0.78, 0.55, uv.x);
   pos.z += uBreathe * 0.028 * (0.35 + depth) * chest;
@@ -178,16 +178,13 @@ void main() {
     float att = uCrystalGlow[i] / (1.0 + dist * dist * 6.5);
     light += uCrystalCol[i] * att;
   }
-  color += color * light * 0.12 * body;
+  color += color * light * 0.04 * body;
 
-  float pulse = uPulse * exp(-length(p - origin) * 4.2) * body;
-  color += tintCol * pulse * 0.28;
+  float pulse = uPulse * exp(-length(p - origin) * 5.0) * body;
+  color += tintCol * pulse * 0.12;
 
-  float energyBand = uEnergy * smoothstep(0.16, 0.0, abs(d - uTransition * 0.9)) * body;
-  color += tintCol * energyBand * 0.16;
-
-  float luma = dot(color, vec3(0.299, 0.587, 0.114));
-  color += vec3(0.04, 0.035, 0.02) * pow(luma, 1.4) * body * 0.15;
+  float energyBand = uEnergy * smoothstep(0.12, 0.0, abs(d - uTransition * 0.9)) * body;
+  color += tintCol * energyBand * 0.08;
 
   gl_FragColor = vec4(color, 1.0);
 }

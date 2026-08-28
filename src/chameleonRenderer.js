@@ -89,28 +89,22 @@ void main() {
   vec4 src = texture(uTex, vUv);
   if (src.a < 0.01) discard;
 
-  // Head is the upper-center of the texture; tail curls lower-right.
-  vec2 head = vec2(0.50, 0.78);
-  vec2 tail = vec2(0.58, 0.16);
-  vec2 axis = tail - head;
-  float len = length(axis);
-  float along = dot(vUv - head, axis / len) / len;
+  // Head is the top of the image, tail sits lower-right.
+  // vUv.y = 1 at the crest, 0 at the floor after Y-flip.
+  float y = 1.0 - vUv.y;
+  y += (vUv.x - 0.52) * 0.16;
+  y += sin(vUv.x * 36.0 + vUv.y * 14.0) * 0.018;
+  y = clamp(y, 0.0, 1.0);
 
-  // Organic scale-to-scale jitter so the wave is not a hard curtain.
-  float grain = sin(vUv.x * 46.0 + vUv.y * 21.0) * 0.028
-    + sin(vUv.x * 17.0 - vUv.y * 29.0) * 0.016;
-  float y = clamp(along + grain, -0.08, 1.12);
-
-  float t = mix(-uSoftness, 1.0 + uSoftness * 2.0, uProgress);
+  float t = mix(-uSoftness, 1.0 + uSoftness, uProgress);
   float reveal = 1.0 - smoothstep(t - uSoftness, t + uSoftness, y);
 
   vec3 fromCol = tintSkin(src.rgb, uFrom, uFromAmt);
   vec3 toCol = tintSkin(src.rgb, uTo, uToAmt);
   vec3 mixed = mix(fromCol, toCol, reveal);
 
-  // A living leading edge — chromatophores catching light as colour arrives.
-  float front = 1.0 - smoothstep(0.0, 0.09, abs(y - uProgress * 0.92));
-  mixed += toCol * front * reveal * 0.18;
+  float front = exp(-pow((y - t) * 14.0, 2.0));
+  mixed += toCol * front * 0.28;
 
   outColor = vec4(mixed * src.a, src.a);
 }
@@ -196,7 +190,7 @@ export async function createChameleon(canvas, src) {
   };
 
   gl.uniform1i(uniforms.uTex, 0);
-  gl.uniform1f(uniforms.uSoftness, 0.16);
+  gl.uniform1f(uniforms.uSoftness, 0.11);
 
   const state = {
     from: [0.35, 0.62, 0.52],

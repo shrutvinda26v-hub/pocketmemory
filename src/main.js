@@ -100,7 +100,6 @@ async function boot() {
   const hudMeta = document.querySelector("#hud-meta");
   const lede = document.querySelector("#lede");
   const hint = document.querySelector("#hint");
-  const specimen = document.querySelector("#specimen");
 
   startDust(document.querySelector("#dust"));
   const chameleon = await createChameleon(canvas, "assets/chameleon.webp");
@@ -108,23 +107,8 @@ async function boot() {
 
   let activeId = null;
   let tween = null;
-  let drawing = false;
 
-  const loop = () => {
-    chameleon.draw();
-    if (drawing) requestAnimationFrame(loop);
-  };
-
-  const startDraw = () => {
-    if (drawing) return;
-    drawing = true;
-    requestAnimationFrame(loop);
-  };
-
-  const stopDraw = () => {
-    drawing = false;
-    chameleon.draw();
-  };
+  gsap.ticker.add(() => chameleon.draw());
 
   const applyMaterial = (material) => {
     if (activeId === material.id && chameleon.state.progress >= 1) return;
@@ -151,28 +135,15 @@ async function boot() {
     chameleon.state.toAmt = 1;
     chameleon.state.progress = 0;
 
-    const duration = reduceMotion ? 0.01 : 1.85;
-    startDraw();
+    const duration = reduceMotion ? 0.8 : 2.4;
     tween = gsap.to(chameleon.state, {
       progress: 1,
       duration,
-      ease: "power2.inOut",
-      onUpdate: () => {
-        if (reduceMotion) chameleon.draw();
-      },
+      ease: "none",
       onComplete: () => {
         hint.textContent = "CLICK ANOTHER MATERIAL";
-        stopDraw();
       },
     });
-
-    if (!reduceMotion) {
-      gsap.fromTo(
-        specimen,
-        { scale: 1 },
-        { scale: 1.012, duration: 0.45, yoyo: true, repeat: 1, ease: "sine.inOut" }
-      );
-    }
   };
 
   for (const button of buttons) {

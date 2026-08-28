@@ -140,8 +140,8 @@ body {
   left: 50%;
   top: 52%;
   transform: translate(-50%, -50%);
-  width: min(72vw, 820px);
-  aspect-ratio: 1331 / 1024;
+  width: min(68vw, 720px);
+  aspect-ratio: 1 / 1;
 }
 
 .specimen-inner {
@@ -293,33 +293,51 @@ h1 em {
 
 @media (max-width: 860px) {
   .hud {
-    padding: 18px 18px;
+    padding: 16px 16px;
   }
 
   .copy {
-    left: 18px;
-    right: 18px;
-    bottom: 132px;
+    left: 16px;
+    right: 16px;
+    bottom: 118px;
     max-width: none;
   }
 
   h1 {
-    font-size: 2rem;
+    font-size: 1.7rem;
+  }
+
+  .lede {
+    font-size: 0.82rem;
+    max-width: none;
   }
 
   .hint {
-    left: 18px;
-    right: auto;
-    bottom: 108px;
+    display: none;
   }
 
   .specimen {
-    width: min(92vw, 560px);
-    top: 44%;
+    width: min(88vw, 360px);
+    top: 36%;
+  }
+
+  .swatches {
+    inset: auto 0 12px 0;
+    height: 92px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    padding: 0 8px;
   }
 
   .swatch {
-    width: clamp(64px, 18vw, 92px);
+    position: relative;
+    left: auto !important;
+    top: auto !important;
+    transform: none;
+    width: clamp(52px, 14vw, 68px);
+    flex: 0 0 auto;
   }
 
   .swatch-label {

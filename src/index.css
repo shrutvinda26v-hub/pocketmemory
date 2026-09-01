@@ -1051,8 +1051,10 @@ ul {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  * {
-    animation: none !important;
-    transition: none !important;
+  .headline,
+  .product-card,
+  .video-card,
+  .pet {
+    animation: none;
   }
 }

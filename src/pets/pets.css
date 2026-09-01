@@ -8,6 +8,7 @@
   position: relative;
   width: 100%;
   will-change: transform;
+  transform-origin: 50% 100%;
 }
 
 .pet-motion.is-jumping {
@@ -58,6 +59,21 @@
   transform-origin: 50% 46%;
 }
 
+.pet-ear {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  will-change: transform;
+}
+
+.pet-ear img {
+  width: 100%;
+  height: auto;
+  display: block;
+  max-width: none;
+}
+
 .pet-eye {
   position: absolute;
   overflow: hidden;
@@ -78,8 +94,7 @@
 .pet-hit {
   position: absolute;
   z-index: 4;
-  pointer-events: auto;
-  cursor: pointer;
+  pointer-events: none;
 }
 
 .pet-retriever {

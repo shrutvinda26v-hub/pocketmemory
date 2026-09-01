@@ -7,11 +7,7 @@ import {
   type RefObject,
 } from 'react'
 import type { EyeConfig, PetConfig } from './config'
-
-// GSAP 3.15 skips tweens when the OS asks for reduced motion; hover greetings are user-initiated.
-gsap.config({ reducedMotion: 'off' } as Parameters<typeof gsap.config>[0] & {
-  reducedMotion: 'off'
-})
+import { playCatBounce, playDoxiePeek, playRetrieverJump } from './motion'
 
 type Pointer = { x: number; y: number }
 
@@ -19,6 +15,8 @@ type InteractivePetProps = {
   config: PetConfig
   pointer: RefObject<Pointer>
   reducedMotion: boolean
+  isHovering: boolean
+  lookOnly: boolean
 }
 
 function Photo({ src, webp, alt }: { src: string; webp?: string; alt: string }) {
@@ -32,111 +30,13 @@ function Photo({ src, webp, alt }: { src: string; webp?: string; alt: string }) 
   )
 }
 
-function playRetrieverJump(motion: HTMLElement, tail: HTMLElement | null, rest = 0) {
-  const tl = gsap.timeline()
-  tl.to(motion, {
-    y: 5,
-    scaleY: 0.98,
-    duration: 0.13,
-    ease: 'power2.in',
-    transformOrigin: '50% 100%',
-  })
-    .to(motion, {
-      y: -28,
-      scaleY: 1.025,
-      rotation: 0.9,
-      duration: 0.28,
-      ease: 'power2.out',
-    })
-    .to(motion, { y: -28, duration: 0.08, ease: 'none' })
-    .to(motion, {
-      y: 0,
-      scaleY: 0.97,
-      rotation: 0,
-      duration: 0.12,
-      ease: 'power2.in',
-    })
-    .to(motion, {
-      scaleY: 1,
-      duration: 0.16,
-      ease: 'power1.out',
-    })
-
-  if (tail) {
-    tl.to(tail, { rotation: rest - 12, duration: 0.1, ease: 'sine.inOut' }, 0.08)
-      .to(tail, { rotation: rest + 15, duration: 0.1, ease: 'sine.inOut' })
-      .to(tail, { rotation: rest - 10, duration: 0.1, ease: 'sine.inOut' })
-      .to(tail, { rotation: rest + 8, duration: 0.09, ease: 'sine.inOut' })
-      .to(tail, { rotation: rest, duration: 0.2, ease: 'power2.out' })
-  }
-
-  return tl
-}
-
-function playCatBounce(motion: HTMLElement, tail: HTMLElement | null, rest = 0) {
-  const tl = gsap.timeline()
-  tl.to(motion, {
-    y: -13,
-    scale: 1.04,
-    rotation: -1.2,
-    duration: 0.22,
-    ease: 'power2.out',
-    transformOrigin: '50% 100%',
-  })
-    .to(motion, {
-      y: -4,
-      scale: 0.98,
-      rotation: 1,
-      duration: 0.18,
-      ease: 'power1.inOut',
-    })
-    .to(motion, {
-      y: 0,
-      scale: 1,
-      rotation: 0,
-      duration: 0.28,
-      ease: 'power2.out',
-    })
-
-  if (tail) {
-    tl.to(tail, { rotation: rest + 10, duration: 0.18, ease: 'sine.out' }, 0.04)
-      .to(tail, { rotation: rest - 8, duration: 0.16, ease: 'sine.inOut' })
-      .to(tail, { rotation: rest, duration: 0.28, ease: 'power2.out' })
-  }
-
-  return tl
-}
-
-function playDoxiePeek(motion: HTMLElement) {
-  return gsap
-    .timeline()
-    .to(motion, {
-      y: -20,
-      rotation: -1.4,
-      duration: 0.42,
-      ease: 'power2.out',
-      transformOrigin: '50% 100%',
-    })
-    .to(motion, {
-      y: -15,
-      duration: 0.14,
-      ease: 'power1.in',
-    })
-    .to(motion, {
-      y: -20,
-      rotation: 0.8,
-      duration: 0.16,
-      ease: 'power1.out',
-    })
-    .to(motion, {
-      y: 0,
-      rotation: 0,
-      duration: 0.28,
-      ease: 'power2.inOut',
-    })
-}
-
-export function InteractivePet({ config, pointer, reducedMotion }: InteractivePetProps) {
+export function InteractivePet({
+  config,
+  pointer,
+  reducedMotion,
+  isHovering,
+  lookOnly,
+}: InteractivePetProps) {
   const rootRef = useRef<HTMLDivElement>(null)
   const motionRef = useRef<HTMLDivElement>(null)
   const idleRef = useRef<HTMLDivElement>(null)
@@ -147,12 +47,21 @@ export function InteractivePet({ config, pointer, reducedMotion }: InteractivePe
   const rightEyeRef = useRef<HTMLDivElement>(null)
   const leftInnerRef = useRef<HTMLImageElement>(null)
   const rightInnerRef = useRef<HTMLImageElement>(null)
-  const hitRef = useRef<HTMLDivElement>(null)
+  const leftEarRef = useRef<HTMLDivElement>(null)
+  const rightEarRef = useRef<HTMLDivElement>(null)
   const idleTween = useRef<ReturnType<typeof gsap.to> | null>(null)
-  const [size, setSize] = useState({ w: 0, h: 0 })
-  const hoverRef = useRef(false)
+  const jumpTl = useRef<ReturnType<typeof gsap.timeline> | null>(null)
   const animatingRef = useRef(false)
+  const headReadyRef = useRef(config.id !== 'doxie')
+  const hoverRef = useRef(isHovering)
+  const lookOnlyRef = useRef(lookOnly)
   const lookRef = useRef({ eyeX: 0, eyeY: 0, headX: 0, headY: 0, headRot: 0 })
+  const [size, setSize] = useState({ w: 0, h: 0 })
+
+  useEffect(() => {
+    hoverRef.current = isHovering
+    lookOnlyRef.current = lookOnly
+  }, [isHovering, lookOnly])
 
   useLayoutEffect(() => {
     const photo = photoRef.current
@@ -206,6 +115,22 @@ export function InteractivePet({ config, pointer, reducedMotion }: InteractivePe
   }, [config.idle.breath, config.idle.duration, reducedMotion])
 
   useEffect(() => {
+    if (config.id !== 'doxie') {
+      headReadyRef.current = true
+      return
+    }
+    if (!isHovering) {
+      headReadyRef.current = true
+      return
+    }
+    headReadyRef.current = false
+    const timeout = window.setTimeout(() => {
+      headReadyRef.current = true
+    }, 100)
+    return () => window.clearTimeout(timeout)
+  }, [config.id, isHovering])
+
+  useEffect(() => {
     const figure = figureRef.current
     const leftInner = leftInnerRef.current
     const rightInner = rightInnerRef.current
@@ -218,11 +143,17 @@ export function InteractivePet({ config, pointer, reducedMotion }: InteractivePe
     const setLeftY = gsap.quickSetter(leftInner, 'y', 'px')
     const setRightX = gsap.quickSetter(rightInner, 'x', 'px')
     const setRightY = gsap.quickSetter(rightInner, 'y', 'px')
+    const leftEar = leftEarRef.current
+    const rightEar = rightEarRef.current
+    const setLeftEar = leftEar ? gsap.quickSetter(leftEar, 'rotation', 'deg') : null
+    const setRightEar = rightEar ? gsap.quickSetter(rightEar, 'rotation', 'deg') : null
 
     let raf = 0
     const tick = () => {
       const root = rootRef.current
-      if (!root) {
+      const px = pointer.current.x
+      const py = pointer.current.y
+      if (!root || !Number.isFinite(px) || !Number.isFinite(py)) {
         raf = requestAnimationFrame(tick)
         return
       }
@@ -230,30 +161,27 @@ export function InteractivePet({ config, pointer, reducedMotion }: InteractivePe
       const rect = root.getBoundingClientRect()
       const faceX = rect.left + rect.width * 0.5
       const faceY = rect.top + rect.height * (config.id === 'retriever' ? 0.32 : 0.4)
-      const dx = pointer.current.x - faceX
-      const dy = pointer.current.y - faceY
+      const dx = px - faceX
+      const dy = py - faceY
       const dist = Math.hypot(dx, dy)
       const nx = Math.max(-1, Math.min(1, dx / 140))
       const ny = Math.max(-1, Math.min(1, dy / 110))
       const hovered = hoverRef.current
+      const watchingOther = lookOnlyRef.current
       const near = dist < config.look.proximity
-      const headOn = hovered ? 1 : 0
-      const eyeOn = hovered ? 1 : near ? 0.42 : 0
-
-      const targetEyeX = nx * eyeOn
-      const targetEyeY = ny * eyeOn
-      const targetHeadX = nx * headOn
-      const targetHeadY = ny * headOn
-      const targetHeadRot = nx * headOn
+      const catNear = config.id === 'cat' && near && !watchingOther
+      const headOn = hovered && headReadyRef.current ? 1 : catNear ? 0.55 : 0
+      const eyeOn = hovered ? 1 : near ? (watchingOther ? 0.38 : 0.5) : 0
 
       const look = lookRef.current
       const eyeLerp = config.look.eyeLerp
-      const headLerp = hovered ? config.look.headLerp : 0.045
-      look.eyeX += (targetEyeX - look.eyeX) * eyeLerp
-      look.eyeY += (targetEyeY - look.eyeY) * eyeLerp
-      look.headX += (targetHeadX - look.headX) * headLerp
-      look.headY += (targetHeadY - look.headY) * headLerp
-      look.headRot += (targetHeadRot - look.headRot) * headLerp
+      const leaving = !hovered && !catNear
+      const headLerp = leaving ? Math.min(config.look.headLerp, 0.08) : config.look.headLerp
+      look.eyeX += (nx * eyeOn - look.eyeX) * eyeLerp
+      look.eyeY += (ny * eyeOn - look.eyeY) * eyeLerp
+      look.headX += (nx * headOn - look.headX) * headLerp
+      look.headY += (ny * headOn - look.headY) * headLerp
+      look.headRot += (nx * headOn - look.headRot) * headLerp
 
       setFigX(look.headX * config.look.headX)
       setFigY(look.headY * config.look.headY)
@@ -262,6 +190,12 @@ export function InteractivePet({ config, pointer, reducedMotion }: InteractivePe
       setLeftY(look.eyeY * config.look.pupilY)
       setRightX(look.eyeX * config.look.pupilX)
       setRightY(look.eyeY * config.look.pupilY)
+
+      if (!animatingRef.current && setLeftEar && setRightEar) {
+        const ear = look.headRot * (config.id === 'doxie' ? 2.4 : 1.6)
+        setLeftEar(ear)
+        setRightEar(-ear)
+      }
 
       raf = requestAnimationFrame(tick)
     }
@@ -292,92 +226,65 @@ export function InteractivePet({ config, pointer, reducedMotion }: InteractivePe
     return () => window.clearTimeout(timeout)
   }, [reducedMotion, size.w])
 
-  const playReaction = () => {
-    if (animatingRef.current) return
+  useEffect(() => {
+    if (reducedMotion || !config.ears) return
+    const left = leftEarRef.current
+    const right = rightEarRef.current
+    if (!left || !right) return
+
+    let timeout: number
+    const twitch = () => {
+      if (!animatingRef.current) {
+        const amount = config.id === 'doxie' ? 5 : 3.5
+        gsap.to(left, { rotation: amount, duration: 0.18, yoyo: true, repeat: 1, ease: 'sine.inOut' })
+        gsap.to(right, { rotation: -amount, duration: 0.18, yoyo: true, repeat: 1, ease: 'sine.inOut' })
+      }
+      timeout = window.setTimeout(twitch, 4200 + Math.random() * 3800)
+    }
+    timeout = window.setTimeout(twitch, 2400 + Math.random() * 1800)
+    return () => window.clearTimeout(timeout)
+  }, [config.ears, config.id, reducedMotion])
+
+  useEffect(() => {
+    if (!isHovering) return
     const motion = motionRef.current
-    if (!motion) return
+    if (!motion || animatingRef.current) return
+
     animatingRef.current = true
     motion.classList.add('is-jumping')
     idleTween.current?.pause()
     gsap.set(idleRef.current, { y: 0 })
 
+    const targets = {
+      motion,
+      tail: tailRef.current,
+      leftEar: leftEarRef.current,
+      rightEar: rightEarRef.current,
+      tailRest: config.tail?.rotate ?? 0,
+    }
+
     const timeline =
       config.jump.type === 'retriever'
-        ? playRetrieverJump(motion, tailRef.current, config.tail?.rotate ?? 0)
+        ? playRetrieverJump(targets)
         : config.jump.type === 'cat'
-          ? playCatBounce(motion, tailRef.current, config.tail?.rotate ?? 0)
-          : playDoxiePeek(motion)
+          ? playCatBounce(targets)
+          : playDoxiePeek(targets)
 
+    jumpTl.current = timeline
     timeline.eventCallback('onComplete', () => {
       animatingRef.current = false
       motion.classList.remove('is-jumping')
+      gsap.set(motion, { y: 0, scale: 1, scaleY: 1, rotation: 0 })
       idleTween.current?.restart(true)
+      jumpTl.current = null
     })
-  }
-
-  const playRef = useRef(playReaction)
+  }, [config.jump.type, config.tail?.rotate, isHovering])
 
   useEffect(() => {
-    playRef.current = playReaction
-  })
-
-  useEffect(() => {
-    const hit = hitRef.current
-    if (!hit) return
-    const trigger = () => playRef.current()
-    hit.addEventListener('click', trigger)
-    hit.addEventListener('mouseenter', trigger)
-    hit.addEventListener('pointerenter', trigger)
-    const onDocClick = (event: MouseEvent) => {
-      if (hit.contains(event.target as Node) || event.target === hit) trigger()
-    }
-    document.addEventListener('click', onDocClick, true)
     return () => {
-      hit.removeEventListener('click', trigger)
-      hit.removeEventListener('mouseenter', trigger)
-      hit.removeEventListener('pointerenter', trigger)
-      document.removeEventListener('click', onDocClick, true)
+      jumpTl.current?.kill()
     }
   }, [])
-
-  useEffect(() => {
-    const onMove = (event: MouseEvent) => {
-      pointer.current.x = event.clientX
-      pointer.current.y = event.clientY
-      const hit = hitRef.current
-      if (!hit) return
-      const box = hit.getBoundingClientRect()
-      const inside =
-        event.clientX >= box.left &&
-        event.clientX <= box.right &&
-        event.clientY >= box.top &&
-        event.clientY <= box.bottom
-      if (inside && !hoverRef.current) {
-        hoverRef.current = true
-        playRef.current()
-      } else if (!inside && hoverRef.current) {
-        hoverRef.current = false
-      }
-    }
-    document.addEventListener('mousemove', onMove, { passive: true })
-    document.addEventListener('pointermove', onMove, { passive: true })
-    return () => {
-      document.removeEventListener('mousemove', onMove)
-      document.removeEventListener('pointermove', onMove)
-    }
-  }, [pointer])
-
-  const onEnter = () => {
-    if (!hoverRef.current) {
-      hoverRef.current = true
-      playReaction()
-    }
-    hoverRef.current = true
-  }
-
-  const onLeave = () => {
-    hoverRef.current = false
-  }
 
   const eyeWindow = (eye: EyeConfig, side: 'left' | 'right') => {
     const { w, h } = size
@@ -405,7 +312,11 @@ export function InteractivePet({ config, pointer, reducedMotion }: InteractivePe
   }
 
   return (
-    <div className={`pet ${config.className}`} ref={rootRef}>
+    <div
+      className={`pet ${config.className}${isHovering ? ' is-hovered' : ''}`}
+      data-pet={config.id}
+      ref={rootRef}
+    >
       <div className="pet-motion" ref={motionRef}>
         <div className="pet-idle" ref={idleRef}>
           {config.tail ? (
@@ -426,6 +337,30 @@ export function InteractivePet({ config, pointer, reducedMotion }: InteractivePe
           <div className="pet-figure" ref={figureRef}>
             <div className="pet-photo-wrap" ref={photoRef}>
               <Photo src={config.src} webp={config.webp} alt={config.alt} />
+              {config.ears ? (
+                <>
+                  <div
+                    className="pet-ear"
+                    ref={leftEarRef}
+                    style={{
+                      clipPath: config.ears.left.clip,
+                      transformOrigin: config.ears.left.origin,
+                    }}
+                  >
+                    <img src={config.src} alt="" draggable={false} />
+                  </div>
+                  <div
+                    className="pet-ear"
+                    ref={rightEarRef}
+                    style={{
+                      clipPath: config.ears.right.clip,
+                      transformOrigin: config.ears.right.origin,
+                    }}
+                  >
+                    <img src={config.src} alt="" draggable={false} />
+                  </div>
+                </>
+              ) : null}
               {eyeWindow(config.eyes.left, 'left')}
               {eyeWindow(config.eyes.right, 'right')}
             </div>
@@ -434,20 +369,13 @@ export function InteractivePet({ config, pointer, reducedMotion }: InteractivePe
       </div>
       <div
         className="pet-hit"
-        ref={hitRef}
         style={{
           top: config.hit.top,
           right: config.hit.right,
           bottom: config.hit.bottom,
           left: config.hit.left,
         }}
-        onPointerEnter={onEnter}
-        onPointerOver={onEnter}
-        onMouseEnter={onEnter}
-        onClick={onEnter}
-        onPointerLeave={onLeave}
-        onMouseLeave={onLeave}
-        aria-label={config.alt}
+        aria-hidden="true"
       />
     </div>
   )

@@ -20,8 +20,10 @@ export type EarConfig = {
   origin: string
 }
 
+export type PetId = 'retriever' | 'cat' | 'doxie'
+
 export type PetConfig = {
-  id: 'retriever' | 'cat' | 'doxie'
+  id: PetId
   src: string
   webp?: string
   alt: string
@@ -76,6 +78,16 @@ export const retrieverPet: PetConfig = {
   },
   jump: { type: 'retriever' },
   idle: { breath: 2.4, duration: 3.6 },
+  ears: {
+    left: {
+      clip: 'ellipse(16% 18% at 28% 36%)',
+      origin: '30% 32%',
+    },
+    right: {
+      clip: 'ellipse(16% 18% at 72% 36%)',
+      origin: '70% 32%',
+    },
+  },
   tail: {
     src: '/images/retriever-tail.png',
     width: 0.42,
@@ -84,7 +96,7 @@ export const retrieverPet: PetConfig = {
     origin: '18% 58%',
     rotate: 18,
   },
-  hit: { top: '6%', right: '12%', bottom: '32%', left: '12%' },
+  hit: { top: '0%', right: '6%', bottom: '20%', left: '6%' },
 }
 
 export const catPet: PetConfig = {
@@ -126,7 +138,7 @@ export const catPet: PetConfig = {
       origin: '68% 38%',
     },
   },
-  hit: { top: '8%', right: '8%', bottom: '28%', left: '8%' },
+  hit: { top: '2%', right: '2%', bottom: '18%', left: '2%' },
 }
 
 export const doxiePet: PetConfig = {
@@ -160,5 +172,5 @@ export const doxiePet: PetConfig = {
       origin: '66% 28%',
     },
   },
-  hit: { top: '10%', right: '10%', bottom: '26%', left: '10%' },
+  hit: { top: '2%', right: '2%', bottom: '16%', left: '2%' },
 }

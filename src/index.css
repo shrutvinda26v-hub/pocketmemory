@@ -156,7 +156,7 @@ ul {
 .site-nav {
   display: flex;
   align-items: center;
-  gap: 2.15rem;
+  gap: 2.4rem;
 }
 
 .nav-link {
@@ -245,7 +245,7 @@ ul {
   height: 16px;
   padding: 0 4px;
   border-radius: 999px;
-  background: var(--forest);
+  background: #2f7a52;
   color: var(--white);
   font-size: 0.62rem;
   font-weight: 700;
@@ -298,17 +298,17 @@ ul {
 
 .headline {
   position: absolute;
-  top: 11.5%;
+  top: 8.5%;
   left: 50%;
   transform: translateX(-50%);
-  width: 92%;
+  width: 94%;
   margin: 0;
   text-align: center;
   font-family: var(--display);
-  font-weight: 400;
-  font-size: clamp(3.4rem, 9.6cqi, 7.55rem);
-  line-height: 0.88;
-  letter-spacing: -0.048em;
+  font-weight: 300;
+  font-size: clamp(3.6rem, 11.4cqi, 8.35rem);
+  line-height: 0.86;
+  letter-spacing: -0.055em;
   color: var(--forest);
   z-index: 1;
   pointer-events: none;
@@ -316,10 +316,10 @@ ul {
 
 .product-card {
   position: absolute;
-  top: 16%;
-  left: 4.6%;
+  top: 11.5%;
+  left: 4.2%;
   z-index: 5;
-  width: min(188px, 16.2cqi);
+  width: min(176px, 15.2cqi);
 }
 
 .product-visual {
@@ -366,12 +366,12 @@ ul {
 
 .video-card {
   position: absolute;
-  top: 11%;
-  right: 4.4%;
+  top: 10%;
+  right: 4.1%;
   z-index: 5;
-  width: min(152px, 13.4cqi);
+  width: min(138px, 12.2cqi);
   background: var(--white);
-  padding: 8px 8px 18px;
+  padding: 7px 7px 16px;
   box-shadow: var(--shadow);
 }
 
@@ -429,27 +429,27 @@ ul {
 }
 
 .pet-doxie {
-  left: 7.2%;
-  bottom: 132px;
-  width: min(248px, 20.5cqi);
+  left: 5.6%;
+  bottom: 128px;
+  width: min(290px, 24.5cqi);
   z-index: 6;
   filter: drop-shadow(0 10px 14px rgba(18, 53, 44, 0.16));
 }
 
 .pet-retriever {
   left: 50%;
-  bottom: 108px;
+  bottom: 96px;
   transform: translateX(-50%);
-  width: min(560px, 44cqi);
+  width: min(640px, 52cqi);
   z-index: 8;
   display: block;
   filter: drop-shadow(0 14px 22px rgba(18, 53, 44, 0.2));
 }
 
 .pet-cat {
-  right: 6.8%;
-  bottom: 132px;
-  width: min(236px, 19.5cqi);
+  right: 5.2%;
+  bottom: 126px;
+  width: min(276px, 23.2cqi);
   z-index: 6;
   filter: drop-shadow(0 10px 14px rgba(18, 53, 44, 0.16));
 }
@@ -457,8 +457,8 @@ ul {
 .bottom {
   margin-top: auto;
   display: grid;
-  grid-template-columns: 1fr 1.08fr 1fr;
-  height: 210px;
+  grid-template-columns: 1fr 1fr 1fr;
+  height: 218px;
   flex-shrink: 0;
   position: relative;
   z-index: 2;
@@ -879,6 +879,10 @@ ul {
   animation: rise 700ms ease both;
 }
 
+.headline {
+  animation-name: rise-center;
+}
+
 .product-card {
   animation-delay: 80ms;
 }
@@ -953,12 +957,11 @@ ul {
   }
 
   .headline {
-    top: 9%;
-    font-size: clamp(2.6rem, 11cqi, 5.4rem);
+    top: 8%;
   }
 
   .product-card {
-    top: 12%;
+    top: 11%;
     left: 3.5%;
   }
 
@@ -968,16 +971,16 @@ ul {
   }
 
   .bottom {
-    height: 180px;
+    height: 188px;
   }
 
   .pet-doxie,
   .pet-cat {
-    bottom: 118px;
+    bottom: 112px;
   }
 
   .pet-retriever {
-    bottom: 96px;
+    bottom: 86px;
   }
 
   .page-main {
@@ -992,12 +995,12 @@ ul {
 
 @media (max-width: 720px) {
   .frame {
-    padding: 0;
+    padding: 10px;
   }
 
   .canvas-home {
     height: auto;
-    min-height: 100dvh;
+    min-height: calc(100dvh - 20px);
   }
 
   .wishlist-count,
@@ -1006,62 +1009,78 @@ ul {
   }
 
   .headline {
-    position: relative;
-    top: auto;
-    left: auto;
-    transform: none;
-    padding: 28px 18px 8px;
-    font-size: 3.1rem;
-    z-index: 4;
+    font-size: clamp(2.6rem, 14cqi, 3.6rem);
+    top: 6%;
+    width: 96%;
   }
 
-  .product-card,
-  .video-card {
-    position: relative;
-    top: auto;
-    left: auto;
-    right: auto;
-    width: auto;
-    margin: 8px 20px;
-    z-index: 4;
+  .product-card {
+    width: 132px;
+    top: 14%;
   }
 
   .video-card {
-    max-width: 220px;
-  }
-
-  .stage {
-    display: block;
-    padding-bottom: 0;
-  }
-
-  .pet-doxie,
-  .pet-cat,
-  .pet-retriever {
-    position: relative;
-    left: auto;
-    right: auto;
-    bottom: auto;
-    transform: none;
-    width: min(72%, 340px);
-    margin: -12px auto -36px;
-    z-index: 6;
-    display: block;
-  }
-
-  .pet-retriever {
-    width: min(92%, 420px);
-    margin-bottom: -48px;
-    animation: rise 900ms ease both;
+    width: 112px;
+    top: 10%;
   }
 
   .bottom {
-    height: auto;
-    grid-template-columns: 1fr;
+    height: 168px;
+    grid-template-columns: 1fr 1fr 1fr;
   }
 
-  .panel-forest {
-    min-height: 180px;
+  .panel {
+    padding: 16px 10px 18px;
+  }
+
+  .panel-copy br {
+    display: none;
+  }
+
+  .panel-copy {
+    font-size: 0.68rem;
+  }
+
+  .stat {
+    font-size: 1.5rem;
+  }
+
+  .cta {
+    padding: 4px 4px 4px 12px;
+    font-size: 0.72rem;
+    gap: 8px;
+  }
+
+  .cta-arrow {
+    width: 28px;
+    height: 28px;
+  }
+
+  .pet-doxie {
+    width: min(150px, 32cqi);
+    bottom: 96px;
+    left: 2%;
+  }
+
+  .pet-cat {
+    width: min(140px, 30cqi);
+    bottom: 96px;
+    right: 2%;
+  }
+
+  .pet-retriever {
+    width: min(280px, 70cqi);
+    bottom: 78px;
+  }
+
+  .clients-row {
+    gap: 6px;
+  }
+
+  .mini-avatar,
+  .plus-btn {
+    width: 24px;
+    height: 24px;
   }
 }
 

@@ -34,7 +34,7 @@ export function playRetrieverJump({ motion, tail, tailRest }: JumpTargets) {
       y: -30,
       scaleY: 1.03,
       rotation: -0.9,
-      duration: 0.1,
+      duration: 0.16,
       ease: 'sine.inOut',
     })
     .to(motion, {

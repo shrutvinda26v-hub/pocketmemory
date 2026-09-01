@@ -10,10 +10,10 @@ const SELECTOR: Record<PetId, string> = {
   cat: '.pet-cat',
   doxie: '.pet-doxie',
 }
-const BOTTOM_CUT: Record<PetId, number> = {
-  retriever: 0.22,
-  cat: 0.16,
-  doxie: 0.16,
+const HIT_INSET: Record<PetId, { top: number; bottom: number; side: number }> = {
+  retriever: { top: 0.3, bottom: 0.26, side: 0.2 },
+  cat: { top: 0.02, bottom: 0.16, side: 0.04 },
+  doxie: { top: 0.02, bottom: 0.16, side: 0.04 },
 }
 
 export function PetsStage() {
@@ -28,12 +28,12 @@ export function PetsStage() {
         const el = document.querySelector(SELECTOR[id])
         if (!(el instanceof HTMLElement)) continue
         const box = el.getBoundingClientRect()
-        const cut = box.height * BOTTOM_CUT[id]
+        const inset = HIT_INSET[id]
         if (
-          x >= box.left - 10 &&
-          x <= box.right + 10 &&
-          y >= box.top - 8 &&
-          y <= box.bottom - cut
+          x >= box.left + box.width * inset.side &&
+          x <= box.right - box.width * inset.side &&
+          y >= box.top + box.height * inset.top &&
+          y <= box.bottom - box.height * inset.bottom
         ) {
           return id
         }

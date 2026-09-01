@@ -19,22 +19,22 @@ export function playRetrieverJump({ motion, tail, tailRest }: JumpTargets) {
 
   tl.to(motion, {
     y: 5,
-    scaleY: 0.98,
-    duration: 0.12,
+    scaleY: 0.97,
+    duration: 0.13,
     ease: 'power2.in',
   })
     .to(motion, {
-      y: -26,
-      scaleY: 1.035,
+      y: -30,
+      scaleY: 1.04,
       rotation: 1,
       duration: 0.28,
       ease: 'power2.out',
     })
     .to(motion, {
-      y: -24,
-      scaleY: 1.02,
-      rotation: -0.85,
-      duration: 0.08,
+      y: -30,
+      scaleY: 1.03,
+      rotation: -0.9,
+      duration: 0.1,
       ease: 'sine.inOut',
     })
     .to(motion, {

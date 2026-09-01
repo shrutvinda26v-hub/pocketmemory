@@ -417,43 +417,6 @@ ul {
   padding: 0 6px;
 }
 
-.pet {
-  position: absolute;
-  pointer-events: none;
-  user-select: none;
-}
-
-.pet img {
-  width: 100%;
-  height: auto;
-}
-
-.pet-doxie {
-  left: 5.6%;
-  bottom: 128px;
-  width: min(290px, 24.5cqi);
-  z-index: 6;
-  filter: drop-shadow(0 10px 14px rgba(18, 53, 44, 0.16));
-}
-
-.pet-retriever {
-  left: 50%;
-  bottom: 96px;
-  transform: translateX(-50%);
-  width: min(640px, 52cqi);
-  z-index: 8;
-  display: block;
-  filter: drop-shadow(0 14px 22px rgba(18, 53, 44, 0.2));
-}
-
-.pet-cat {
-  right: 5.2%;
-  bottom: 126px;
-  width: min(276px, 23.2cqi);
-  z-index: 6;
-  filter: drop-shadow(0 10px 14px rgba(18, 53, 44, 0.16));
-}
-
 .bottom {
   margin-top: auto;
   display: grid;
@@ -891,10 +854,8 @@ ul {
   animation-delay: 140ms;
 }
 
-.pet-doxie,
-.pet-cat,
-.pet-retriever {
-  animation: rise 900ms ease both;
+.pet {
+  animation: pet-fade 900ms ease both;
 }
 
 .pet-doxie {
@@ -909,6 +870,15 @@ ul {
   animation-delay: 120ms;
 }
 
+@keyframes pet-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 @keyframes rise {
   from {
     opacity: 0;
@@ -918,10 +888,6 @@ ul {
     opacity: 1;
     transform: none;
   }
-}
-
-.pet-retriever {
-  animation-name: rise-center;
 }
 
 @keyframes rise-center {

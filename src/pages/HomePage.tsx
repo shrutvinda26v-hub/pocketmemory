@@ -7,6 +7,7 @@ import {
   PlusIcon,
   StarIcon,
 } from '../icons'
+import { PetsStage } from '../pets/PetsStage'
 
 export function HomePage() {
   return (
@@ -60,20 +61,7 @@ export function HomePage() {
           </p>
         </article>
 
-        <img
-          className="pet pet-doxie"
-          src="/images/dachshund.png"
-          alt="Brown dachshund peeking over the page"
-        />
-        <picture className="pet pet-retriever">
-          <source srcSet="/images/golden-retriever.webp" type="image/webp" />
-          <img src="/images/golden-retriever.png" alt="Golden retriever looking at the camera" />
-        </picture>
-        <img
-          className="pet pet-cat"
-          src="/images/tabby-cat.png"
-          alt="Orange tabby cat peeking over the page"
-        />
+        <PetsStage />
 
         <section className="bottom" aria-label="Store highlights">
           <div className="panel panel-mint">

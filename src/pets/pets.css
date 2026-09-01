@@ -1,0 +1,104 @@
+.pet {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+}
+
+.pet-motion,
+.pet-idle,
+.pet-figure,
+.pet-photo-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.pet-photo-wrap {
+  line-height: 0;
+}
+
+.pet-photo,
+.pet picture,
+.pet-photo-wrap img.pet-photo {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.pet-tail {
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.pet-tail img {
+  width: 100%;
+  height: auto;
+  display: block;
+  max-width: none;
+}
+
+.pet-figure {
+  z-index: 1;
+  will-change: transform;
+  transform-origin: 50% 42%;
+}
+
+.pet-doxie .pet-figure,
+.pet-cat .pet-figure {
+  transform-origin: 50% 46%;
+}
+
+.pet-eye {
+  position: absolute;
+  overflow: hidden;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 2;
+  will-change: transform;
+}
+
+.pet-eye-inner {
+  position: absolute;
+  max-width: none;
+  display: block;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.pet-hit {
+  position: absolute;
+  z-index: 4;
+  pointer-events: auto;
+  cursor: default;
+}
+
+.pet-retriever {
+  left: 50%;
+  bottom: 96px;
+  transform: translateX(-50%);
+  width: min(640px, 52cqi);
+  z-index: 8;
+  filter: drop-shadow(0 14px 22px rgba(18, 53, 44, 0.2));
+}
+
+.pet-doxie {
+  left: 5.6%;
+  bottom: 128px;
+  width: min(290px, 24.5cqi);
+  z-index: 6;
+  filter: drop-shadow(0 10px 14px rgba(18, 53, 44, 0.16));
+}
+
+.pet-cat {
+  right: 5.2%;
+  bottom: 126px;
+  width: min(276px, 23.2cqi);
+  z-index: 6;
+  filter: drop-shadow(0 10px 14px rgba(18, 53, 44, 0.16));
+}
+
+.panel-forest .cta {
+  position: relative;
+  z-index: 12;
+}

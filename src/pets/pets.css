@@ -4,7 +4,16 @@
   user-select: none;
 }
 
-.pet-motion,
+.pet-motion {
+  position: relative;
+  width: 100%;
+  will-change: transform;
+}
+
+.pet-motion.is-jumping {
+  filter: drop-shadow(0 18px 10px rgba(18, 53, 44, 0.28));
+}
+
 .pet-idle,
 .pet-figure,
 .pet-photo-wrap {
@@ -70,7 +79,7 @@
   position: absolute;
   z-index: 4;
   pointer-events: auto;
-  cursor: default;
+  cursor: pointer;
 }
 
 .pet-retriever {

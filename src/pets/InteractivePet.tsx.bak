@@ -8,10 +8,15 @@ import {
 } from 'react'
 import type { EyeConfig, PetConfig } from './config'
 
-// GSAP 3.15 skips tweens when the OS asks for reduced motion; hover greetings are user-initiated.
-gsap.config({ reducedMotion: 'off' } as Parameters<typeof gsap.config>[0] & {
-  reducedMotion: 'off'
-})
+gsap.config({ reducedMotion: 'off' })
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type RefObject,
+} from 'react'
+import type { EyeConfig, PetConfig } from './config'
 
 type Pointer = { x: number; y: number }
 
@@ -48,7 +53,6 @@ function playRetrieverJump(motion: HTMLElement, tail: HTMLElement | null, rest =
       duration: 0.28,
       ease: 'power2.out',
     })
-    .to(motion, { y: -28, duration: 0.08, ease: 'none' })
     .to(motion, {
       y: 0,
       scaleY: 0.97,

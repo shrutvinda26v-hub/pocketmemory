@@ -8,12 +8,16 @@ export function PetsStage() {
   const [reducedMotion, setReducedMotion] = useState(false)
 
   useEffect(() => {
-    const onMove = (event: PointerEvent) => {
+    const onMove = (event: MouseEvent) => {
       pointer.current.x = event.clientX
       pointer.current.y = event.clientY
     }
     window.addEventListener('pointermove', onMove, { passive: true })
-    return () => window.removeEventListener('pointermove', onMove)
+    window.addEventListener('mousemove', onMove, { passive: true })
+    return () => {
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('mousemove', onMove)
+    }
   }, [])
 
   useEffect(() => {

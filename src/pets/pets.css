@@ -101,7 +101,7 @@
   left: 50%;
   bottom: 96px;
   transform: translateX(-50%);
-  width: min(300px, 25cqi);
+  width: min(188px, 15.6cqi);
   z-index: 8;
   filter: drop-shadow(0 10px 16px rgba(18, 53, 44, 0.16));
 }

@@ -1380,7 +1380,7 @@ a.cta:not(:has(.cta-arrow)) {
   }
 
   .pet-retriever {
-    width: min(168px, 40cqi);
+    width: min(132px, 30cqi);
     bottom: 78px;
   }
 

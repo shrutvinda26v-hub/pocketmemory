@@ -297,8 +297,9 @@ export function InteractivePet({
     if (reducedMotion || !isHovering || boopNonce === 0) return
     const motion = motionRef.current
     const fx = fxRef.current
-    if (!motion || !fx || animatingRef.current) return
+    if (!motion || !fx) return
 
+    jumpTl.current?.kill()
     animatingRef.current = true
     motion.classList.add('is-jumping')
     idleTween.current?.pause()

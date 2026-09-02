@@ -7,7 +7,7 @@ import {
   type RefObject,
 } from 'react'
 import type { EyeConfig, PetConfig } from './config'
-import { playCatBounce, playDoxiePeek, playRetrieverJump } from './motion'
+import { playBoop, playCatBounce, playDoxiePeek, playPartyHop, playRetrieverJump } from './motion'
 
 type Pointer = { x: number; y: number }
 
@@ -17,6 +17,8 @@ type InteractivePetProps = {
   reducedMotion: boolean
   isHovering: boolean
   lookOnly: boolean
+  boopNonce: number
+  partyNonce: number
 }
 
 function Photo({ src, webp, alt }: { src: string; webp?: string; alt: string }) {
@@ -36,6 +38,8 @@ export function InteractivePet({
   reducedMotion,
   isHovering,
   lookOnly,
+  boopNonce,
+  partyNonce,
 }: InteractivePetProps) {
   const rootRef = useRef<HTMLDivElement>(null)
   const motionRef = useRef<HTMLDivElement>(null)
@@ -288,6 +292,76 @@ export function InteractivePet({
     isHovering,
     reducedMotion,
   ])
+
+  useEffect(() => {
+    if (reducedMotion || !isHovering || boopNonce === 0) return
+    const motion = motionRef.current
+    const fx = fxRef.current
+    if (!motion || !fx || animatingRef.current) return
+
+    animatingRef.current = true
+    motion.classList.add('is-jumping')
+    idleTween.current?.pause()
+    gsap.set(idleRef.current, { y: 0 })
+    const timeline = playBoop({
+      motion,
+      fx,
+      bubble: bubbleRef.current,
+      tail: tailRef.current,
+      leftEye: leftEyeRef.current,
+      rightEye: rightEyeRef.current,
+      tailRest: config.tail?.rotate ?? 0,
+      bits: config.surprise.bits,
+      bubbleText: config.surprise.boop,
+    })
+    jumpTl.current = timeline
+    timeline.eventCallback('onComplete', () => {
+      animatingRef.current = false
+      motion.classList.remove('is-jumping')
+      gsap.set(motion, { y: 0, rotation: 0 })
+      gsap.set(bubbleRef.current, { opacity: 0, y: 0, scale: 1 })
+      idleTween.current?.restart(true)
+      jumpTl.current = null
+    })
+  }, [
+    boopNonce,
+    config.surprise.bits,
+    config.surprise.boop,
+    config.tail?.rotate,
+    isHovering,
+    reducedMotion,
+  ])
+
+  useEffect(() => {
+    if (reducedMotion || partyNonce === 0) return
+    const motion = motionRef.current
+    const fx = fxRef.current
+    if (!motion || !fx || animatingRef.current) return
+
+    animatingRef.current = true
+    motion.classList.add('is-jumping')
+    idleTween.current?.pause()
+    gsap.set(idleRef.current, { y: 0 })
+    const timeline = playPartyHop({
+      motion,
+      fx,
+      bubble: bubbleRef.current,
+      tail: tailRef.current,
+      leftEye: leftEyeRef.current,
+      rightEye: rightEyeRef.current,
+      tailRest: 0,
+      bits: [],
+      bubbleText: '',
+    })
+    jumpTl.current = timeline
+    timeline.eventCallback('onComplete', () => {
+      animatingRef.current = false
+      motion.classList.remove('is-jumping')
+      gsap.set(motion, { y: 0, rotation: 0 })
+      idleTween.current?.restart(true)
+      jumpTl.current = null
+    })
+  }, [partyNonce, reducedMotion])
 
   useEffect(() => {
     return () => {

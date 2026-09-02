@@ -191,3 +191,95 @@
   position: relative;
   z-index: 12;
 }
+
+.pets-stage {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: visible;
+  z-index: 8;
+}
+
+.pet-toy {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 18;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.pet-toy-ball {
+  width: 22px;
+  height: 22px;
+  margin: -11px 0 0 -11px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, #fff4b0, #ee5724 58%, #c83d12);
+  box-shadow: 0 4px 8px rgba(18, 53, 44, 0.18);
+}
+
+.pet-toy-ball::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  border-left-color: transparent;
+  border-bottom-color: transparent;
+}
+
+.pet-toy-yarn {
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;
+  border-radius: 50%;
+  background: repeating-conic-gradient(#ee5724 0 12deg, #f7b99a 12deg 22deg);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.25), 0 4px 8px rgba(18, 53, 44, 0.16);
+}
+
+.pet-toy-treat {
+  width: 18px;
+  height: 12px;
+  margin: -6px 0 0 -9px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #e2a05a, #b56a2e);
+  box-shadow: 0 4px 8px rgba(18, 53, 44, 0.16);
+}
+
+.paw-print {
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: rgba(238, 87, 36, 0.42);
+  z-index: 5;
+  pointer-events: none;
+}
+
+.paw-print-rain {
+  color: rgba(238, 87, 36, 0.5);
+}
+
+.pet-party-note {
+  position: absolute;
+  left: 50%;
+  top: 36%;
+  z-index: 19;
+  transform: translate(-50%, 8px);
+  opacity: 0;
+  pointer-events: none;
+  background: var(--white);
+  color: var(--forest);
+  font-family: var(--display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  padding: 10px 18px;
+  border-radius: 999px;
+  box-shadow: 0 12px 28px rgba(18, 53, 44, 0.12);
+  transition: opacity 0.28s ease, translate 0.28s ease;
+}
+
+.pet-party-note.is-on {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}

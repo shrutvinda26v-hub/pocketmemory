@@ -115,18 +115,15 @@ export function InteractivePet({
   }, [config.idle.breath, config.idle.duration, reducedMotion])
 
   useEffect(() => {
-    if (config.id !== 'doxie') {
-      headReadyRef.current = true
-      return
-    }
     if (!isHovering) {
       headReadyRef.current = true
       return
     }
     headReadyRef.current = false
+    const lead = config.id === 'retriever' ? 90 : config.id === 'cat' ? 70 : 100
     const timeout = window.setTimeout(() => {
       headReadyRef.current = true
-    }, 100)
+    }, lead)
     return () => window.clearTimeout(timeout)
   }, [config.id, isHovering])
 
@@ -149,7 +146,10 @@ export function InteractivePet({
     const setRightEar = rightEar ? gsap.quickSetter(rightEar, 'rotation', 'deg') : null
 
     let raf = 0
-    const tick = () => {
+    let last = performance.now()
+    const tick = (now: number) => {
+      const dt = Math.min(0.033, Math.max(0.008, (now - last) / 1000))
+      last = now
       const root = rootRef.current
       const px = pointer.current.x
       const py = pointer.current.y
@@ -160,28 +160,30 @@ export function InteractivePet({
 
       const rect = root.getBoundingClientRect()
       const faceX = rect.left + rect.width * 0.5
-      const faceY = rect.top + rect.height * (config.id === 'retriever' ? 0.32 : 0.4)
+      const faceY = rect.top + rect.height * (config.id === 'retriever' ? 0.3 : 0.4)
       const dx = px - faceX
       const dy = py - faceY
       const dist = Math.hypot(dx, dy)
-      const nx = Math.max(-1, Math.min(1, dx / 140))
-      const ny = Math.max(-1, Math.min(1, dy / 110))
+      const nx = Math.max(-1, Math.min(1, dx / 180))
+      const ny = Math.max(-1, Math.min(1, dy / 150))
       const hovered = hoverRef.current
       const watchingOther = lookOnlyRef.current
       const near = dist < config.look.proximity
       const catNear = config.id === 'cat' && near && !watchingOther
-      const headOn = hovered && headReadyRef.current ? 1 : catNear ? 0.55 : 0
-      const eyeOn = hovered ? 1 : near ? (watchingOther ? 0.38 : 0.5) : 0
+      const jumpScale = animatingRef.current ? 0.28 : 1
+      const headOn =
+        (hovered && headReadyRef.current ? 1 : catNear ? 0.45 : 0) * jumpScale
+      const eyeOn = hovered ? 1 : near ? (watchingOther ? 0.28 : 0.42) : 0
 
       const look = lookRef.current
-      const eyeLerp = config.look.eyeLerp
       const leaving = !hovered && !catNear
-      const headLerp = leaving ? Math.min(config.look.headLerp, 0.08) : config.look.headLerp
-      look.eyeX += (nx * eyeOn - look.eyeX) * eyeLerp
-      look.eyeY += (ny * eyeOn - look.eyeY) * eyeLerp
-      look.headX += (nx * headOn - look.headX) * headLerp
-      look.headY += (ny * headOn - look.headY) * headLerp
-      look.headRot += (nx * headOn - look.headRot) * headLerp
+      const eyeT = 1 - Math.exp(-(leaving ? 7 : Math.max(6, config.look.eyeLerp * 100)) * dt)
+      const headT = 1 - Math.exp(-(leaving ? 4.2 : Math.max(3.5, config.look.headLerp * 140)) * dt)
+      look.eyeX += (nx * eyeOn - look.eyeX) * eyeT
+      look.eyeY += (ny * eyeOn - look.eyeY) * eyeT
+      look.headX += (nx * headOn - look.headX) * headT
+      look.headY += (ny * headOn * 0.65 - look.headY) * headT
+      look.headRot += (nx * headOn - look.headRot) * headT
 
       setFigX(look.headX * config.look.headX)
       setFigY(look.headY * config.look.headY)
@@ -192,7 +194,7 @@ export function InteractivePet({
       setRightY(look.eyeY * config.look.pupilY)
 
       if (!animatingRef.current && setLeftEar && setRightEar) {
-        const ear = look.headRot * (config.id === 'doxie' ? 2.4 : 1.6)
+        const ear = look.headRot * (config.id === 'doxie' ? 1.6 : 1.1)
         setLeftEar(ear)
         setRightEar(-ear)
       }
@@ -235,7 +237,7 @@ export function InteractivePet({
     let timeout: number
     const twitch = () => {
       if (!animatingRef.current) {
-        const amount = config.id === 'doxie' ? 5 : 3.5
+        const amount = config.id === 'doxie' ? 3.2 : 2.2
         gsap.to(left, { rotation: amount, duration: 0.18, yoyo: true, repeat: 1, ease: 'sine.inOut' })
         gsap.to(right, { rotation: -amount, duration: 0.18, yoyo: true, repeat: 1, ease: 'sine.inOut' })
       }
@@ -250,34 +252,40 @@ export function InteractivePet({
     const motion = motionRef.current
     if (!motion || animatingRef.current) return
 
-    animatingRef.current = true
-    motion.classList.add('is-jumping')
-    idleTween.current?.pause()
-    gsap.set(idleRef.current, { y: 0 })
+    const delay = window.setTimeout(() => {
+      if (!hoverRef.current || animatingRef.current || !motionRef.current) return
 
-    const targets = {
-      motion,
-      tail: tailRef.current,
-      leftEar: leftEarRef.current,
-      rightEar: rightEarRef.current,
-      tailRest: config.tail?.rotate ?? 0,
-    }
+      animatingRef.current = true
+      motion.classList.add('is-jumping')
+      idleTween.current?.pause()
+      gsap.set(idleRef.current, { y: 0 })
 
-    const timeline =
-      config.jump.type === 'retriever'
-        ? playRetrieverJump(targets)
-        : config.jump.type === 'cat'
-          ? playCatBounce(targets)
-          : playDoxiePeek(targets)
+      const targets = {
+        motion,
+        tail: tailRef.current,
+        leftEar: leftEarRef.current,
+        rightEar: rightEarRef.current,
+        tailRest: config.tail?.rotate ?? 0,
+      }
 
-    jumpTl.current = timeline
-    timeline.eventCallback('onComplete', () => {
-      animatingRef.current = false
-      motion.classList.remove('is-jumping')
-      gsap.set(motion, { y: 0, scale: 1, scaleY: 1, rotation: 0 })
-      idleTween.current?.restart(true)
-      jumpTl.current = null
-    })
+      const timeline =
+        config.jump.type === 'retriever'
+          ? playRetrieverJump(targets)
+          : config.jump.type === 'cat'
+            ? playCatBounce(targets)
+            : playDoxiePeek(targets)
+
+      jumpTl.current = timeline
+      timeline.eventCallback('onComplete', () => {
+        animatingRef.current = false
+        motion.classList.remove('is-jumping')
+        gsap.set(motion, { y: 0, scale: 1, scaleY: 1, rotation: 0 })
+        idleTween.current?.restart(true)
+        jumpTl.current = null
+      })
+    }, 140)
+
+    return () => window.clearTimeout(delay)
   }, [config.jump.type, config.tail?.rotate, isHovering])
 
   useEffect(() => {

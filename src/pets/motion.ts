@@ -18,44 +18,37 @@ export function playRetrieverJump({ motion, tail, tailRest }: JumpTargets) {
   gsap.set(motion, { transformOrigin: '50% 100%' })
 
   tl.to(motion, {
-    y: 5,
-    scaleY: 0.97,
-    duration: 0.13,
+    y: 3,
+    scaleY: 0.985,
+    duration: 0.18,
     ease: 'power2.in',
   })
     .to(motion, {
-      y: -30,
-      scaleY: 1.04,
-      rotation: 1,
-      duration: 0.28,
-      ease: 'power2.out',
-    })
-    .to(motion, {
-      y: -30,
-      scaleY: 1.03,
-      rotation: -0.9,
-      duration: 0.16,
-      ease: 'sine.inOut',
+      y: -14,
+      scaleY: 1.012,
+      rotation: 0.35,
+      duration: 0.38,
+      ease: 'power3.out',
     })
     .to(motion, {
       y: 0,
-      scaleY: 0.97,
+      scaleY: 0.99,
       rotation: 0,
-      duration: 0.22,
-      ease: 'power2.in',
+      duration: 0.32,
+      ease: 'power2.inOut',
     })
     .to(motion, {
       scaleY: 1,
-      duration: 0.14,
-      ease: 'power1.out',
+      duration: 0.22,
+      ease: 'sine.out',
     })
 
   if (tail) {
-    tl.to(tail, { rotation: tailRest - 12, duration: 0.1, ease: 'sine.inOut' }, 0.1)
-      .to(tail, { rotation: tailRest + 15, duration: 0.1, ease: 'sine.inOut' })
-      .to(tail, { rotation: tailRest - 10, duration: 0.1, ease: 'sine.inOut' })
-      .to(tail, { rotation: tailRest + 8, duration: 0.09, ease: 'sine.inOut' })
-      .to(tail, { rotation: tailRest, duration: 0.2, ease: 'power2.out' })
+    tl.to(tail, { rotation: tailRest - 7, duration: 0.16, ease: 'sine.inOut' }, 0.14)
+      .to(tail, { rotation: tailRest + 9, duration: 0.18, ease: 'sine.inOut' })
+      .to(tail, { rotation: tailRest - 5, duration: 0.16, ease: 'sine.inOut' })
+      .to(tail, { rotation: tailRest + 4, duration: 0.16, ease: 'sine.inOut' })
+      .to(tail, { rotation: tailRest, duration: 0.28, ease: 'sine.out' })
   }
 
   return tl
@@ -67,39 +60,41 @@ export function playCatBounce({ motion, tail, leftEar, rightEar, tailRest }: Jum
   gsap.set(motion, { transformOrigin: '50% 100%' })
 
   tl.to(motion, {
-    y: -13,
-    scale: 1.04,
-    rotation: -1,
-    duration: 0.22,
-    ease: 'power2.out',
+    y: 2,
+    scale: 0.99,
+    duration: 0.12,
+    ease: 'power1.in',
   })
     .to(motion, {
-      y: -4,
-      scale: 0.98,
-      rotation: 0.8,
-      duration: 0.18,
-      ease: 'sine.inOut',
+      y: -8,
+      scale: 1.015,
+      rotation: -0.4,
+      duration: 0.28,
+      ease: 'power2.out',
     })
     .to(motion, {
       y: 0,
-      scale: 1,
+      scale: 0.995,
       rotation: 0,
-      duration: 0.32,
-      ease: 'power2.out',
+      duration: 0.3,
+      ease: 'power2.inOut',
+    })
+    .to(motion, {
+      scale: 1,
+      duration: 0.18,
+      ease: 'sine.out',
     })
 
   if (tail) {
-    tl.to(tail, { rotation: tailRest + 10, duration: 0.18, ease: 'sine.out' }, 0.04)
-      .to(tail, { rotation: tailRest - 8, duration: 0.16, ease: 'sine.inOut' })
-      .to(tail, { rotation: tailRest, duration: 0.28, ease: 'power2.out' })
+    tl.to(tail, { rotation: tailRest + 6, duration: 0.22, ease: 'sine.out' }, 0.08)
+      .to(tail, { rotation: tailRest - 4, duration: 0.2, ease: 'sine.inOut' })
+      .to(tail, { rotation: tailRest, duration: 0.32, ease: 'sine.out' })
   }
 
   if (leftEar && rightEar) {
-    tl.to(leftEar, { rotation: -7, duration: 0.14, ease: 'sine.out' }, 0)
-      .to(rightEar, { rotation: 7, duration: 0.14, ease: 'sine.out' }, 0)
-      .to(leftEar, { rotation: 4, duration: 0.16, ease: 'sine.inOut' }, 0.14)
-      .to(rightEar, { rotation: -4, duration: 0.16, ease: 'sine.inOut' }, 0.14)
-      .to([leftEar, rightEar], { rotation: 0, duration: 0.32, ease: 'power2.out' }, 0.3)
+    tl.to(leftEar, { rotation: -3, duration: 0.16, ease: 'sine.out' }, 0.04)
+      .to(rightEar, { rotation: 3, duration: 0.16, ease: 'sine.out' }, 0.04)
+      .to([leftEar, rightEar], { rotation: 0, duration: 0.36, ease: 'sine.out' }, 0.28)
   }
 
   return tl
@@ -111,35 +106,32 @@ export function playDoxiePeek({ motion, leftEar, rightEar }: JumpTargets) {
   gsap.set(motion, { transformOrigin: '50% 100%' })
 
   tl.to(motion, {
-    y: -20,
-    rotation: -1.2,
-    duration: 0.38,
+    y: -12,
+    rotation: -0.5,
+    duration: 0.42,
     ease: 'power2.out',
   })
     .to(motion, {
-      y: 0,
-      rotation: 0.4,
-      duration: 0.18,
-      ease: 'power1.in',
+      y: -2,
+      rotation: 0,
+      duration: 0.26,
+      ease: 'power1.inOut',
     })
     .to(motion, {
       y: -5,
-      rotation: 0,
-      duration: 0.1,
-      ease: 'power1.out',
+      duration: 0.16,
+      ease: 'sine.out',
     })
     .to(motion, {
       y: 0,
-      duration: 0.12,
-      ease: 'power1.inOut',
+      duration: 0.22,
+      ease: 'sine.inOut',
     })
 
   if (leftEar && rightEar) {
-    tl.to(leftEar, { rotation: 8, duration: 0.16, ease: 'sine.out' }, 0.08)
-      .to(rightEar, { rotation: -8, duration: 0.16, ease: 'sine.out' }, 0.08)
-      .to(leftEar, { rotation: -5, duration: 0.18, ease: 'sine.inOut' }, 0.24)
-      .to(rightEar, { rotation: 5, duration: 0.18, ease: 'sine.inOut' }, 0.24)
-      .to([leftEar, rightEar], { rotation: 0, duration: 0.28, ease: 'power2.out' }, 0.42)
+    tl.to(leftEar, { rotation: 4, duration: 0.2, ease: 'sine.out' }, 0.1)
+      .to(rightEar, { rotation: -4, duration: 0.2, ease: 'sine.out' }, 0.1)
+      .to([leftEar, rightEar], { rotation: 0, duration: 0.4, ease: 'sine.out' }, 0.4)
   }
 
   return tl

@@ -11,7 +11,7 @@ const SELECTOR: Record<PetId, string> = {
   doxie: '.pet-doxie',
 }
 const HIT_INSET: Record<PetId, { top: number; bottom: number; side: number }> = {
-  retriever: { top: 0.2, bottom: 0.3, side: 0.16 },
+  retriever: { top: 0.16, bottom: 0.24, side: 0.12 },
   cat: { top: 0.02, bottom: 0.16, side: 0.04 },
   doxie: { top: 0.02, bottom: 0.16, side: 0.04 },
 }

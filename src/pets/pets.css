@@ -12,7 +12,7 @@
 }
 
 .pet-motion.is-jumping {
-  filter: drop-shadow(0 10px 8px rgba(18, 53, 44, 0.16));
+  filter: drop-shadow(0 5px 4px rgba(18, 53, 44, 0.1));
 }
 
 .pet-idle,
@@ -99,11 +99,11 @@
 
 .pet-retriever {
   left: 50%;
-  bottom: 96px;
+  bottom: 188px;
   transform: translateX(-50%);
-  width: min(188px, 15.6cqi);
+  width: min(148px, 12.2cqi);
   z-index: 8;
-  filter: drop-shadow(0 10px 16px rgba(18, 53, 44, 0.16));
+  filter: drop-shadow(0 8px 12px rgba(18, 53, 44, 0.14));
 }
 
 .pet-doxie {

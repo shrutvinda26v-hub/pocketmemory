@@ -1282,7 +1282,7 @@ a.cta:not(:has(.cta-arrow)) {
   }
 
   .pet-retriever {
-    bottom: 86px;
+    bottom: 158px;
   }
 
   .page-main,
@@ -1380,8 +1380,8 @@ a.cta:not(:has(.cta-arrow)) {
   }
 
   .pet-retriever {
-    width: min(132px, 30cqi);
-    bottom: 78px;
+    width: min(112px, 26cqi);
+    bottom: 142px;
   }
 
   .clients-row {

@@ -133,17 +133,11 @@ export function InteractivePet({
     const rightInner = rightInnerRef.current
     if (!figure || !leftInner || !rightInner) return
 
-    const setFigX = gsap.quickSetter(figure, 'x', 'px')
-    const setFigY = gsap.quickSetter(figure, 'y', 'px')
     const setFigRot = gsap.quickSetter(figure, 'rotation', 'deg')
     const setLeftX = gsap.quickSetter(leftInner, 'x', 'px')
     const setLeftY = gsap.quickSetter(leftInner, 'y', 'px')
     const setRightX = gsap.quickSetter(rightInner, 'x', 'px')
     const setRightY = gsap.quickSetter(rightInner, 'y', 'px')
-    const leftEar = leftEarRef.current
-    const rightEar = rightEarRef.current
-    const setLeftEar = leftEar ? gsap.quickSetter(leftEar, 'rotation', 'deg') : null
-    const setRightEar = rightEar ? gsap.quickSetter(rightEar, 'rotation', 'deg') : null
 
     let raf = 0
     let last = performance.now()
@@ -181,23 +175,13 @@ export function InteractivePet({
       const headT = 1 - Math.exp(-(leaving ? 4.2 : Math.max(3.5, config.look.headLerp * 140)) * dt)
       look.eyeX += (nx * eyeOn - look.eyeX) * eyeT
       look.eyeY += (ny * eyeOn - look.eyeY) * eyeT
-      look.headX += (nx * headOn - look.headX) * headT
-      look.headY += (ny * headOn * 0.65 - look.headY) * headT
       look.headRot += (nx * headOn - look.headRot) * headT
 
-      setFigX(look.headX * config.look.headX)
-      setFigY(look.headY * config.look.headY)
       setFigRot(look.headRot * config.look.headRot)
       setLeftX(look.eyeX * config.look.pupilX)
       setLeftY(look.eyeY * config.look.pupilY)
       setRightX(look.eyeX * config.look.pupilX)
       setRightY(look.eyeY * config.look.pupilY)
-
-      if (!animatingRef.current && setLeftEar && setRightEar) {
-        const ear = look.headRot * (config.id === 'doxie' ? 1.6 : 1.1)
-        setLeftEar(ear)
-        setRightEar(-ear)
-      }
 
       raf = requestAnimationFrame(tick)
     }
@@ -279,7 +263,7 @@ export function InteractivePet({
       timeline.eventCallback('onComplete', () => {
         animatingRef.current = false
         motion.classList.remove('is-jumping')
-        gsap.set(motion, { y: 0, scale: 1, scaleY: 1, rotation: 0 })
+        gsap.set(motion, { y: 0, rotation: 0 })
         idleTween.current?.restart(true)
         jumpTl.current = null
       })

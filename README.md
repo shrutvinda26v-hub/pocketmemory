@@ -9,7 +9,7 @@ npm install
 npm run dev
 ```
 
-The homepage is a single composed canvas: large type, photorealistic animals overlapping the interface, and a three-column close.
+The homepage is a single composed canvas: large type, photorealistic animals overlapping the interface, and a three-column close. Shop, product pages, checkout, journal, brands, and delivery live on the inner routes.
 
 ## Scripts
 

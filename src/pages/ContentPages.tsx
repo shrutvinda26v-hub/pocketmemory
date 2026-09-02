@@ -1,5 +1,7 @@
 import { type ReactNode } from 'react'
-import { Header } from '../Header'
+import { Link, Navigate, useParams } from 'react-router-dom'
+import { getPost, posts } from '../data/posts'
+import { PageShell } from '../layout'
 
 type ContentPageProps = {
   kicker: string
@@ -10,17 +12,14 @@ type ContentPageProps = {
 
 export function ContentPage({ kicker, title, lead, children }: ContentPageProps) {
   return (
-    <div className="canvas canvas-page">
-      <Header />
-      <main className="page-main page-main-narrow">
-        <header className="page-intro">
-          <p className="page-kicker">{kicker}</p>
-          <h1>{title}</h1>
-          <p className="page-lead">{lead}</p>
-        </header>
-        <div className="prose">{children}</div>
-      </main>
-    </div>
+    <PageShell narrow>
+      <header className="page-intro">
+        <p className="page-kicker">{kicker}</p>
+        <h1>{title}</h1>
+        <p className="page-lead">{lead}</p>
+      </header>
+      <div className="prose">{children}</div>
+    </PageShell>
   )
 }
 
@@ -38,6 +37,20 @@ export function DeliveryPage() {
           two to four days. Overnight exists for last-minute birthdays and sudden
           chew-toy emergencies.
         </p>
+        <ul className="rate-list">
+          <li>
+            <span>Standard</span>
+            <strong>Free over $40 · 2–4 days</strong>
+          </li>
+          <li>
+            <span>Under $40</span>
+            <strong>$6 · 2–4 days</strong>
+          </li>
+          <li>
+            <span>Overnight</span>
+            <strong>$18 · next morning</strong>
+          </li>
+        </ul>
       </section>
       <section>
         <h2>Payment</h2>
@@ -79,6 +92,9 @@ export function BrandsPage() {
           <li key={house.name}>
             <h2>{house.name}</h2>
             <p>{house.note}</p>
+            <Link to="/shop" className="text-mini">
+              See the collection
+            </Link>
           </li>
         ))}
       </ul>
@@ -87,24 +103,6 @@ export function BrandsPage() {
 }
 
 export function BlogPage() {
-  const posts = [
-    {
-      title: 'How to introduce a new bed without the side-eye',
-      date: '12 Aug 2026',
-      excerpt: 'Place it where they already nap. Rub a worn T-shirt on the rim. Wait.',
-    },
-    {
-      title: 'The case for one excellent bowl',
-      date: '28 Jul 2026',
-      excerpt: 'Plastic scratches. Stainless sings. Ceramic, if it is heavy enough, simply works.',
-    },
-    {
-      title: 'Why our studio dogs prefer quieter toys',
-      date: '03 Jul 2026',
-      excerpt: 'A squeak is a tool, not a personality. We like toys that survive the third week.',
-    },
-  ]
-
   return (
     <ContentPage
       kicker="Journal"
@@ -113,13 +111,47 @@ export function BlogPage() {
     >
       <ul className="post-list">
         {posts.map((post) => (
-          <li key={post.title} className="post-card">
+          <li key={post.slug} className="post-card">
             <span>{post.date}</span>
-            <h2>{post.title}</h2>
+            <h2>
+              <Link to={`/blog/${post.slug}`}>{post.title}</Link>
+            </h2>
             <p>{post.excerpt}</p>
+            <Link to={`/blog/${post.slug}`} className="text-mini">
+              Read note
+            </Link>
           </li>
         ))}
       </ul>
     </ContentPage>
+  )
+}
+
+export function BlogPostPage() {
+  const { slug } = useParams()
+  const post = slug ? getPost(slug) : undefined
+  if (!post) return <Navigate to="/blog" replace />
+
+  return (
+    <PageShell narrow>
+      <nav className="crumb">
+        <Link to="/blog">Journal</Link>
+        <span>/</span>
+        <span>{post.title}</span>
+      </nav>
+      <header className="page-intro">
+        <p className="page-kicker">{post.date}</p>
+        <h1>{post.title}</h1>
+        <p className="page-lead">{post.excerpt}</p>
+      </header>
+      <div className="post-hero">
+        <img src={post.image} alt="" />
+      </div>
+      <div className="prose">
+        {post.body.map((paragraph) => (
+          <p key={paragraph}>{paragraph}</p>
+        ))}
+      </div>
+    </PageShell>
   )
 }

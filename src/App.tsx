@@ -1,7 +1,10 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { CartProvider } from './cart'
-import { BlogPage, BrandsPage, DeliveryPage } from './pages/ContentPages'
+import { BlogPage, BlogPostPage, BrandsPage, DeliveryPage } from './pages/ContentPages'
+import { CheckoutPage } from './pages/CheckoutPage'
 import { HomePage } from './pages/HomePage'
+import { NotFoundPage } from './pages/NotFoundPage'
+import { ProductPage } from './pages/ProductPage'
 import { ShopPage } from './pages/ShopPage'
 
 export default function App() {
@@ -12,10 +15,13 @@ export default function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/shop" element={<ShopPage />} />
+            <Route path="/shop/:id" element={<ProductPage />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/delivery" element={<DeliveryPage />} />
             <Route path="/brands" element={<BrandsPage />} />
             <Route path="/blog" element={<BlogPage />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="/blog/:slug" element={<BlogPostPage />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </div>
       </BrowserRouter>

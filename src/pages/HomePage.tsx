@@ -25,14 +25,16 @@ export function HomePage() {
           <div className="product-visual">
             <img src="/images/cat-house.png" alt="Two-level orange sherpa cat house" />
             <Link
-              to="/shop"
+              to="/shop/cat-house"
               className="product-go"
               aria-label="View Cozy Cat House"
             >
               <ArrowUpRightIcon />
             </Link>
           </div>
-          <h2>Cozy Cat House</h2>
+          <h2>
+            <Link to="/shop/cat-house">Cozy Cat House</Link>
+          </h2>
           <p>$49.99</p>
         </article>
 

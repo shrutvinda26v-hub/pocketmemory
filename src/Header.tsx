@@ -1,7 +1,8 @@
-import { useEffect, useId, useState } from 'react'
-import { Link, NavLink } from 'react-router-dom'
+import { useEffect, useId, useMemo, useState } from 'react'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useCart } from './cart'
-import { formatPrice } from './data/products'
+import { searchPosts } from './data/posts'
+import { formatPrice, searchProducts } from './data/products'
 import {
   BagIcon,
   CloseIcon,
@@ -22,9 +23,14 @@ const links = [
 type Overlay = 'search' | 'cart' | 'menu' | 'account' | 'wishlist' | null
 
 export function Header() {
-  const { items, count, total, remove } = useCart()
+  const { items, count, total, remove, setQty, saved, savedCount, toggleSaved } = useCart()
   const [overlay, setOverlay] = useState<Overlay>(null)
+  const [query, setQuery] = useState('')
   const searchId = useId()
+  const navigate = useNavigate()
+
+  const productHits = useMemo(() => searchProducts(query), [query])
+  const postHits = useMemo(() => searchPosts(query), [query])
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -37,6 +43,12 @@ export function Header() {
   useEffect(() => {
     document.body.classList.toggle('overlay-open', overlay !== null)
   }, [overlay])
+
+  const go = (path: string) => {
+    setOverlay(null)
+    setQuery('')
+    navigate(path)
+  }
 
   return (
     <>
@@ -74,11 +86,11 @@ export function Header() {
           <button
             type="button"
             className="wishlist-btn"
-            aria-label="Wishlist, 4 saved items"
+            aria-label={`Wishlist, ${savedCount} saved items`}
             onClick={() => setOverlay('wishlist')}
           >
             <StarIcon />
-            <span className="wishlist-count">4</span>
+            <span className="wishlist-count">{savedCount}</span>
           </button>
 
           <button
@@ -134,16 +146,55 @@ export function Header() {
             {overlay === 'search' ? (
               <>
                 <p className="overlay-kicker">Search the collection</p>
-                <label className="sr-only" htmlFor={searchId}>
-                  Search products
-                </label>
-                <input
-                  id={searchId}
-                  className="search-input"
-                  placeholder="Beds, toys, bowls…"
-                  autoFocus
-                />
-                <p className="overlay-hint">Try “cat house” or “sherpa bed”.</p>
+                <form
+                  onSubmit={(event) => {
+                    event.preventDefault()
+                    go(`/shop${query.trim() ? `?q=${encodeURIComponent(query.trim())}` : ''}`)
+                  }}
+                >
+                  <label className="sr-only" htmlFor={searchId}>
+                    Search products
+                  </label>
+                  <input
+                    id={searchId}
+                    className="search-input"
+                    placeholder="Beds, toys, bowls…"
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                    autoFocus
+                  />
+                </form>
+                {query.trim() ? (
+                  <div className="search-hits">
+                    {productHits.map((product) => (
+                      <button
+                        key={product.id}
+                        type="button"
+                        className="search-hit"
+                        onClick={() => go(`/shop/${product.id}`)}
+                      >
+                        <img src={product.image} alt="" />
+                        <span>{product.name}</span>
+                      </button>
+                    ))}
+                    {postHits.map((post) => (
+                      <button
+                        key={post.slug}
+                        type="button"
+                        className="search-hit"
+                        onClick={() => go(`/blog/${post.slug}`)}
+                      >
+                        <img src={post.image} alt="" />
+                        <span>{post.title}</span>
+                      </button>
+                    ))}
+                    {productHits.length === 0 && postHits.length === 0 ? (
+                      <p className="overlay-hint">No matches. Try “bed” or “bowl”.</p>
+                    ) : null}
+                  </div>
+                ) : (
+                  <p className="overlay-hint">Try “cat house” or “sherpa bed”.</p>
+                )}
               </>
             ) : null}
 
@@ -159,9 +210,23 @@ export function Header() {
                         <img src={item.image} alt="" />
                         <div>
                           <p>{item.name}</p>
-                          <span>
-                            {item.qty} × {formatPrice(item.price)}
-                          </span>
+                          <div className="qty">
+                            <button
+                              type="button"
+                              onClick={() => setQty(item.id, item.qty - 1)}
+                              aria-label={`Decrease ${item.name}`}
+                            >
+                              −
+                            </button>
+                            <span>{item.qty}</span>
+                            <button
+                              type="button"
+                              onClick={() => setQty(item.id, item.qty + 1)}
+                              aria-label={`Increase ${item.name}`}
+                            >
+                              +
+                            </button>
+                          </div>
                         </div>
                         <button type="button" onClick={() => remove(item.id)}>
                           Remove
@@ -174,60 +239,54 @@ export function Header() {
                   <span>Total</span>
                   <strong>{formatPrice(total)}</strong>
                 </div>
-                <Link to="/shop" className="cta overlay-cta" onClick={() => setOverlay(null)}>
-                  <span>Continue shopping</span>
-                  <span className="cta-arrow">
-                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                      <path d="M5 12h12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-                      <path
-                        d="M13 6.5 18.5 12 13 17.5"
-                        stroke="currentColor"
-                        strokeWidth="1.6"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </span>
-                </Link>
+                {items.length > 0 ? (
+                  <Link to="/checkout" className="cta overlay-cta" onClick={() => setOverlay(null)}>
+                    <span>Checkout</span>
+                    <span className="cta-arrow">
+                      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M5 12h12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                        <path
+                          d="M13 6.5 18.5 12 13 17.5"
+                          stroke="currentColor"
+                          strokeWidth="1.6"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </span>
+                  </Link>
+                ) : (
+                  <Link to="/shop" className="cta overlay-cta" onClick={() => setOverlay(null)}>
+                    <span>Continue shopping</span>
+                  </Link>
+                )}
               </>
             ) : null}
 
             {overlay === 'wishlist' ? (
               <>
                 <p className="overlay-kicker">Saved for later</p>
-                <p className="overlay-hint">
-                  Four quiet favorites waiting for the next treat run.
-                </p>
-                <ul className="cart-list">
-                  <li className="cart-row">
-                    <img src="/images/cat-house.png" alt="" />
-                    <div>
-                      <p>Cozy Cat House</p>
-                      <span>$49.99</span>
-                    </div>
-                  </li>
-                  <li className="cart-row">
-                    <img src="/images/dog-bed.png" alt="" />
-                    <div>
-                      <p>Cloud Sherpa Bed</p>
-                      <span>$79</span>
-                    </div>
-                  </li>
-                  <li className="cart-row">
-                    <img src="/images/pet-bowl.png" alt="" />
-                    <div>
-                      <p>Forest Ceramic Bowl</p>
-                      <span>$24</span>
-                    </div>
-                  </li>
-                  <li className="cart-row">
-                    <img src="/images/fox-toy.png" alt="" />
-                    <div>
-                      <p>Fox Plush Toy</p>
-                      <span>$21</span>
-                    </div>
-                  </li>
-                </ul>
+                {saved.length === 0 ? (
+                  <p className="overlay-hint">Nothing saved yet. Star a piece from the shop.</p>
+                ) : (
+                  <ul className="cart-list">
+                    {saved.map((item) => (
+                      <li key={item.id} className="cart-row">
+                        <img src={item.image} alt="" />
+                        <div>
+                          <p>{item.name}</p>
+                          <span>{formatPrice(item.price)}</span>
+                        </div>
+                        <button type="button" onClick={() => toggleSaved(item)}>
+                          Remove
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <Link to="/shop" className="text-link" onClick={() => setOverlay(null)}>
+                  Browse the collection
+                </Link>
               </>
             ) : null}
 
@@ -235,8 +294,10 @@ export function Header() {
               <>
                 <p className="overlay-kicker">Hello, Maya</p>
                 <p className="overlay-hint">
-                  Orders, saved addresses, and the treats your pets reorder most.
+                  Studio preview account. Orders, saved addresses, and the treats
+                  your pets reorder most.
                 </p>
+                <p className="account-order">Last order · Fox Plush Toy · In transit</p>
                 <Link to="/shop" className="text-link" onClick={() => setOverlay(null)}>
                   Browse new arrivals
                 </Link>

@@ -22,6 +22,12 @@ type CartContextValue = {
   total: number
   add: (product: Product) => void
   remove: (id: string) => void
+  setQty: (id: string, qty: number) => void
+  clear: () => void
+  saved: Product[]
+  savedCount: number
+  isSaved: (id: string) => boolean
+  toggleSaved: (product: Product) => void
 }
 
 const CartContext = createContext<CartContextValue | null>(null)
@@ -38,6 +44,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       image: starter.image,
     },
   ])
+  const [saved, setSaved] = useState<Product[]>(products)
 
   const add = useCallback((product: Product) => {
     setItems((current) => {
@@ -64,11 +71,49 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems((current) => current.filter((item) => item.id !== id))
   }, [])
 
+  const setQty = useCallback((id: string, qty: number) => {
+    if (qty < 1) {
+      setItems((current) => current.filter((item) => item.id !== id))
+      return
+    }
+    setItems((current) =>
+      current.map((item) => (item.id === id ? { ...item, qty } : item)),
+    )
+  }, [])
+
+  const clear = useCallback(() => setItems([]), [])
+
+  const toggleSaved = useCallback((product: Product) => {
+    setSaved((current) => {
+      if (current.some((item) => item.id === product.id)) {
+        return current.filter((item) => item.id !== product.id)
+      }
+      return [...current, product]
+    })
+  }, [])
+
+  const isSaved = useCallback(
+    (id: string) => saved.some((item) => item.id === id),
+    [saved],
+  )
+
   const value = useMemo(() => {
     const count = items.reduce((sum, item) => sum + item.qty, 0)
     const total = items.reduce((sum, item) => sum + item.price * item.qty, 0)
-    return { items, count, total, add, remove }
-  }, [items, add, remove])
+    return {
+      items,
+      count,
+      total,
+      add,
+      remove,
+      setQty,
+      clear,
+      saved,
+      savedCount: saved.length,
+      isSaved,
+      toggleSaved,
+    }
+  }, [items, add, remove, setQty, clear, saved, isSaved, toggleSaved])
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>
 }

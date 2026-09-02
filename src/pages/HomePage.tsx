@@ -1,0 +1,116 @@
+import { Link } from 'react-router-dom'
+import { Header } from '../Header'
+import {
+  ArrowRightIcon,
+  ArrowUpRightIcon,
+  PlayIcon,
+  PlusIcon,
+  StarIcon,
+} from '../icons'
+import { PetsStage } from '../pets/PetsStage'
+
+export function HomePage() {
+  return (
+    <div className="canvas canvas-home">
+      <Header />
+
+      <div className="stage">
+        <h1 className="headline">
+          Everything
+          <br />
+          Your Pets Love
+        </h1>
+
+        <article className="product-card">
+          <div className="product-visual">
+            <img src="/images/cat-house.png" alt="Two-level orange sherpa cat house" />
+            <Link
+              to="/shop/cat-house"
+              className="product-go"
+              aria-label="View Cozy Cat House"
+            >
+              <ArrowUpRightIcon />
+            </Link>
+          </div>
+          <h2>
+            <Link to="/shop/cat-house">Cozy Cat House</Link>
+          </h2>
+          <p>$49.99</p>
+        </article>
+
+        <article className="video-card">
+          <div className="video-visual">
+            <img
+              src="/images/product-review.jpg"
+              alt="A golden retriever nuzzling its owner"
+            />
+            <a
+              className="play-btn"
+              href="https://www.youtube.com"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Watch product reviews"
+            >
+              <PlayIcon />
+            </a>
+          </div>
+          <p>
+            Watch Product
+            <br />
+            Reviews on TikTok
+            <br />
+            and YouTube
+          </p>
+        </article>
+
+        <PetsStage />
+
+        <section className="bottom" aria-label="Store highlights">
+          <div className="panel panel-mint">
+            <div className="clients-row">
+              <p className="stat">98K+</p>
+              <img
+                className="mini-avatar"
+                src="/images/customer-avatar.jpg"
+                alt=""
+              />
+              <span className="plus-btn" aria-hidden="true">
+                <PlusIcon />
+              </span>
+            </div>
+            <p className="panel-copy">
+              Happy Clients and Their Pets
+              <br />
+              Who Love Our Products
+            </p>
+          </div>
+
+          <div className="panel panel-forest">
+            <h2>
+              Best Products
+              <br />
+              for Your Pet
+            </h2>
+            <Link to="/shop" className="cta">
+              <span>Explore Products</span>
+              <span className="cta-arrow">
+                <ArrowRightIcon />
+              </span>
+            </Link>
+          </div>
+
+          <div className="panel panel-mint">
+            <p className="stat rating-stat">
+              4.6 <StarIcon />
+            </p>
+            <p className="panel-copy">
+              Based on Reviews from Happy
+              <br />
+              Pet Owners Worldwide
+            </p>
+          </div>
+        </section>
+      </div>
+    </div>
+  )
+}

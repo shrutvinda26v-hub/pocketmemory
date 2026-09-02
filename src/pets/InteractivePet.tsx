@@ -49,6 +49,8 @@ export function InteractivePet({
   const rightInnerRef = useRef<HTMLImageElement>(null)
   const leftEarRef = useRef<HTMLDivElement>(null)
   const rightEarRef = useRef<HTMLDivElement>(null)
+  const fxRef = useRef<HTMLDivElement>(null)
+  const bubbleRef = useRef<HTMLDivElement>(null)
   const idleTween = useRef<ReturnType<typeof gsap.to> | null>(null)
   const jumpTl = useRef<ReturnType<typeof gsap.timeline> | null>(null)
   const animatingRef = useRef(false)
@@ -232,12 +234,15 @@ export function InteractivePet({
   }, [config.ears, config.id, reducedMotion])
 
   useEffect(() => {
-    if (!isHovering) return
+    if (reducedMotion || !isHovering) return
     const motion = motionRef.current
-    if (!motion || animatingRef.current) return
+    const fx = fxRef.current
+    if (!motion || !fx || animatingRef.current) return
 
     const delay = window.setTimeout(() => {
-      if (!hoverRef.current || animatingRef.current || !motionRef.current) return
+      if (!hoverRef.current || animatingRef.current || !motionRef.current || !fxRef.current) {
+        return
+      }
 
       animatingRef.current = true
       motion.classList.add('is-jumping')
@@ -246,10 +251,14 @@ export function InteractivePet({
 
       const targets = {
         motion,
+        fx,
+        bubble: bubbleRef.current,
         tail: tailRef.current,
-        leftEar: leftEarRef.current,
-        rightEar: rightEarRef.current,
+        leftEye: leftEyeRef.current,
+        rightEye: rightEyeRef.current,
         tailRest: config.tail?.rotate ?? 0,
+        bits: config.surprise.bits,
+        bubbleText: config.surprise.bubble,
       }
 
       const timeline =
@@ -264,13 +273,21 @@ export function InteractivePet({
         animatingRef.current = false
         motion.classList.remove('is-jumping')
         gsap.set(motion, { y: 0, rotation: 0 })
+        gsap.set(bubbleRef.current, { opacity: 0, y: 0, scale: 1 })
         idleTween.current?.restart(true)
         jumpTl.current = null
       })
-    }, 140)
+    }, 70)
 
     return () => window.clearTimeout(delay)
-  }, [config.jump.type, config.tail?.rotate, isHovering])
+  }, [
+    config.jump.type,
+    config.surprise.bits,
+    config.surprise.bubble,
+    config.tail?.rotate,
+    isHovering,
+    reducedMotion,
+  ])
 
   useEffect(() => {
     return () => {
@@ -369,6 +386,9 @@ export function InteractivePet({
         }}
         aria-hidden="true"
       />
+      <div className="pet-fx" ref={fxRef} aria-hidden="true">
+        <div className="pet-bubble" ref={bubbleRef} />
+      </div>
     </div>
   )
 }

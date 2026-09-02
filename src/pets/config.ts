@@ -42,6 +42,10 @@ export type PetConfig = {
   jump: {
     type: 'retriever' | 'cat' | 'doxie'
   }
+  surprise: {
+    bubble: string
+    bits: string[]
+  }
   idle: {
     breath: number
     duration: number
@@ -77,6 +81,7 @@ export const retrieverPet: PetConfig = {
     proximity: 200,
   },
   jump: { type: 'retriever' },
+  surprise: { bubble: 'woof', bits: ['♥', '♥', '✦', '♥'] },
   idle: { breath: 1.2, duration: 4.8 },
   hit: { top: '0%', right: '8%', bottom: '18%', left: '8%' },
 }
@@ -101,6 +106,7 @@ export const catPet: PetConfig = {
     proximity: 160,
   },
   jump: { type: 'cat' },
+  surprise: { bubble: 'mrrp', bits: ['✦', '✧', '✦'] },
   idle: { breath: 0.9, duration: 5.2 },
   tail: {
     src: '/images/cat-tail.png',
@@ -133,6 +139,7 @@ export const doxiePet: PetConfig = {
     proximity: 160,
   },
   jump: { type: 'doxie' },
+  surprise: { bubble: 'yap!', bits: ['🦴', '✦', '🦴'] },
   idle: { breath: 1, duration: 4.4 },
   hit: { top: '2%', right: '2%', bottom: '16%', left: '2%' },
 }

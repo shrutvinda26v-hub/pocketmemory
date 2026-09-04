@@ -110,7 +110,7 @@ export default function HenCharacter({ targetRef }: Props) {
   }, [targetRef]);
 
   return (
-    <svg className="hen-svg" viewBox="40 36 320 400" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Hen reacting to the login form">
+    <svg className="hen-svg" viewBox="32 12 336 408" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Hen reacting to the login form">
       <g ref={rootRef} className="hen-root">
         <g ref={bodyRef} className="hen-body">
           <ellipse cx="200" cy="448" rx="92" ry="44" fill="#fff8f1" stroke="#1c1917" strokeWidth="6" />

@@ -240,6 +240,7 @@ export default function App() {
                     markEmailTyping();
                   }}
                   onFocus={() => setFieldFocus("email")}
+                  onMouseDown={() => setFieldFocus("email")}
                   onBlur={() => setFieldFocus((current) => (current === "email" ? "none" : current))}
                 />
               </div>
@@ -262,6 +263,7 @@ export default function App() {
                       markPasswordTyping();
                     }}
                     onFocus={() => setFieldFocus("password")}
+                    onMouseDown={() => setFieldFocus("password")}
                     onBlur={() => setFieldFocus((current) => (current === "password" ? "none" : current))}
                   />
                   <button

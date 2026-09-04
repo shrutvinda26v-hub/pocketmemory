@@ -26,6 +26,8 @@ export default function HenCharacter({ targetRef, mood }: Props) {
   const beak = useRef<SVGGElement>(null);
   const wingL = useRef<SVGGElement>(null);
   const wingR = useRef<SVGGElement>(null);
+  const moodRef = useRef(mood);
+  moodRef.current = mood;
 
   useEffect(() => {
     let frame = 0;
@@ -54,17 +56,23 @@ export default function HenCharacter({ targetRef, mood }: Props) {
       if (pupilL.current) pupilL.current.style.transform = `translate(${px}px, ${py}px) scale(${pupilScale})`;
       if (pupilR.current) pupilR.current.style.transform = `translate(${px}px, ${py}px) scale(${pupilScale})`;
 
-      const openLAmt = Math.max(0, p.eyeOpenL * (1 - p.happy));
-      const openRAmt = Math.max(0, p.eyeOpenR * (1 - p.happy));
-      if (openL.current) openL.current.setAttribute("opacity", String(openLAmt));
-      if (openR.current) openR.current.setAttribute("opacity", String(openRAmt));
-      if (shutL.current) shutL.current.setAttribute("opacity", String((1 - p.eyeOpenL) * (1 - p.happy)));
-      if (shutR.current) shutR.current.setAttribute("opacity", String((1 - p.eyeOpenR) * (1 - p.happy)));
-      if (happyL.current) happyL.current.setAttribute("opacity", String(p.happy));
-      if (happyR.current) happyR.current.setAttribute("opacity", String(p.happy));
-      if (svgRef.current) {
-        svgRef.current.dataset.peek = p.eyeOpenR > 0.55 && p.eyeOpenL < 0.4 ? "1" : "0";
-      }
+      const moodNow = moodRef.current;
+      const peeking = moodNow === "password" && p.eyeOpenR > 0.55 && p.eyeOpenL < 0.4;
+      const showHappy = moodNow === "success";
+      const forceShut = moodNow === "password" && !peeking;
+
+      const leftOpen = showHappy ? false : forceShut ? false : p.eyeOpenL > 0.45;
+      const rightOpen = showHappy ? false : forceShut ? false : peeking ? true : p.eyeOpenR > 0.45;
+      const leftShut = showHappy ? false : !leftOpen;
+      const rightShut = showHappy ? false : !rightOpen;
+
+      if (openL.current) openL.current.style.display = leftOpen ? "block" : "none";
+      if (openR.current) openR.current.style.display = rightOpen ? "block" : "none";
+      if (shutL.current) shutL.current.style.display = leftShut ? "block" : "none";
+      if (shutR.current) shutR.current.style.display = rightShut ? "block" : "none";
+      if (happyL.current) happyL.current.style.display = showHappy ? "block" : "none";
+      if (happyR.current) happyR.current.style.display = showHappy ? "block" : "none";
+      if (svgRef.current) svgRef.current.dataset.peek = peeking ? "1" : "0";
 
       if (browL.current) {
         browL.current.style.transform = `translate(0px, ${-p.browL * 14 + p.squint * 8}px) rotate(${-p.browL * 18 + p.squint * 8}deg)`;
@@ -131,7 +139,7 @@ export default function HenCharacter({ targetRef, mood }: Props) {
                   <circle cx="-7" cy="-4" r="7" fill="#fff" />
                 </g>
               </g>
-              <g ref={shutL} className="eye-shut" opacity="0">
+              <g ref={shutL} className="eye-shut" style={{ display: "none" }}>
                 <path d="M-30,4 Q0,26 30,4" fill="none" stroke="#1A061F" strokeWidth="12" strokeLinecap="round" />
               </g>
               <path
@@ -142,7 +150,7 @@ export default function HenCharacter({ targetRef, mood }: Props) {
                 stroke="#1A061F"
                 strokeWidth="12"
                 strokeLinecap="round"
-                opacity="0"
+                style={{ display: "none" }}
               />
             </g>
 
@@ -154,7 +162,7 @@ export default function HenCharacter({ targetRef, mood }: Props) {
                   <circle cx="-7" cy="-4" r="7" fill="#fff" />
                 </g>
               </g>
-              <g ref={shutR} className="eye-shut eye-shut-r" opacity="0">
+              <g ref={shutR} className="eye-shut eye-shut-r" style={{ display: "none" }}>
                 <path d="M-30,4 Q0,26 30,4" fill="none" stroke="#1A061F" strokeWidth="12" strokeLinecap="round" />
               </g>
               <path
@@ -172,7 +180,7 @@ export default function HenCharacter({ targetRef, mood }: Props) {
             <path
               ref={browL}
               className="hen-brow hen-brow-l"
-              d="M-108,-62 Q-58,-88 -16,-62"
+              d="M-110,-92 Q-58,-122 -14,-92"
               fill="none"
               stroke="#1A061F"
               strokeWidth="14"
@@ -181,7 +189,7 @@ export default function HenCharacter({ targetRef, mood }: Props) {
             <path
               ref={browR}
               className="hen-brow hen-brow-r"
-              d="M16,-62 Q62,-88 108,-62"
+              d="M14,-92 Q62,-122 110,-92"
               fill="none"
               stroke="#1A061F"
               strokeWidth="14"

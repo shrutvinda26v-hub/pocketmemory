@@ -189,11 +189,15 @@ export default function HenCharacter({ targetRef }: Props) {
               </g>
             </g>
 
-            <g ref={browLRef} className="hen-brow" transform="translate(-64 -82)">
-              <path d="M-42 10 Q0 -22 42 10 Q0 -2 -42 10 Z" fill="#000000" stroke="#000000" strokeWidth="3" strokeLinejoin="round" />
+            <g transform="translate(-64 -86)">
+              <g ref={browLRef} className="hen-brow">
+                <path d="M-42 10 Q0 -22 42 10 Q0 -2 -42 10 Z" fill="#000000" stroke="#000000" strokeWidth="3" strokeLinejoin="round" />
+              </g>
             </g>
-            <g ref={browRRef} className="hen-brow" transform="translate(64 -82)">
-              <path d="M-42 10 Q0 -22 42 10 Q0 -2 -42 10 Z" fill="#000000" stroke="#000000" strokeWidth="3" strokeLinejoin="round" />
+            <g transform="translate(64 -86)">
+              <g ref={browRRef} className="hen-brow">
+                <path d="M-42 10 Q0 -22 42 10 Q0 -2 -42 10 Z" fill="#000000" stroke="#000000" strokeWidth="3" strokeLinejoin="round" />
+              </g>
             </g>
 
             <g ref={beakRef} className="hen-beak">

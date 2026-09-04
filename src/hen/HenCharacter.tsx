@@ -1,5 +1,5 @@
 import { RefObject, useEffect, useRef } from "react";
-import { HenPose, defaultPose, lerpPose } from "./pose";
+import { HenPose, asleepPose, lerpPose } from "./pose";
 import "./hen.css";
 
 type Props = {
@@ -12,7 +12,7 @@ function setShown(node: SVGGElement | null, shown: boolean) {
 }
 
 export default function HenCharacter({ targetRef }: Props) {
-  const live = useRef<HenPose>(defaultPose());
+  const live = useRef<HenPose>(asleepPose());
   const rootRef = useRef<SVGGElement>(null);
   const bodyRef = useRef<SVGGElement>(null);
   const neckRef = useRef<SVGGElement>(null);
@@ -161,7 +161,7 @@ export default function HenCharacter({ targetRef }: Props) {
             </g>
 
             <g transform="translate(-64 -22)">
-              <g ref={openL}>
+              <g ref={openL} style={{ display: "none" }}>
                 <circle r="50" fill="#fffef8" stroke="#1c1917" strokeWidth="6" />
                 <g ref={pupilL}>
                   <circle r="20" fill="#1c1917" />
@@ -170,7 +170,7 @@ export default function HenCharacter({ targetRef }: Props) {
                 </g>
                 <rect ref={lidL} x="-50" y="-50" width="100" height="0" fill="#fff8f1" />
               </g>
-              <g ref={shutL} style={{ display: "none" }}>
+              <g ref={shutL}>
                 <path d="M-44 6 Q0 36 44 6" fill="none" stroke="#1c1917" strokeWidth="10" strokeLinecap="round" />
               </g>
               <g ref={happyL} style={{ display: "none" }}>
@@ -179,7 +179,7 @@ export default function HenCharacter({ targetRef }: Props) {
             </g>
 
             <g transform="translate(64 -22)">
-              <g ref={openR}>
+              <g ref={openR} style={{ display: "none" }}>
                 <circle r="50" fill="#fffef8" stroke="#1c1917" strokeWidth="6" />
                 <g ref={pupilR}>
                   <circle r="20" fill="#1c1917" />
@@ -188,7 +188,7 @@ export default function HenCharacter({ targetRef }: Props) {
                 </g>
                 <rect ref={lidR} x="-50" y="-50" width="100" height="0" fill="#fff8f1" />
               </g>
-              <g ref={shutR} style={{ display: "none" }}>
+              <g ref={shutR}>
                 <path d="M-44 6 Q0 36 44 6" fill="none" stroke="#1c1917" strokeWidth="10" strokeLinecap="round" />
               </g>
               <g ref={happyR} style={{ display: "none" }}>

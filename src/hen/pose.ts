@@ -56,6 +56,21 @@ export function defaultPose(): HenPose {
   };
 }
 
+export function asleepPose(): HenPose {
+  const p = defaultPose();
+  p.eyeOpenL = 0;
+  p.eyeOpenR = 0;
+  p.headTurn = -0.95;
+  p.leanY = 16;
+  p.wingCover = 0.55;
+  p.beak = 0.2;
+  p.smile = 0;
+  p.browL = -0.2;
+  p.browR = -0.2;
+  p.freeze = 1;
+  return p;
+}
+
 export function overlayPose(base: HenPose, extra: Partial<HenPose>) {
   Object.assign(base, extra);
 }

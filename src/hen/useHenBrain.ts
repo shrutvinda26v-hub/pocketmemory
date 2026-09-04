@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { ExprId, IDLE_POOL, RAPID_CHAIN, applyExpr } from "./expressions";
-import { HenPose, clamp1, defaultPose } from "./pose";
+import { HenPose, clamp1, asleepPose, defaultPose } from "./pose";
 
 export type FocusField = "none" | "email" | "password" | "login";
 
@@ -50,7 +50,7 @@ export function useHenBrain(input: {
   pointerRef: { current: { x: number; y: number } | null };
   lastActivityRef: { current: number };
 }) {
-  const targetRef = useRef<HenPose>(defaultPose());
+  const targetRef = useRef<HenPose>(asleepPose());
   const beatRef = useRef<Beat>({ id: "happy", until: 0, intensity: 1 });
   const recentRef = useRef<ExprId[]>([]);
   const lastTypedAt = useRef(0);
@@ -102,7 +102,7 @@ export function useHenBrain(input: {
         const current = inputRef.current;
         if (current.focus !== "password" && !current.submitting && !current.celebrating) {
           const tnow = performance.now();
-          if (bootAt.current && tnow - bootAt.current < 3000) {
+          if (bootAt.current && tnow - bootAt.current < 3600) {
             scheduleBlink();
             return;
           }
@@ -121,7 +121,7 @@ export function useHenBrain(input: {
         const current = inputRef.current;
         const now = performance.now();
         if (current.focus === "none" && !current.submitting && !current.celebrating && beatRef.current.until < now) {
-          if (bootAt.current && now - bootAt.current < 3200) {
+          if (bootAt.current && now - bootAt.current < 3600) {
             scheduleIdle();
             return;
           }
@@ -204,40 +204,46 @@ export function useHenBrain(input: {
 
       if (!bootAt.current) bootAt.current = now;
       const intro = now - bootAt.current;
-      const inIntro = intro < 2800 && current.focus === "none" && !current.celebrating && !current.submitting;
+      const inIntro = intro < 3400 && current.focus === "none" && !current.celebrating && !current.submitting;
 
       if (current.submitting || current.celebrating) {
         applyExpr(t, "proudOfYou", 1, now);
       } else if (inIntro) {
-        if (intro < 480) {
+        if (intro < 900) {
           applyExpr(t, "sleepy", 1, now);
           t.headTurn = -0.95;
           t.eyeOpenL = 0;
           t.eyeOpenR = 0;
-          t.wingCover = 0.55;
+          t.wingCover = 0.7;
           t.leanY = 16;
-          t.beak = 0.15 + Math.sin(now / 180) * 0.12;
-        } else if (intro < 920) {
+          t.smile = 0;
+          t.freeze = 1;
+          t.beak = 0.18 + Math.sin(now / 160) * 0.1;
+        } else if (intro < 1550) {
           applyExpr(t, "peek", 1, now);
-          t.headTurn = -0.35;
+          t.headTurn = -0.28;
           t.lookX = 0;
           t.lookY = -0.08;
           t.eyeOpenL = 0;
           t.eyeOpenR = 1;
-          t.eyeWiden = 0.35;
-          t.blush = 0.15;
-        } else if (intro < 1680) {
+          t.eyeWiden = 0.45;
+          t.blush = 0.2;
+          t.freeze = 0.6;
+          t.beak = 0.15;
+          t.smile = 0;
+        } else if (intro < 2400) {
           applyExpr(t, "woo", 1, now);
           t.lookX = 0;
           t.lookY = -0.12;
           t.headTurn = 0;
           t.leanX = 0;
-          t.bounce = intro < 1100 ? -10 : 14 * Math.abs(Math.sin((intro - 1100) / 70));
-          t.puff = 0.45;
-          t.wingL = 16;
-          t.wingR = 16;
+          t.bounce = intro < 1750 ? -8 : 12 * Math.abs(Math.sin((intro - 1750) / 70));
+          t.puff = 0.5;
+          t.wingL = 18;
+          t.wingR = 18;
           t.beak = 1;
           t.smile = 0;
+          t.freeze = intro < 1750 ? 0.8 : 0.2;
         } else {
           applyExpr(t, "excited", 1, now);
           t.lookX = 0;

@@ -4,10 +4,12 @@ import "./hen.css";
 
 type Props = {
   targetRef: RefObject<HenPose>;
+  mood: "none" | "email" | "password" | "login" | "success" | "visible";
 };
 
-export default function HenCharacter({ targetRef }: Props) {
+export default function HenCharacter({ targetRef, mood }: Props) {
   const live = useRef<HenPose>(defaultPose());
+  const svgRef = useRef<SVGSVGElement>(null);
   const rootRef = useRef<SVGGElement>(null);
   const bodyRef = useRef<SVGGElement>(null);
   const headRef = useRef<SVGGElement>(null);
@@ -46,20 +48,23 @@ export default function HenCharacter({ targetRef }: Props) {
         headRef.current.style.transform = `translate(${p.headTurn * -22}px, ${p.happy * -10}px) rotate(${p.headTilt}deg)`;
       }
 
-      const px = p.lookX * 20;
-      const py = p.lookY * 14;
+      const px = p.lookX * 26;
+      const py = p.lookY * 16;
       const pupilScale = 1 + p.eyeWiden * 0.22 - p.squint * 0.2;
       if (pupilL.current) pupilL.current.style.transform = `translate(${px}px, ${py}px) scale(${pupilScale})`;
       if (pupilR.current) pupilR.current.style.transform = `translate(${px}px, ${py}px) scale(${pupilScale})`;
 
       const openLAmt = Math.max(0, p.eyeOpenL * (1 - p.happy));
       const openRAmt = Math.max(0, p.eyeOpenR * (1 - p.happy));
-      if (openL.current) openL.current.style.opacity = String(openLAmt);
-      if (openR.current) openR.current.style.opacity = String(openRAmt);
-      if (shutL.current) shutL.current.style.opacity = String((1 - p.eyeOpenL) * (1 - p.happy));
-      if (shutR.current) shutR.current.style.opacity = String((1 - p.eyeOpenR) * (1 - p.happy));
-      if (happyL.current) happyL.current.style.opacity = String(p.happy);
-      if (happyR.current) happyR.current.style.opacity = String(p.happy);
+      if (openL.current) openL.current.setAttribute("opacity", String(openLAmt));
+      if (openR.current) openR.current.setAttribute("opacity", String(openRAmt));
+      if (shutL.current) shutL.current.setAttribute("opacity", String((1 - p.eyeOpenL) * (1 - p.happy)));
+      if (shutR.current) shutR.current.setAttribute("opacity", String((1 - p.eyeOpenR) * (1 - p.happy)));
+      if (happyL.current) happyL.current.setAttribute("opacity", String(p.happy));
+      if (happyR.current) happyR.current.setAttribute("opacity", String(p.happy));
+      if (svgRef.current) {
+        svgRef.current.dataset.peek = p.eyeOpenR > 0.55 && p.eyeOpenL < 0.4 ? "1" : "0";
+      }
 
       if (browL.current) {
         browL.current.style.transform = `translate(0px, ${-p.browL * 14 + p.squint * 8}px) rotate(${-p.browL * 18 + p.squint * 8}deg)`;
@@ -78,7 +83,14 @@ export default function HenCharacter({ targetRef }: Props) {
   }, [targetRef]);
 
   return (
-    <svg className="hen-svg" viewBox="0 0 420 520" role="img" aria-label="Henrietta the hen, reacting to the login form">
+    <svg
+      ref={svgRef}
+      className="hen-svg"
+      data-mood={mood}
+      viewBox="0 0 420 520"
+      role="img"
+      aria-label="Henrietta the hen, reacting to the login form"
+    >
       <g ref={rootRef} className="hen-root">
         <ellipse cx="210" cy="478" rx="92" ry="16" fill="rgba(26,6,31,0.18)" />
 
@@ -108,75 +120,77 @@ export default function HenCharacter({ targetRef }: Props) {
 
             <circle cx="0" cy="8" r="128" fill="#FFD54A" stroke="#1A061F" strokeWidth="8" />
 
-            <circle cx="-52" cy="48" r="18" fill="#FF9BB8" />
-            <circle cx="56" cy="48" r="18" fill="#FF9BB8" />
+            <circle cx="-52" cy="56" r="20" fill="#FF9BB8" />
+            <circle cx="56" cy="56" r="20" fill="#FF9BB8" />
+
+            <g className="eye" transform="translate(-58,4)">
+              <g ref={openL} className="eye-open">
+                <circle cx="0" cy="0" r="44" fill="#FFFDF7" stroke="#1A061F" strokeWidth="8" />
+                <g ref={pupilL}>
+                  <circle cx="0" cy="4" r="20" fill="#1A061F" />
+                  <circle cx="-7" cy="-4" r="7" fill="#fff" />
+                </g>
+              </g>
+              <g ref={shutL} className="eye-shut" opacity="0">
+                <path d="M-30,4 Q0,26 30,4" fill="none" stroke="#1A061F" strokeWidth="12" strokeLinecap="round" />
+              </g>
+              <path
+                ref={happyL}
+                className="eye-happy"
+                d="M-28,8 Q0,-18 28,8"
+                fill="none"
+                stroke="#1A061F"
+                strokeWidth="12"
+                strokeLinecap="round"
+                opacity="0"
+              />
+            </g>
+
+            <g className="eye" transform="translate(58,4)">
+              <g ref={openR} className="eye-open eye-open-r">
+                <circle cx="0" cy="0" r="44" fill="#FFFDF7" stroke="#1A061F" strokeWidth="8" />
+                <g ref={pupilR}>
+                  <circle cx="0" cy="4" r="20" fill="#1A061F" />
+                  <circle cx="-7" cy="-4" r="7" fill="#fff" />
+                </g>
+              </g>
+              <g ref={shutR} className="eye-shut eye-shut-r" opacity="0">
+                <path d="M-30,4 Q0,26 30,4" fill="none" stroke="#1A061F" strokeWidth="12" strokeLinecap="round" />
+              </g>
+              <path
+                ref={happyR}
+                className="eye-happy"
+                d="M-28,8 Q0,-18 28,8"
+                fill="none"
+                stroke="#1A061F"
+                strokeWidth="12"
+                strokeLinecap="round"
+                opacity="0"
+              />
+            </g>
 
             <path
               ref={browL}
-              className="hen-brow"
-              d="M-108,-28 Q-62,-52 -22,-28"
+              className="hen-brow hen-brow-l"
+              d="M-108,-62 Q-58,-88 -16,-62"
               fill="none"
               stroke="#1A061F"
-              strokeWidth="12"
+              strokeWidth="14"
               strokeLinecap="round"
             />
             <path
               ref={browR}
-              className="hen-brow"
-              d="M22,-28 Q66,-52 112,-28"
+              className="hen-brow hen-brow-r"
+              d="M16,-62 Q62,-88 108,-62"
               fill="none"
               stroke="#1A061F"
-              strokeWidth="12"
+              strokeWidth="14"
               strokeLinecap="round"
             />
 
-            <g transform="translate(-56,-6)">
-              <g ref={openL}>
-                <circle cx="0" cy="0" r="46" fill="#FFFDF7" stroke="#1A061F" strokeWidth="8" />
-                <g ref={pupilL}>
-                  <circle cx="0" cy="4" r="22" fill="#1A061F" />
-                  <circle cx="-8" cy="-4" r="8" fill="#fff" />
-                </g>
-              </g>
-              <g ref={shutL} opacity="0">
-                <path d="M-28,6 Q0,22 28,6" fill="none" stroke="#1A061F" strokeWidth="10" strokeLinecap="round" />
-              </g>
-              <path
-                ref={happyL}
-                d="M-26,4 Q0,-16 26,4"
-                fill="none"
-                stroke="#1A061F"
-                strokeWidth="10"
-                strokeLinecap="round"
-                opacity="0"
-              />
-            </g>
-
-            <g transform="translate(56,-6)">
-              <g ref={openR}>
-                <circle cx="0" cy="0" r="46" fill="#FFFDF7" stroke="#1A061F" strokeWidth="8" />
-                <g ref={pupilR}>
-                  <circle cx="0" cy="4" r="22" fill="#1A061F" />
-                  <circle cx="-8" cy="-4" r="8" fill="#fff" />
-                </g>
-              </g>
-              <g ref={shutR} opacity="0">
-                <path d="M-28,6 Q0,22 28,6" fill="none" stroke="#1A061F" strokeWidth="10" strokeLinecap="round" />
-              </g>
-              <path
-                ref={happyR}
-                d="M-26,4 Q0,-16 26,4"
-                fill="none"
-                stroke="#1A061F"
-                strokeWidth="10"
-                strokeLinecap="round"
-                opacity="0"
-              />
-            </g>
-
             <g ref={beak} className="hen-beak">
-              <path d="M-28,58 L0,96 L28,58 Z" fill="#FF8C1A" stroke="#1A061F" strokeWidth="8" strokeLinejoin="round" />
-              <path d="M-6,96 Q-18,118 -4,122 Q8,108 6,96" fill="#FF3B5C" stroke="#1A061F" strokeWidth="6" />
+              <path d="M-32,78 L0,124 L32,78 Z" fill="#FF8C1A" stroke="#1A061F" strokeWidth="8" strokeLinejoin="round" />
+              <path d="M-6,124 Q-20,148 -2,152 Q10,132 8,124" fill="#FF3B5C" stroke="#1A061F" strokeWidth="6" />
             </g>
           </g>
         </g>

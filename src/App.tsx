@@ -37,6 +37,8 @@ export default function App() {
   const pointerRef = useRef<{ x: number; y: number } | null>(null);
 
   const focus: FocusField = busy ? "none" : loginHover ? "login" : fieldFocus;
+  const henMood =
+    busy ? "success" : passwordVisible && fieldFocus === "password" ? "visible" : focus;
 
   const targetRef = useHenBrain({
     focus,
@@ -147,7 +149,7 @@ export default function App() {
         <section className="closet">
           <div className="closet-panel">
             <div className="closet-hen">
-              <HenCharacter targetRef={targetRef} />
+              <HenCharacter targetRef={targetRef} mood="success" />
             </div>
             <h1>You made it, {session.split("@")[0]}!</h1>
             <p>
@@ -163,7 +165,7 @@ export default function App() {
         <section className="hero" id="home">
           <div className="hero-left" ref={henBox}>
             <div className="hen-stage">
-              <HenCharacter targetRef={targetRef} />
+              <HenCharacter targetRef={targetRef} mood={henMood} />
             </div>
           </div>
 

@@ -223,7 +223,10 @@ export default function App() {
                 </div>
               ) : null}
 
-              <div className="field">
+              <div
+                className="field"
+                onMouseDown={() => setFieldFocus("email")}
+              >
                 <label htmlFor="email">
                   Email
                   <span className="micro">Who are you?</span>
@@ -245,7 +248,7 @@ export default function App() {
                 />
               </div>
 
-              <div className="field">
+              <div className="field" onMouseDown={() => setFieldFocus("password")}>
                 <label htmlFor="password">
                   Password
                   <span className="micro">Don’t worry. I won’t look. 👀</span>

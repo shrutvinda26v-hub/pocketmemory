@@ -1,33 +1,61 @@
-import { RefObject, useEffect, useRef } from "react";
+import { RefObject, useEffect, useRef, useState } from "react";
 import { HenPose, defaultPose, lerpPose } from "./pose";
 import "./hen.css";
 
+type Mood = "none" | "email" | "password" | "login" | "success" | "visible";
+
 type Props = {
   targetRef: RefObject<HenPose>;
-  mood: "none" | "email" | "password" | "login" | "success" | "visible";
+  mood: Mood;
 };
+
+function browTransform(mood: Mood, side: "l" | "r") {
+  if (mood === "email") {
+    return side === "l" ? "translate(-64 -118) rotate(-22)" : "translate(64 -110) rotate(14)";
+  }
+  if (mood === "password") {
+    return side === "l" ? "translate(-64 -96) rotate(8)" : "translate(64 -96) rotate(-8)";
+  }
+  if (mood === "visible" || mood === "login") {
+    return side === "l" ? "translate(-64 -120) rotate(-16)" : "translate(64 -120) rotate(16)";
+  }
+  return side === "l" ? "translate(-64 -108)" : "translate(64 -108)";
+}
 
 export default function HenCharacter({ targetRef, mood }: Props) {
   const live = useRef<HenPose>(defaultPose());
-  const svgRef = useRef<SVGSVGElement>(null);
   const rootRef = useRef<SVGGElement>(null);
   const bodyRef = useRef<SVGGElement>(null);
   const headRef = useRef<SVGGElement>(null);
   const pupilL = useRef<SVGGElement>(null);
   const pupilR = useRef<SVGGElement>(null);
-  const openL = useRef<SVGGElement>(null);
-  const openR = useRef<SVGGElement>(null);
-  const shutL = useRef<SVGGElement>(null);
-  const shutR = useRef<SVGGElement>(null);
-  const happyL = useRef<SVGPathElement>(null);
-  const happyR = useRef<SVGPathElement>(null);
-  const browL = useRef<SVGPathElement>(null);
-  const browR = useRef<SVGPathElement>(null);
   const beak = useRef<SVGGElement>(null);
   const wingL = useRef<SVGGElement>(null);
   const wingR = useRef<SVGGElement>(null);
-  const moodRef = useRef(mood);
-  moodRef.current = mood;
+  const [blink, setBlink] = useState(false);
+
+  useEffect(() => {
+    if (mood === "password" || mood === "success") {
+      setBlink(false);
+      return;
+    }
+    let blinkOff = 0;
+    let next = 0;
+    const loop = () => {
+      next = window.setTimeout(() => {
+        setBlink(true);
+        blinkOff = window.setTimeout(() => {
+          setBlink(false);
+          loop();
+        }, 140);
+      }, 1800 + Math.random() * 3200);
+    };
+    loop();
+    return () => {
+      window.clearTimeout(next);
+      window.clearTimeout(blinkOff);
+    };
+  }, [mood]);
 
   useEffect(() => {
     let frame = 0;
@@ -47,7 +75,7 @@ export default function HenCharacter({ targetRef, mood }: Props) {
         bodyRef.current.style.transform = `scale(${1 + p.puff * 0.05}, ${1 + p.breathe * 0.02})`;
       }
       if (headRef.current) {
-        headRef.current.style.transform = `translate(${p.headTurn * -22}px, ${p.happy * -10}px) rotate(${p.headTilt}deg)`;
+        headRef.current.style.transform = `translate(${p.headTurn * -18}px, ${p.happy * -10}px) rotate(${p.headTilt}deg)`;
       }
 
       const px = p.lookX * 26;
@@ -55,31 +83,6 @@ export default function HenCharacter({ targetRef, mood }: Props) {
       const pupilScale = 1 + p.eyeWiden * 0.22 - p.squint * 0.2;
       if (pupilL.current) pupilL.current.style.transform = `translate(${px}px, ${py}px) scale(${pupilScale})`;
       if (pupilR.current) pupilR.current.style.transform = `translate(${px}px, ${py}px) scale(${pupilScale})`;
-
-      const moodNow = moodRef.current;
-      const peeking = moodNow === "password" && p.eyeOpenR > 0.55 && p.eyeOpenL < 0.4;
-      const showHappy = moodNow === "success";
-      const forceShut = moodNow === "password" && !peeking;
-
-      const leftOpen = showHappy ? false : forceShut ? false : p.eyeOpenL > 0.45;
-      const rightOpen = showHappy ? false : forceShut ? false : peeking ? true : p.eyeOpenR > 0.45;
-      const leftShut = showHappy ? false : !leftOpen;
-      const rightShut = showHappy ? false : !rightOpen;
-
-      if (openL.current) openL.current.style.display = leftOpen ? "block" : "none";
-      if (openR.current) openR.current.style.display = rightOpen ? "block" : "none";
-      if (shutL.current) shutL.current.style.display = leftShut ? "block" : "none";
-      if (shutR.current) shutR.current.style.display = rightShut ? "block" : "none";
-      if (happyL.current) happyL.current.style.display = showHappy ? "block" : "none";
-      if (happyR.current) happyR.current.style.display = showHappy ? "block" : "none";
-      if (svgRef.current) svgRef.current.dataset.peek = peeking ? "1" : "0";
-
-      if (browL.current) {
-        browL.current.style.transform = `translate(0px, ${-p.browL * 14 + p.squint * 8}px) rotate(${-p.browL * 18 + p.squint * 8}deg)`;
-      }
-      if (browR.current) {
-        browR.current.style.transform = `translate(0px, ${-p.browR * 14 + p.squint * 8}px) rotate(${p.browR * 18 - p.squint * 8}deg)`;
-      }
       if (beak.current) beak.current.style.transform = `scale(${1 + p.beak * 0.08}, ${1 + p.beak * 0.22})`;
       if (wingL.current) wingL.current.style.transform = `rotate(${-18 - p.wingL}deg)`;
       if (wingR.current) wingR.current.style.transform = `rotate(${18 + p.wingR}deg)`;
@@ -90,15 +93,11 @@ export default function HenCharacter({ targetRef, mood }: Props) {
     return () => cancelAnimationFrame(frame);
   }, [targetRef]);
 
+  const eyesShut = mood === "password" || blink;
+  const eyesHappy = mood === "success";
+
   return (
-    <svg
-      ref={svgRef}
-      className="hen-svg"
-      data-mood={mood}
-      viewBox="0 0 420 520"
-      role="img"
-      aria-label="Henrietta the hen, reacting to the login form"
-    >
+    <svg className="hen-svg" data-mood={mood} viewBox="0 0 420 520" role="img" aria-label="Henrietta the hen, reacting to the login form">
       <g ref={rootRef} className="hen-root">
         <ellipse cx="210" cy="478" rx="92" ry="16" fill="rgba(26,6,31,0.18)" />
 
@@ -127,78 +126,51 @@ export default function HenCharacter({ targetRef, mood }: Props) {
             <ellipse cx="30" cy="-130" rx="22" ry="32" fill="#FF3B5C" stroke="#1A061F" strokeWidth="8" />
 
             <circle cx="0" cy="8" r="128" fill="#FFD54A" stroke="#1A061F" strokeWidth="8" />
+            <circle cx="-52" cy="58" r="20" fill="#FF9BB8" />
+            <circle cx="56" cy="58" r="20" fill="#FF9BB8" />
 
-            <circle cx="-52" cy="56" r="20" fill="#FF9BB8" />
-            <circle cx="56" cy="56" r="20" fill="#FF9BB8" />
-
-            <g className="eye" transform="translate(-58,4)">
-              <g ref={openL} className="eye-open">
-                <circle cx="0" cy="0" r="44" fill="#FFFDF7" stroke="#1A061F" strokeWidth="8" />
-                <g ref={pupilL}>
-                  <circle cx="0" cy="4" r="20" fill="#1A061F" />
-                  <circle cx="-7" cy="-4" r="7" fill="#fff" />
+            <g transform="translate(-58, 8)">
+              {eyesHappy ? (
+                <path d="M-28,8 Q0,-18 28,8" fill="none" stroke="#1A061F" strokeWidth="12" strokeLinecap="round" />
+              ) : eyesShut ? (
+                <path d="M-32,6 Q0,28 32,6" fill="none" stroke="#1A061F" strokeWidth="14" strokeLinecap="round" />
+              ) : (
+                <g>
+                  <circle cx="0" cy="0" r="44" fill="#FFFDF7" stroke="#1A061F" strokeWidth="8" />
+                  <g ref={pupilL}>
+                    <circle cx="0" cy="4" r="20" fill="#1A061F" />
+                    <circle cx="-7" cy="-4" r="7" fill="#fff" />
+                  </g>
                 </g>
-              </g>
-              <g ref={shutL} className="eye-shut" style={{ display: "none" }}>
-                <path d="M-30,4 Q0,26 30,4" fill="none" stroke="#1A061F" strokeWidth="12" strokeLinecap="round" />
-              </g>
-              <path
-                ref={happyL}
-                className="eye-happy"
-                d="M-28,8 Q0,-18 28,8"
-                fill="none"
-                stroke="#1A061F"
-                strokeWidth="12"
-                strokeLinecap="round"
-                style={{ display: "none" }}
-              />
+              )}
             </g>
 
-            <g className="eye" transform="translate(58,4)">
-              <g ref={openR} className="eye-open eye-open-r">
-                <circle cx="0" cy="0" r="44" fill="#FFFDF7" stroke="#1A061F" strokeWidth="8" />
-                <g ref={pupilR}>
-                  <circle cx="0" cy="4" r="20" fill="#1A061F" />
-                  <circle cx="-7" cy="-4" r="7" fill="#fff" />
+            <g transform="translate(58, 8)">
+              {eyesHappy ? (
+                <path d="M-28,8 Q0,-18 28,8" fill="none" stroke="#1A061F" strokeWidth="12" strokeLinecap="round" />
+              ) : eyesShut ? (
+                <path d="M-32,6 Q0,28 32,6" fill="none" stroke="#1A061F" strokeWidth="14" strokeLinecap="round" />
+              ) : (
+                <g>
+                  <circle cx="0" cy="0" r="44" fill="#FFFDF7" stroke="#1A061F" strokeWidth="8" />
+                  <g ref={pupilR}>
+                    <circle cx="0" cy="4" r="20" fill="#1A061F" />
+                    <circle cx="-7" cy="-4" r="7" fill="#fff" />
+                  </g>
                 </g>
-              </g>
-              <g ref={shutR} className="eye-shut eye-shut-r" style={{ display: "none" }}>
-                <path d="M-30,4 Q0,26 30,4" fill="none" stroke="#1A061F" strokeWidth="12" strokeLinecap="round" />
-              </g>
-              <path
-                ref={happyR}
-                className="eye-happy"
-                d="M-28,8 Q0,-18 28,8"
-                fill="none"
-                stroke="#1A061F"
-                strokeWidth="12"
-                strokeLinecap="round"
-                opacity="0"
-              />
+              )}
             </g>
 
-            <path
-              ref={browL}
-              className="hen-brow hen-brow-l"
-              d="M-110,-92 Q-58,-122 -14,-92"
-              fill="none"
-              stroke="#1A061F"
-              strokeWidth="14"
-              strokeLinecap="round"
-            />
-            <path
-              ref={browR}
-              className="hen-brow hen-brow-r"
-              d="M14,-92 Q62,-122 110,-92"
-              fill="none"
-              stroke="#1A061F"
-              strokeWidth="14"
-              strokeLinecap="round"
-            />
+            <g transform={browTransform(mood, "l")}>
+              <path d="M-38 0 Q0 -18 38 0" fill="none" stroke="#1A061F" strokeWidth="14" strokeLinecap="round" />
+            </g>
+            <g transform={browTransform(mood, "r")}>
+              <path d="M-38 0 Q0 -18 38 0" fill="none" stroke="#1A061F" strokeWidth="14" strokeLinecap="round" />
+            </g>
 
             <g ref={beak} className="hen-beak">
-              <path d="M-32,78 L0,124 L32,78 Z" fill="#FF8C1A" stroke="#1A061F" strokeWidth="8" strokeLinejoin="round" />
-              <path d="M-6,124 Q-20,148 -2,152 Q10,132 8,124" fill="#FF3B5C" stroke="#1A061F" strokeWidth="6" />
+              <path d="M-32,82 L0,128 L32,82 Z" fill="#FF8C1A" stroke="#1A061F" strokeWidth="8" strokeLinejoin="round" />
+              <path d="M-6,128 Q-20,152 -2,156 Q10,136 8,128" fill="#FF3B5C" stroke="#1A061F" strokeWidth="6" />
             </g>
           </g>
         </g>

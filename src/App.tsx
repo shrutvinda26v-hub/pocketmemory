@@ -102,19 +102,7 @@ export default function App() {
       ) : (
         <section className="hero" id="home">
           <div className="hero-left">
-            <div className="headline-wrap">
-              <span className="eyebrow">Meet Henrietta • your fashion hen</span>
-              <h1 className="headline">CLOSET CHAOS? HEN GOT YOU.</h1>
-              <p className="lede">
-                PocketMemory is a funky wardrobe sidekick. Snap the fit, stash the
-                memory, and let this stylish hen keep your looks loud.
-              </p>
-            </div>
-            <div className="speech">Let’s get dressed, superstar!</div>
             <div className="hen-stage">
-              <span className="blob" />
-              <span className="star" />
-              <span className="zig" />
               <img
                 className="hen"
                 src="/henrietta-hen.png"

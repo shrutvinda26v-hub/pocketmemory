@@ -50,10 +50,7 @@ export default function App() {
     pointerRef,
   });
 
-  const headline = useMemo(
-    () => (mode === "login" ? "Strut back in" : "Join the coop"),
-    [mode],
-  );
+  const headline = useMemo(() => (mode === "login" ? "Log in" : "Create account"), [mode]);
 
   useEffect(() => {
     return () => {
@@ -78,15 +75,15 @@ export default function App() {
 
     const trimmedEmail = email.trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-      setError("That email looks scrambled. Try again, superstar.");
+      setError("Enter a valid email.");
       return;
     }
     if (password.length < 6) {
-      setError("Password needs at least 6 funky characters.");
+      setError("Password must be at least 6 characters.");
       return;
     }
     if (mode === "signup" && name.trim().length < 2) {
-      setError("Give Henrietta a name to cheer for.");
+      setError("Enter your name.");
       return;
     }
 
@@ -122,61 +119,51 @@ export default function App() {
     const box = henBox.current;
     if (!box) return;
     const rect = box.getBoundingClientRect();
-    const x = ((event.clientX - (rect.left + rect.width / 2)) / (rect.width / 2));
-    const y = ((event.clientY - (rect.top + rect.height / 2.4)) / (rect.height / 2));
+    const x = (event.clientX - (rect.left + rect.width / 2)) / (rect.width / 2);
+    const y = (event.clientY - (rect.top + rect.height / 2.4)) / (rect.height / 2);
     pointerRef.current = {
       x: Math.max(-1, Math.min(1, x)),
       y: Math.max(-1, Math.min(1, y)),
     };
   }
 
+  const hen = (
+    <div className="hen-stage">
+      <HenCharacter targetRef={targetRef} mood={session ? "success" : henMood} />
+    </div>
+  );
+
   return (
     <div className="page" onPointerMove={onPointerMove}>
       <header className="topbar">
         <a className="brand" href="#home">
-          <span className="brand-mark">
-            <img src="/hen-kawaii.png" alt="" />
-          </span>
-          <span className="brand-copy">
-            <span className="brand-name">PocketMemory</span>
-            <span className="brand-tag">wardrobe app • cluck your look</span>
-          </span>
+          PocketMemory
         </a>
-        <span className="chip">Henrietta is watching</span>
       </header>
 
       {session ? (
         <section className="closet">
+          <div className="closet-hen" ref={henBox}>
+            {hen}
+          </div>
           <div className="closet-panel">
-            <div className="closet-hen">
-              <HenCharacter targetRef={targetRef} mood="success" />
-            </div>
-            <h1>You made it, {session.split("@")[0]}!</h1>
-            <p>
-              The closet is warming up. PocketMemory will remember every outfit so
-              you never repeat a vibe by accident.
-            </p>
+            <h1>You’re in, {session.split("@")[0]}.</h1>
+            <p>PocketMemory will keep your outfits so you don’t repeat a look by accident.</p>
             <button className="logout" type="button" onClick={logout}>
-              Log out and strut off
+              Log out
             </button>
           </div>
         </section>
       ) : (
         <section className="hero" id="home">
           <div className="hero-left" ref={henBox}>
-            <div className="hen-stage">
-              <HenCharacter targetRef={targetRef} mood={henMood} />
-            </div>
+            {hen}
           </div>
 
           <div className="hero-right">
             <form className="login-card" onSubmit={onSubmit}>
               <h2>{headline}</h2>
-              <p>
-                {mode === "login"
-                  ? "A nosy hen is already involved. Type anyway."
-                  : "Create an account. She will pretend not to look."}
-              </p>
+              <p>{mode === "login" ? "Welcome back." : "Start a new closet."}</p>
 
               <div className="tabs">
                 <button
@@ -208,35 +195,26 @@ export default function App() {
 
               {mode === "signup" ? (
                 <div className="field">
-                  <label htmlFor="name">
-                    Stage name
-                    <span className="micro">What should she cheer?</span>
-                  </label>
+                  <label htmlFor="name">Name</label>
                   <input
                     id="name"
                     name="name"
                     autoComplete="nickname"
-                    placeholder="Henrietta Fan"
+                    placeholder="Your name"
                     value={name}
                     onChange={(event) => setName(event.target.value)}
                   />
                 </div>
               ) : null}
 
-              <div
-                className="field"
-                onMouseDown={() => setFieldFocus("email")}
-              >
-                <label htmlFor="email">
-                  Email
-                  <span className="micro">Who are you?</span>
-                </label>
+              <div className="field" onMouseDown={() => setFieldFocus("email")}>
+                <label htmlFor="email">Email</label>
                 <input
                   id="email"
                   name="email"
                   type="email"
                   autoComplete="email"
-                  placeholder="you@funky.mail"
+                  placeholder="you@email.com"
                   value={email}
                   onChange={(event) => {
                     setEmail(event.target.value);
@@ -249,17 +227,14 @@ export default function App() {
               </div>
 
               <div className="field" onMouseDown={() => setFieldFocus("password")}>
-                <label htmlFor="password">
-                  Password
-                  <span className="micro">Don’t worry. I won’t look. 👀</span>
-                </label>
+                <label htmlFor="password">Password</label>
                 <div className="input-wrap">
                   <input
                     id="password"
                     name="password"
                     type={passwordVisible ? "text" : "password"}
                     autoComplete={mode === "login" ? "current-password" : "new-password"}
-                    placeholder="Shhh… secret stuff"
+                    placeholder="••••••••"
                     value={password}
                     onChange={(event) => {
                       setPassword(event.target.value);
@@ -275,7 +250,7 @@ export default function App() {
                     aria-label={passwordVisible ? "Hide password" : "Show password"}
                     onClick={() => setPasswordVisible((value) => !value)}
                   >
-                    {passwordVisible ? "🙈" : "👁"}
+                    {passwordVisible ? "Hide" : "Show"}
                   </button>
                 </div>
               </div>
@@ -287,16 +262,14 @@ export default function App() {
                     checked={remember}
                     onChange={(event) => setRemember(event.target.checked)}
                   />
-                  Keep me struttin’
+                  Remember me
                 </label>
                 <button
                   className="ghost-link"
                   type="button"
-                  onClick={() =>
-                    setNotice("She never forgets. Use any 6+ character password for this demo.")
-                  }
+                  onClick={() => setNotice("Demo: any email and a password of 6+ characters.")}
                 >
-                  Forgot the groove?
+                  Forgot password?
                 </button>
               </div>
 
@@ -309,9 +282,9 @@ export default function App() {
                 onFocus={() => setLoginHover(true)}
                 onBlur={() => setLoginHover(false)}
               >
-                {busy ? "YES!!" : "LET ME IN →"}
+                {busy ? "Signing in…" : mode === "login" ? "Continue" : "Create account"}
               </button>
-              <p className="hint">She is watching. Demo: any email + 6+ characters.</p>
+              <p className="hint">Demo: any email + 6 or more characters.</p>
             </form>
           </div>
         </section>

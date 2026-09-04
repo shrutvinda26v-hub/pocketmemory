@@ -1,13 +1,11 @@
 :root {
-  --grape: #2a0838;
-  --grape-deep: #16041f;
-  --cream: #fff4dc;
-  --pink: #ff2d95;
-  --lime: #c6ff00;
-  --cyan: #19e8ff;
-  --orange: #ff7a18;
-  --yellow: #ffe14d;
-  --ink: #1a061f;
+  --bg: #f6f4f1;
+  --panel: #efece7;
+  --card: #ffffff;
+  --ink: #1c1917;
+  --muted: #78716c;
+  --line: #e7e5e4;
+  --focus: #1c1917;
 }
 
 *,
@@ -24,9 +22,9 @@ body,
 }
 
 body {
-  font-family: "Outfit", system-ui, sans-serif;
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
   color: var(--ink);
-  background: var(--grape-deep);
+  background: var(--bg);
 }
 
 button,
@@ -36,9 +34,4 @@ input {
 
 button {
   cursor: pointer;
-}
-
-img {
-  max-width: 100%;
-  display: block;
 }

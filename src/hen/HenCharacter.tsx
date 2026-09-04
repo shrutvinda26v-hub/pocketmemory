@@ -9,51 +9,26 @@ type Props = {
   mood: Mood;
 };
 
-const SCLERA = "#FAE599";
-const HEAD = "#FBF8F4";
-const INK = "#1A061F";
-
-function OverlayEye({
-  cx,
-  cy,
-  pupilX,
-  pupilY,
-  r,
+function Eye({
   happy,
   shut,
   pupilRef,
 }: {
-  cx: number;
-  cy: number;
-  pupilX: number;
-  pupilY: number;
-  r: number;
   happy: boolean;
   shut: boolean;
   pupilRef: RefObject<SVGGElement | null>;
 }) {
   if (happy) {
-    return (
-      <g transform={`translate(${cx} ${cy})`}>
-        <circle r={r + 6} fill={HEAD} />
-        <path d={`M${-r * 0.72} 4 Q0 ${-r * 0.42} ${r * 0.72} 4`} fill="none" stroke={INK} strokeWidth="10" strokeLinecap="round" />
-      </g>
-    );
+    return <path d="M-42 8 Q0 -28 42 8" fill="none" stroke="#1c1917" strokeWidth="10" strokeLinecap="round" />;
   }
   if (shut) {
-    return (
-      <g transform={`translate(${cx} ${cy})`}>
-        <circle r={r + 6} fill={HEAD} />
-        <path d={`M${-r * 0.78} 2 Q0 ${r * 0.55} ${r * 0.78} 2`} fill="none" stroke={INK} strokeWidth="11" strokeLinecap="round" />
-      </g>
-    );
+    return <path d="M-42 6 Q0 34 42 6" fill="none" stroke="#1c1917" strokeWidth="10" strokeLinecap="round" />;
   }
   return (
-    <g transform={`translate(${pupilX} ${pupilY})`}>
-      <circle r={18} fill={SCLERA} />
+    <g>
+      <circle r="48" fill="#fff" stroke="#1c1917" strokeWidth="6" />
       <g ref={pupilRef}>
-        <circle r="15" fill={INK} />
-        <circle cx="-4" cy="-5" r="4.5" fill="#fff" />
+        <circle r="18" fill="#1c1917" />
       </g>
     </g>
   );
@@ -62,7 +37,6 @@ function OverlayEye({
 export default function HenCharacter({ targetRef, mood }: Props) {
   const live = useRef<HenPose>(defaultPose());
   const rootRef = useRef<SVGGElement>(null);
-  const bodyRef = useRef<SVGGElement>(null);
   const pupilL = useRef<SVGGElement>(null);
   const pupilR = useRef<SVGGElement>(null);
   const [blink, setBlink] = useState(false);
@@ -80,8 +54,8 @@ export default function HenCharacter({ targetRef, mood }: Props) {
         blinkOff = window.setTimeout(() => {
           setBlink(false);
           loop();
-        }, 140);
-      }, 1800 + Math.random() * 3200);
+        }, 120);
+      }, 2200 + Math.random() * 2800);
     };
     loop();
     return () => {
@@ -99,20 +73,16 @@ export default function HenCharacter({ targetRef, mood }: Props) {
         return;
       }
       const p = live.current;
-      lerpPose(p, target, 0.2, 0.12);
+      lerpPose(p, target, 0.18, 0.1);
 
       if (rootRef.current) {
-        rootRef.current.style.transform = `translate(${p.leanX}px, ${p.leanY}px) rotate(${p.headTilt * 0.35}deg)`;
-      }
-      if (bodyRef.current) {
-        bodyRef.current.style.transform = `scale(${1 + p.puff * 0.03}, ${1 + p.breathe * 0.018})`;
+        rootRef.current.style.transform = `translate(${p.leanX * 0.25}px, ${p.leanY * 0.2}px)`;
       }
 
-      const px = p.lookX * 8;
-      const py = p.lookY * 6;
-      const pupilScale = 1 + p.eyeWiden * 0.12 - p.squint * 0.14;
-      if (pupilL.current) pupilL.current.style.transform = `translate(${px}px, ${py}px) scale(${pupilScale})`;
-      if (pupilR.current) pupilR.current.style.transform = `translate(${px}px, ${py}px) scale(${pupilScale})`;
+      const px = p.lookX * 14;
+      const py = p.lookY * 10;
+      if (pupilL.current) pupilL.current.style.transform = `translate(${px}px, ${py}px)`;
+      if (pupilR.current) pupilR.current.style.transform = `translate(${px}px, ${py}px)`;
 
       frame = requestAnimationFrame(tick);
     };
@@ -124,19 +94,23 @@ export default function HenCharacter({ targetRef, mood }: Props) {
   const eyesHappy = mood === "success";
 
   return (
-    <svg
-      className="hen-svg"
-      data-mood={mood}
-      viewBox="0 0 455 529"
-      role="img"
-      aria-label="Henrietta the hen, reacting to the login form"
-    >
+    <svg className="hen-svg" data-mood={mood} viewBox="0 0 400 400" role="img" aria-label="Hen watching the login form">
       <g ref={rootRef} className="hen-root">
-        <g ref={bodyRef} className="hen-body">
-          <image href="/hen-kawaii.png" width="455" height="529" />
-          <OverlayEye cx={173} cy={111} pupilX={181} pupilY={115} r={32} happy={eyesHappy} shut={eyesShut} pupilRef={pupilL} />
-          <OverlayEye cx={236} cy={124} pupilX={243} pupilY={128} r={34} happy={eyesHappy} shut={eyesShut} pupilRef={pupilR} />
+        <circle cx="200" cy="210" r="168" fill="#fff8f1" stroke="#1c1917" strokeWidth="7" />
+        <path
+          d="M168 58 C176 18 200 8 200 8 C200 8 224 18 232 58"
+          fill="#d94a3d"
+          stroke="#1c1917"
+          strokeWidth="6"
+          strokeLinejoin="round"
+        />
+        <g transform="translate(132 178)">
+          <Eye happy={eyesHappy} shut={eyesShut} pupilRef={pupilL} />
         </g>
+        <g transform="translate(268 178)">
+          <Eye happy={eyesHappy} shut={eyesShut} pupilRef={pupilR} />
+        </g>
+        <path d="M186 228 L200 258 L214 228 Z" fill="#e8892d" stroke="#1c1917" strokeWidth="5" strokeLinejoin="round" />
       </g>
     </svg>
   );

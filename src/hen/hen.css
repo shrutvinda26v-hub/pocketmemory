@@ -1,0 +1,24 @@
+.hen-svg {
+  width: min(100%, 620px);
+  height: 100%;
+  max-height: 100%;
+  overflow: visible;
+  display: block;
+  margin: 0 auto;
+}
+
+.hen-root,
+.hen-body,
+.hen-head,
+.hen-wing {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+}
+
+.hen-head {
+  transform-origin: 50% 46%;
+}
+
+.hen-wing {
+  transform-origin: 50% 50%;
+}

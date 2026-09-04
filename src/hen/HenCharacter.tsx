@@ -16,6 +16,8 @@ const INK = "#1A061F";
 function OverlayEye({
   cx,
   cy,
+  pupilX,
+  pupilY,
   r,
   happy,
   shut,
@@ -23,6 +25,8 @@ function OverlayEye({
 }: {
   cx: number;
   cy: number;
+  pupilX: number;
+  pupilY: number;
   r: number;
   happy: boolean;
   shut: boolean;
@@ -31,7 +35,7 @@ function OverlayEye({
   if (happy) {
     return (
       <g transform={`translate(${cx} ${cy})`}>
-        <circle r={r + 4} fill={HEAD} />
+        <circle r={r + 6} fill={HEAD} />
         <path d={`M${-r * 0.72} 4 Q0 ${-r * 0.42} ${r * 0.72} 4`} fill="none" stroke={INK} strokeWidth="10" strokeLinecap="round" />
       </g>
     );
@@ -39,18 +43,17 @@ function OverlayEye({
   if (shut) {
     return (
       <g transform={`translate(${cx} ${cy})`}>
-        <circle r={r + 4} fill={HEAD} />
+        <circle r={r + 6} fill={HEAD} />
         <path d={`M${-r * 0.78} 2 Q0 ${r * 0.55} ${r * 0.78} 2`} fill="none" stroke={INK} strokeWidth="11" strokeLinecap="round" />
       </g>
     );
   }
   return (
-    <g transform={`translate(${cx} ${cy})`}>
-      <circle r={r} fill={SCLERA} />
-      <circle r={r} fill="none" stroke={INK} strokeWidth="8" />
+    <g transform={`translate(${pupilX} ${pupilY})`}>
+      <circle r={18} fill={SCLERA} />
       <g ref={pupilRef}>
-        <circle cy="3" r={r * 0.42} fill={INK} />
-        <circle cx={-r * 0.14} cy={-r * 0.08} r={r * 0.12} fill="#fff" />
+        <circle r="15" fill={INK} />
+        <circle cx="-4" cy="-5" r="4.5" fill="#fff" />
       </g>
     </g>
   );
@@ -131,8 +134,8 @@ export default function HenCharacter({ targetRef, mood }: Props) {
       <g ref={rootRef} className="hen-root">
         <g ref={bodyRef} className="hen-body">
           <image href="/hen-kawaii.png" width="455" height="529" />
-          <OverlayEye cx={173} cy={111} r={32} happy={eyesHappy} shut={eyesShut} pupilRef={pupilL} />
-          <OverlayEye cx={236} cy={124} r={34} happy={eyesHappy} shut={eyesShut} pupilRef={pupilR} />
+          <OverlayEye cx={173} cy={111} pupilX={181} pupilY={115} r={32} happy={eyesHappy} shut={eyesShut} pupilRef={pupilL} />
+          <OverlayEye cx={236} cy={124} pupilX={243} pupilY={128} r={34} happy={eyesHappy} shut={eyesShut} pupilRef={pupilR} />
         </g>
       </g>
     </svg>

@@ -1,0 +1,47 @@
+.hen-svg {
+  width: 124%;
+  height: 124%;
+  display: block;
+  overflow: visible;
+}
+
+.hen-root,
+.hen-body,
+.hen-neck,
+.hen-head,
+.hen-brow,
+.hen-beak,
+.hen-wing-anchor > g {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+}
+
+.hen-head {
+  transform-origin: 50% 62%;
+}
+
+.hen-beak {
+  transform-origin: 50% 0%;
+}
+
+.hen-wing-l > g {
+  transform-origin: 100% 30%;
+}
+
+.hen-wing-r > g {
+  transform-origin: 0% 40%;
+}
+
+.hen-neck {
+  transform-origin: 50% 100%;
+}
+
+.hen-wattle {
+  transform-box: fill-box;
+  transform-origin: 50% 0%;
+}
+
+.hen-brow path {
+  fill: #000;
+  stroke: #000;
+}

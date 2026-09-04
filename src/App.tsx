@@ -110,12 +110,11 @@ export default function App() {
                 memory, and let this stylish hen keep your looks loud.
               </p>
             </div>
+            <div className="speech">Let’s get dressed, superstar!</div>
             <div className="hen-stage">
-              <div className="speech">Let’s get dressed, superstar!</div>
               <span className="blob" />
               <span className="star" />
               <span className="zig" />
-              <span className="ground" />
               <img
                 className="hen"
                 src="/henrietta-hen.png"

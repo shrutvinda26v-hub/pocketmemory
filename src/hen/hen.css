@@ -40,3 +40,8 @@
   transform-box: fill-box;
   transform-origin: 50% 0%;
 }
+
+.hen-brow path {
+  fill: #000;
+  stroke: #000;
+}

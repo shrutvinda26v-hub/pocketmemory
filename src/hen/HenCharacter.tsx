@@ -153,13 +153,6 @@ export default function HenCharacter({ targetRef }: Props) {
             <ellipse ref={blushL} cx="-78" cy="36" rx="26" ry="14" fill="#f3b6a8" opacity="0.22" />
             <ellipse ref={blushR} cx="78" cy="36" rx="26" ry="14" fill="#f3b6a8" opacity="0.22" />
 
-            <g ref={browLRef} className="hen-brow" transform="translate(-64 -90)">
-              <path d="M-34 2 Q0 -16 34 2" fill="none" stroke="#000" strokeWidth="11" strokeLinecap="round" />
-            </g>
-            <g ref={browRRef} className="hen-brow" transform="translate(64 -90)">
-              <path d="M-34 2 Q0 -16 34 2" fill="none" stroke="#000" strokeWidth="11" strokeLinecap="round" />
-            </g>
-
             <g transform="translate(-64 -22)">
               <g ref={openL} style={{ display: "none" }}>
                 <circle r="50" fill="#fffef8" stroke="#1c1917" strokeWidth="6" />
@@ -194,6 +187,13 @@ export default function HenCharacter({ targetRef }: Props) {
               <g ref={happyR} style={{ display: "none" }}>
                 <path d="M-44 8 Q0 -30 44 8" fill="none" stroke="#1c1917" strokeWidth="10" strokeLinecap="round" />
               </g>
+            </g>
+
+            <g ref={browLRef} className="hen-brow" transform="translate(-64 -82)">
+              <path d="M-42 10 Q0 -22 42 10 Q0 -2 -42 10 Z" fill="#000000" stroke="#000000" strokeWidth="3" strokeLinejoin="round" />
+            </g>
+            <g ref={browRRef} className="hen-brow" transform="translate(64 -82)">
+              <path d="M-42 10 Q0 -22 42 10 Q0 -2 -42 10 Z" fill="#000000" stroke="#000000" strokeWidth="3" strokeLinejoin="round" />
             </g>
 
             <g ref={beakRef} className="hen-beak">

@@ -94,7 +94,7 @@ export default function HenCharacter({ targetRef, mood }: Props) {
   const eyesHappy = mood === "success";
 
   return (
-    <svg className="hen-svg" data-mood={mood} viewBox="0 0 400 430" role="img" aria-label="Hen watching the login form">
+    <svg className="hen-svg" data-mood={mood} viewBox="0 0 400 460" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Hen watching the login form">
       <g ref={rootRef} className="hen-root">
         <circle cx="200" cy="248" r="148" fill="#fff8f1" stroke="#1c1917" strokeWidth="7" />
         <circle cx="164" cy="100" r="24" fill="#d94a3d" stroke="#1c1917" strokeWidth="6" />

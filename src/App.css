@@ -34,7 +34,7 @@
 
 .hen-stage {
   position: absolute;
-  inset: 10%;
+  inset: 12%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -215,7 +215,7 @@
 
 .closet-hen .hen-stage {
   position: absolute;
-  inset: 10%;
+  inset: 12%;
 }
 
 .closet-panel {
@@ -257,7 +257,7 @@
 
   .hero-left,
   .closet-hen {
-    min-height: 48vh;
+    min-height: 56vh;
   }
 
   .hero-right,

@@ -94,19 +94,19 @@ export default function HenCharacter({ targetRef, mood }: Props) {
   const eyesHappy = mood === "success";
 
   return (
-    <svg className="hen-svg" data-mood={mood} viewBox="0 0 400 400" role="img" aria-label="Hen watching the login form">
+    <svg className="hen-svg" data-mood={mood} viewBox="0 0 400 430" role="img" aria-label="Hen watching the login form">
       <g ref={rootRef} className="hen-root">
-        <circle cx="200" cy="222" r="148" fill="#fff8f1" stroke="#1c1917" strokeWidth="7" />
-        <circle cx="164" cy="74" r="24" fill="#d94a3d" stroke="#1c1917" strokeWidth="6" />
-        <circle cx="200" cy="54" r="30" fill="#e05648" stroke="#1c1917" strokeWidth="6" />
-        <circle cx="236" cy="74" r="24" fill="#d94a3d" stroke="#1c1917" strokeWidth="6" />
-        <g transform="translate(138 198)">
+        <circle cx="200" cy="248" r="148" fill="#fff8f1" stroke="#1c1917" strokeWidth="7" />
+        <circle cx="164" cy="100" r="24" fill="#d94a3d" stroke="#1c1917" strokeWidth="6" />
+        <circle cx="200" cy="80" r="30" fill="#e05648" stroke="#1c1917" strokeWidth="6" />
+        <circle cx="236" cy="100" r="24" fill="#d94a3d" stroke="#1c1917" strokeWidth="6" />
+        <g transform="translate(138 224)">
           <Eye happy={eyesHappy} shut={eyesShut} pupilRef={pupilL} />
         </g>
-        <g transform="translate(262 198)">
+        <g transform="translate(262 224)">
           <Eye happy={eyesHappy} shut={eyesShut} pupilRef={pupilR} />
         </g>
-        <path d="M186 248 L200 278 L214 248 Z" fill="#e8892d" stroke="#1c1917" strokeWidth="5" strokeLinejoin="round" />
+        <path d="M186 274 L200 304 L214 274 Z" fill="#e8892d" stroke="#1c1917" strokeWidth="5" strokeLinejoin="round" />
       </g>
     </svg>
   );

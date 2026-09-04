@@ -65,7 +65,6 @@ export function useHenBrain(input: {
   const rapidStep = useRef(0);
   const glanceUserUntil = useRef(0);
   const shockUntil = useRef(0);
-  const knowsUntil = useRef(0);
   const lastFocus = useRef<FocusField>("none");
   const inputRef = useRef(input);
   inputRef.current = input;
@@ -144,17 +143,15 @@ export function useHenBrain(input: {
         const current = inputRef.current;
         const now = performance.now();
         if (current.focus === "password" && !current.passwordVisible && realizedPassword.current) {
-          const typingLong = now - passwordSince.current > 4200;
-          const chance = typingLong ? 0.82 : 0.62;
-          if (Math.random() < chance) {
-            const both = Math.random() < 0.18;
-            peekUntil.current = now + rand(180, 520);
-            lastPeekAt.current = now;
-            if (both) peekBothUntil.current = now + rand(120, 220);
+          const typingLong = now - passwordSince.current > 3800;
+          peekUntil.current = now + rand(420, 780);
+          lastPeekAt.current = now;
+          if (Math.random() < (typingLong ? 0.35 : 0.22)) {
+            peekBothUntil.current = now + rand(160, 280);
           }
         }
         schedulePeek();
-      }, rand(1400, 3800));
+      }, rand(1100, 2400));
     };
 
     scheduleBlink();
@@ -212,17 +209,23 @@ export function useHenBrain(input: {
       } else if (current.focus === "password") {
         if (!realizedPassword.current) {
           applyExpr(t, "private", 1, now);
-        } else if (caughtUntil.current > now) {
-          applyExpr(t, "caught", 1, now);
-        } else if (peekBothUntil.current > now) {
-          applyExpr(t, "peekBoth", 1, now);
-        } else if (peekUntil.current > now) {
-          applyExpr(t, "peek", 1, now);
-        } else if (now - passwordSince.current > 5000 && current.typingPassword) {
-          applyExpr(t, "tempted", 1, now);
         } else {
-          applyExpr(t, "innocent", 1, now);
-          t.headTilt += Math.sin(now / 240) * 2;
+          if (lastPeekAt.current === 0 && now - passwordSince.current > 1300) {
+            peekUntil.current = now + 620;
+            lastPeekAt.current = now;
+          }
+          if (caughtUntil.current > now) {
+            applyExpr(t, "caught", 1, now);
+          } else if (peekBothUntil.current > now) {
+            applyExpr(t, "peekBoth", 1, now);
+          } else if (peekUntil.current > now) {
+            applyExpr(t, "peek", 1, now);
+          } else if (now - passwordSince.current > 5000 && current.typingPassword) {
+            applyExpr(t, "tempted", 1, now);
+          } else {
+            applyExpr(t, "innocent", 1, now);
+            t.headTilt += Math.sin(now / 240) * 2;
+          }
         }
       } else if (sawNothingUntil.current > now) {
         applyExpr(t, "sawNothing", 1, now);
@@ -240,15 +243,10 @@ export function useHenBrain(input: {
         } else if (current.typingEmail) {
           applyExpr(t, "detective", 1, now);
           t.lookX = 0.55 + clamp1(current.email.length / 22) * 0.4;
-        } else if (paused && validishEmail(current.email) && knowsUntil.current < now && typedAgo < 2600) {
-          knowsUntil.current = now + rand(900, 1500);
+        } else if (paused && validishEmail(current.email)) {
           applyExpr(t, "knows", 1, now);
-        } else if (knowsUntil.current > now) {
-          applyExpr(t, "knows", 1, now);
-          if (now > knowsUntil.current - 400) {
-            t.lookX = 0.35;
-            t.headTurn = 0.2;
-          }
+          t.lookX = typedAgo > 1600 ? 0.2 : 0;
+          t.headTurn = typedAgo > 1800 ? 0.18 : 0;
         } else if (paused && unusualEmail(current.email)) {
           applyExpr(t, "judging", 1, now);
         } else if (paused && typedAgo > 1400) {

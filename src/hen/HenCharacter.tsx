@@ -82,8 +82,8 @@ export default function HenCharacter({ targetRef }: Props) {
       setShown(shutR.current, rightShut);
       setShown(happyL.current, happy);
       setShown(happyR.current, happy);
-      if (lidL.current) lidL.current.setAttribute("height", String((1 - p.eyeOpenL) * 92));
-      if (lidR.current) lidR.current.setAttribute("height", String((1 - p.eyeOpenR) * 92));
+      if (lidL.current) lidL.current.setAttribute("height", String(p.eyeOpenL > 0.82 ? 0 : (1 - p.eyeOpenL) * 92));
+      if (lidR.current) lidR.current.setAttribute("height", String(p.eyeOpenR > 0.82 ? 0 : (1 - p.eyeOpenR) * 92));
 
       if (beakRef.current) {
         beakRef.current.style.transform = `scale(1, ${1 + p.beak * 0.45}) translate(0, ${p.smile * -2}px)`;
@@ -132,11 +132,11 @@ export default function HenCharacter({ targetRef }: Props) {
             <ellipse ref={blushL} cx="-72" cy="28" rx="22" ry="12" fill="#f3b6a8" opacity="0" />
             <ellipse ref={blushR} cx="72" cy="28" rx="22" ry="12" fill="#f3b6a8" opacity="0" />
 
-            <g ref={browLRef} className="hen-brow" transform="translate(-62 -62)">
-              <path d="M-28 0 Q0 -10 28 2" fill="none" stroke="#1c1917" strokeWidth="7" strokeLinecap="round" />
+            <g ref={browLRef} className="hen-brow" transform="translate(-62 -92)">
+              <path d="M-30 0 Q0 -12 30 0" fill="none" stroke="#1c1917" strokeWidth="8" strokeLinecap="round" />
             </g>
-            <g ref={browRRef} className="hen-brow" transform="translate(62 -62)">
-              <path d="M-28 2 Q0 -10 28 0" fill="none" stroke="#1c1917" strokeWidth="7" strokeLinecap="round" />
+            <g ref={browRRef} className="hen-brow" transform="translate(62 -92)">
+              <path d="M-30 0 Q0 -12 30 0" fill="none" stroke="#1c1917" strokeWidth="8" strokeLinecap="round" />
             </g>
 
             <g transform="translate(-62 -24)">

@@ -1,4 +1,4 @@
-import { RefObject, useEffect, useId, useRef } from "react";
+import { RefObject, useEffect, useRef } from "react";
 import { HenPose, defaultPose, lerpPose } from "./pose";
 import "./hen.css";
 
@@ -8,16 +8,13 @@ type Props = {
 
 export default function HenCharacter({ targetRef }: Props) {
   const live = useRef<HenPose>(defaultPose());
-  const ids = useId().replace(/:/g, "");
-  const clipL = `eyeL-${ids}`;
-  const clipR = `eyeR-${ids}`;
   const rootRef = useRef<SVGGElement>(null);
   const bodyRef = useRef<SVGGElement>(null);
   const headRef = useRef<SVGGElement>(null);
   const pupilL = useRef<SVGGElement>(null);
   const pupilR = useRef<SVGGElement>(null);
-  const lidL = useRef<SVGRectElement>(null);
-  const lidR = useRef<SVGRectElement>(null);
+  const lidL = useRef<SVGEllipseElement>(null);
+  const lidR = useRef<SVGEllipseElement>(null);
   const browL = useRef<SVGPathElement>(null);
   const browR = useRef<SVGPathElement>(null);
   const beakTop = useRef<SVGGElement>(null);
@@ -53,8 +50,8 @@ export default function HenCharacter({ targetRef }: Props) {
       const py = p.lookY * (8 + p.eyeWiden * 2);
       if (pupilL.current) pupilL.current.style.transform = `translate(${px}px, ${py}px) scale(${widen})`;
       if (pupilR.current) pupilR.current.style.transform = `translate(${px}px, ${py}px) scale(${widen})`;
-      if (lidL.current) lidL.current.setAttribute("height", String((1 - p.eyeOpenL) * 52 + p.squint * 10));
-      if (lidR.current) lidR.current.setAttribute("height", String((1 - p.eyeOpenR) * 52 + p.squint * 10));
+      if (lidL.current) lidL.current.setAttribute("opacity", String(1 - p.eyeOpenL));
+      if (lidR.current) lidR.current.setAttribute("opacity", String(1 - p.eyeOpenR));
       if (browL.current) {
         browL.current.style.transform = `translate(0px, ${-p.browL * 8 + p.squint * 4}px) rotate(${-p.browL * 12}deg)`;
       }
@@ -74,26 +71,17 @@ export default function HenCharacter({ targetRef }: Props) {
 
   return (
     <svg className="hen-svg" viewBox="0 0 480 640" role="img" aria-label="Henrietta the hen, reacting to the login form">
-      <defs>
-        <clipPath id={clipL}>
-          <ellipse cx="0" cy="0" rx="28" ry="26" />
-        </clipPath>
-        <clipPath id={clipR}>
-          <ellipse cx="0" cy="0" rx="28" ry="26" />
-        </clipPath>
-      </defs>
-
       <g ref={rootRef} className="hen-root">
         <ellipse cx="240" cy="590" rx="118" ry="22" fill="rgba(26,6,31,0.16)" />
 
-        <g className="hen-wing-anchor" transform="translate(128 438)">
+        <g className="hen-wing-anchor" transform="translate(128 418)">
           <g ref={wingL} className="hen-wing">
             <ellipse cx="0" cy="0" rx="54" ry="28" fill="#FFD23F" stroke="#1A061F" strokeWidth="6" />
             <ellipse cx="-10" cy="0" rx="18" ry="10" fill="#FFE371" />
           </g>
         </g>
 
-        <g transform="translate(240 430)">
+        <g transform="translate(240 410)">
           <g ref={bodyRef} className="hen-body">
             <ellipse cx="0" cy="0" rx="118" ry="108" fill="#FFD23F" stroke="#1A061F" strokeWidth="7" />
             <path
@@ -112,20 +100,21 @@ export default function HenCharacter({ targetRef }: Props) {
           </g>
         </g>
 
-        <g className="hen-wing-anchor" transform="translate(352 438)">
+        <g className="hen-wing-anchor" transform="translate(352 418)">
           <g ref={wingR} className="hen-wing">
             <ellipse cx="0" cy="0" rx="54" ry="28" fill="#FFC62E" stroke="#1A061F" strokeWidth="6" />
             <ellipse cx="10" cy="0" rx="18" ry="10" fill="#FFE371" />
           </g>
         </g>
 
-        <g transform="translate(240 188)">
+        <g transform="translate(240 248)">
           <g ref={headRef} className="hen-head">
             <path d="M-18,-108 C-28,-158 -6,-176 6,-132 C18,-176 44,-164 28,-112Z" fill="#FF2D55" stroke="#1A061F" strokeWidth="6" />
             <path d="M8,-104 C18,-158 48,-168 42,-112 C62,-150 86,-132 58,-98Z" fill="#FF3B63" stroke="#1A061F" strokeWidth="6" />
             <path d="M-46,-88 C-70,-132 -40,-146 -22,-100 C-12,-136 12,-128 2,-92Z" fill="#E81E48" stroke="#1A061F" strokeWidth="6" />
 
             <ellipse cx="0" cy="-8" rx="108" ry="100" fill="#FFD23F" stroke="#1A061F" strokeWidth="7" />
+            <ellipse cx="0" cy="78" rx="42" ry="28" fill="#FFD23F" stroke="#1A061F" strokeWidth="7" />
             <ellipse cx="-36" cy="28" rx="22" ry="12" fill="#FF8AA8" opacity="0.85" />
             <ellipse cx="44" cy="28" rx="22" ry="12" fill="#FF8AA8" opacity="0.85" />
 
@@ -140,9 +129,8 @@ export default function HenCharacter({ targetRef }: Props) {
                 <circle cx="-4" cy="-2" r="4.5" fill="#fff" />
                 <circle cx="5" cy="6" r="2" fill="#fff" opacity="0.7" />
               </g>
-              <g clipPath={`url(#${clipL})`}>
-                <rect ref={lidL} x="-30" y="-28" width="60" height="0" fill="#FFD23F" />
-              </g>
+              <ellipse ref={lidL} cx="0" cy="0" rx="29" ry="27" fill="#FFD23F" opacity="0" />
+              <path d="M-16,2 Q0,10 16,2" fill="none" stroke="#1A061F" strokeWidth="4" strokeLinecap="round" opacity="0.0" />
             </g>
 
             <g transform="translate(40,-18)">
@@ -152,9 +140,7 @@ export default function HenCharacter({ targetRef }: Props) {
                 <circle cx="-4" cy="-2" r="4.5" fill="#fff" />
                 <circle cx="5" cy="6" r="2" fill="#fff" opacity="0.7" />
               </g>
-              <g clipPath={`url(#${clipR})`}>
-                <rect ref={lidR} x="-30" y="-28" width="60" height="0" fill="#FFD23F" />
-              </g>
+              <ellipse ref={lidR} cx="0" cy="0" rx="29" ry="27" fill="#FFD23F" opacity="0" />
             </g>
 
             <path

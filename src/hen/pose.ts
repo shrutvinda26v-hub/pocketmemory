@@ -45,8 +45,8 @@ export function defaultPose(): HenPose {
 export function lerpPose(current: HenPose, target: HenPose, eyeT: number, bodyT: number) {
   current.lookX += (target.lookX - current.lookX) * eyeT;
   current.lookY += (target.lookY - current.lookY) * eyeT;
-  current.eyeOpenL += (target.eyeOpenL - current.eyeOpenL) * 0.28;
-  current.eyeOpenR += (target.eyeOpenR - current.eyeOpenR) * 0.28;
+  current.eyeOpenL += (target.eyeOpenL - current.eyeOpenL) * 0.38;
+  current.eyeOpenR += (target.eyeOpenR - current.eyeOpenR) * 0.38;
   current.browL += (target.browL - current.browL) * bodyT;
   current.browR += (target.browR - current.browR) * bodyT;
   current.headTilt += (target.headTilt - current.headTilt) * bodyT;

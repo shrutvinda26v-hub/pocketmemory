@@ -57,8 +57,8 @@ export function useHenBrain(input: {
       blinkTimer = window.setTimeout(() => {
         idleRef.current = {
           ...idleRef.current,
-          eyeOpenL: 0.05,
-          eyeOpenR: Math.random() < 0.18 ? 0.35 : 0.05,
+          eyeOpenL: 0,
+          eyeOpenR: Math.random() < 0.15 ? 0.4 : 0,
           until: performance.now() + rand(90, 160),
         };
         scheduleBlink();
@@ -184,66 +184,68 @@ export function useHenBrain(input: {
 
       if (current.submitting) {
         t.happy = 1;
-        t.eyeOpenL = 0.15;
-        t.eyeOpenR = 0.15;
-        t.beak = 0.85;
-        t.headTilt = Math.sin(now / 90) * 8;
-        t.leanY = -10;
-        t.wingL = 16;
-        t.wingR = 18;
-        t.puff = 0.35;
+        t.eyeOpenL = 0;
+        t.eyeOpenR = 0;
+        t.beak = 1;
+        t.headTilt = Math.sin(now / 90) * 10;
+        t.leanY = -12;
+        t.wingL = 22;
+        t.wingR = 22;
+        t.puff = 0.4;
       } else if (current.focus === "login") {
-        t.lookX = 0.72;
-        t.lookY = 0.35;
-        t.headTilt = -4;
-        t.eyeWiden = 0.18;
-        t.browL = 0.45;
-        t.browR = 0.45;
-        t.leanX = 10;
-        t.beak = 0.28;
-        t.headTurn = 0.12;
-      } else if (current.focus === "password" && current.passwordVisible) {
-        t.lookX = 0.7;
-        t.lookY = 0.28;
-        t.headTurn = 0.18;
-        t.leanX = 14;
-        t.leanY = 10;
-        t.eyeWiden = 0.42;
+        t.lookX = 0.85;
+        t.lookY = 0.2;
+        t.headTilt = -8;
+        t.eyeWiden = 0.35;
         t.browL = 0.7;
-        t.browR = 0.2;
-        t.beak = 0.55;
-        t.squint = 0.08;
+        t.browR = 0.7;
+        t.leanX = 12;
+        t.beak = 0.35;
+      } else if (current.focus === "password" && current.passwordVisible) {
+        t.lookX = 0.9;
+        t.lookY = 0.15;
+        t.leanX = 16;
+        t.leanY = 8;
+        t.eyeWiden = 0.55;
+        t.browL = 0.95;
+        t.browR = 0.15;
+        t.beak = 0.6;
+        t.headTilt = -10;
+        t.eyeOpenL = 1;
+        t.eyeOpenR = 1;
       } else if (current.focus === "password") {
         const peeking = peekUntil.current > now;
         if (!realizedPassword.current) {
-          t.lookX = 0.62;
-          t.lookY = 0.22;
-          t.eyeWiden = 0.55;
-          t.beak = 0.4;
-          t.headTilt = -6;
+          t.lookX = 0.9;
+          t.lookY = 0.1;
+          t.eyeWiden = 0.8;
+          t.beak = 0.5;
+          t.headTilt = -8;
+          t.browL = 1;
+          t.browR = 1;
+          t.eyeOpenL = 1;
+          t.eyeOpenR = 1;
         } else if (peeking) {
-          t.headTurn = -0.38;
-          t.headTilt = 10;
-          t.eyeOpenL = 0.08;
-          t.eyeOpenR = 0.92;
-          t.lookX = 0.78;
-          t.lookY = 0.2;
-          t.browR = 0.7;
-          t.beak = 0.18;
+          t.headTilt = 12;
+          t.eyeOpenL = 0;
+          t.eyeOpenR = 1;
+          t.lookX = 0.95;
+          t.lookY = 0.1;
+          t.browR = 1;
+          t.browL = -0.2;
+          t.beak = 0.2;
         } else {
-          t.headTurn = -0.82;
-          t.headTilt = 14;
-          t.lookX = -0.95;
-          t.lookY = 0.12;
-          t.eyeOpenL = 0.04;
-          t.eyeOpenR = 0.04;
-          t.browL = 0.15;
-          t.browR = 0.05;
-          t.leanX = -10;
-          t.beak = 0.12;
+          t.headTilt = 16;
+          t.lookX = -1;
+          t.lookY = 0;
+          t.eyeOpenL = 0;
+          t.eyeOpenR = 0;
+          t.browL = 0.2;
+          t.browR = 0.2;
+          t.leanX = -8;
+          t.beak = 0.05;
           if (current.typingPassword) {
-            t.headTilt = 16 + Math.sin(now / 140) * 2;
-            t.wingR = 6;
+            t.headTilt = 18;
           }
         }
       } else if (current.focus === "email") {
@@ -253,20 +255,18 @@ export function useHenBrain(input: {
           glanceUserUntil.current = now + rand(500, 900);
         }
         const glancing = glanceUserUntil.current > now && paused;
-        t.lookX = glancing ? 0.04 : 0.42 + progress * 0.42;
-        t.lookY = glancing ? -0.08 : 0.12 + progress * 0.12;
-        t.headTurn = 0.16 + progress * 0.12;
-        t.leanX = 10 + progress * 10;
-        t.leanY = 8 + progress * 8;
-        t.eyeWiden = 0.28 + progress * 0.18;
-        t.browL = 0.75;
-        t.browR = 0.25;
-        t.headTilt = glancing ? 8 : current.typingEmail ? -7 : 5;
-        t.squint = paused && !glancing ? 0.22 : 0.05;
-        t.beak = glancing ? 0.4 : 0.18;
-        if (current.typingEmail) {
-          t.leanY += 4;
-        }
+        t.lookX = glancing ? 0 : 0.55 + progress * 0.4;
+        t.lookY = glancing ? -0.15 : 0.08;
+        t.leanX = 12 + progress * 8;
+        t.leanY = 6;
+        t.eyeWiden = 0.45;
+        t.browL = 1;
+        t.browR = 0.35;
+        t.headTilt = glancing ? 12 : current.typingEmail ? -10 : 6;
+        t.squint = paused && !glancing ? 0.35 : 0;
+        t.beak = glancing ? 0.45 : 0.2;
+        t.eyeOpenL = 1;
+        t.eyeOpenR = 1;
       } else {
         t.lookX += idle.lookX ?? (current.pointerRef.current ? current.pointerRef.current.x * 0.42 : 0);
         t.lookY += idle.lookY ?? (current.pointerRef.current ? current.pointerRef.current.y * 0.32 : 0);

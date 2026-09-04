@@ -13,12 +13,15 @@ export default function HenCharacter({ targetRef }: Props) {
   const headRef = useRef<SVGGElement>(null);
   const pupilL = useRef<SVGGElement>(null);
   const pupilR = useRef<SVGGElement>(null);
-  const lidL = useRef<SVGEllipseElement>(null);
-  const lidR = useRef<SVGEllipseElement>(null);
+  const openL = useRef<SVGGElement>(null);
+  const openR = useRef<SVGGElement>(null);
+  const shutL = useRef<SVGGElement>(null);
+  const shutR = useRef<SVGGElement>(null);
+  const happyL = useRef<SVGPathElement>(null);
+  const happyR = useRef<SVGPathElement>(null);
   const browL = useRef<SVGPathElement>(null);
   const browR = useRef<SVGPathElement>(null);
-  const beakTop = useRef<SVGGElement>(null);
-  const beakBot = useRef<SVGGElement>(null);
+  const beak = useRef<SVGGElement>(null);
   const wingL = useRef<SVGGElement>(null);
   const wingR = useRef<SVGGElement>(null);
 
@@ -31,37 +34,42 @@ export default function HenCharacter({ targetRef }: Props) {
         return;
       }
       const p = live.current;
-      lerpPose(p, target, 0.16, 0.1);
+      lerpPose(p, target, 0.2, 0.12);
 
       if (rootRef.current) {
         rootRef.current.style.transform = `translate(${p.leanX}px, ${p.leanY}px)`;
       }
       if (bodyRef.current) {
-        const puff = 1 + p.puff * 0.06;
-        const breathe = 1 + p.breathe * 0.018;
-        bodyRef.current.style.transform = `scale(${puff}, ${breathe})`;
+        bodyRef.current.style.transform = `scale(${1 + p.puff * 0.05}, ${1 + p.breathe * 0.02})`;
       }
       if (headRef.current) {
-        const sx = 1 - Math.abs(p.headTurn) * 0.28;
-        headRef.current.style.transform = `translate(${p.headTurn * -30}px, ${p.happy * -8}px) rotate(${p.headTilt}deg) scale(${sx}, 1)`;
+        headRef.current.style.transform = `translate(${p.headTurn * -22}px, ${p.happy * -10}px) rotate(${p.headTilt}deg)`;
       }
-      const widen = 1 + p.eyeWiden * 0.18 - p.squint * 0.12;
-      const px = p.lookX * (11 + p.eyeWiden * 4);
-      const py = p.lookY * (8 + p.eyeWiden * 2);
-      if (pupilL.current) pupilL.current.style.transform = `translate(${px}px, ${py}px) scale(${widen})`;
-      if (pupilR.current) pupilR.current.style.transform = `translate(${px}px, ${py}px) scale(${widen})`;
-      if (lidL.current) lidL.current.setAttribute("opacity", String(1 - p.eyeOpenL));
-      if (lidR.current) lidR.current.setAttribute("opacity", String(1 - p.eyeOpenR));
+
+      const px = p.lookX * 20;
+      const py = p.lookY * 14;
+      const pupilScale = 1 + p.eyeWiden * 0.22 - p.squint * 0.2;
+      if (pupilL.current) pupilL.current.style.transform = `translate(${px}px, ${py}px) scale(${pupilScale})`;
+      if (pupilR.current) pupilR.current.style.transform = `translate(${px}px, ${py}px) scale(${pupilScale})`;
+
+      const openLAmt = Math.max(0, p.eyeOpenL * (1 - p.happy));
+      const openRAmt = Math.max(0, p.eyeOpenR * (1 - p.happy));
+      if (openL.current) openL.current.style.opacity = String(openLAmt);
+      if (openR.current) openR.current.style.opacity = String(openRAmt);
+      if (shutL.current) shutL.current.style.opacity = String((1 - p.eyeOpenL) * (1 - p.happy));
+      if (shutR.current) shutR.current.style.opacity = String((1 - p.eyeOpenR) * (1 - p.happy));
+      if (happyL.current) happyL.current.style.opacity = String(p.happy);
+      if (happyR.current) happyR.current.style.opacity = String(p.happy);
+
       if (browL.current) {
-        browL.current.style.transform = `translate(0px, ${-p.browL * 8 + p.squint * 4}px) rotate(${-p.browL * 12}deg)`;
+        browL.current.style.transform = `translate(0px, ${-p.browL * 14 + p.squint * 8}px) rotate(${-p.browL * 18 + p.squint * 8}deg)`;
       }
       if (browR.current) {
-        browR.current.style.transform = `translate(0px, ${-p.browR * 8 + p.squint * 4}px) rotate(${p.browR * 12}deg)`;
+        browR.current.style.transform = `translate(0px, ${-p.browR * 14 + p.squint * 8}px) rotate(${p.browR * 18 - p.squint * 8}deg)`;
       }
-      if (beakTop.current) beakTop.current.style.transform = `rotate(${-p.beak * 9}deg)`;
-      if (beakBot.current) beakBot.current.style.transform = `rotate(${p.beak * 14}deg)`;
-      if (wingL.current) wingL.current.style.transform = `rotate(${-12 - p.wingL}deg)`;
-      if (wingR.current) wingR.current.style.transform = `rotate(${12 + p.wingR}deg)`;
+      if (beak.current) beak.current.style.transform = `scale(${1 + p.beak * 0.08}, ${1 + p.beak * 0.22})`;
+      if (wingL.current) wingL.current.style.transform = `rotate(${-18 - p.wingL}deg)`;
+      if (wingR.current) wingR.current.style.transform = `rotate(${18 + p.wingR}deg)`;
 
       frame = requestAnimationFrame(tick);
     };
@@ -70,105 +78,105 @@ export default function HenCharacter({ targetRef }: Props) {
   }, [targetRef]);
 
   return (
-    <svg className="hen-svg" viewBox="0 0 480 640" role="img" aria-label="Henrietta the hen, reacting to the login form">
+    <svg className="hen-svg" viewBox="0 0 420 520" role="img" aria-label="Henrietta the hen, reacting to the login form">
       <g ref={rootRef} className="hen-root">
-        <ellipse cx="240" cy="590" rx="118" ry="22" fill="rgba(26,6,31,0.16)" />
+        <ellipse cx="210" cy="478" rx="92" ry="16" fill="rgba(26,6,31,0.18)" />
 
-        <g className="hen-wing-anchor" transform="translate(128 418)">
+        <g transform="translate(112 372)">
           <g ref={wingL} className="hen-wing">
-            <ellipse cx="0" cy="0" rx="54" ry="28" fill="#FFD23F" stroke="#1A061F" strokeWidth="6" />
-            <ellipse cx="-10" cy="0" rx="18" ry="10" fill="#FFE371" />
+            <ellipse cx="0" cy="0" rx="46" ry="22" fill="#FFD54A" stroke="#1A061F" strokeWidth="8" />
           </g>
         </g>
-
-        <g transform="translate(240 410)">
-          <g ref={bodyRef} className="hen-body">
-            <ellipse cx="0" cy="0" rx="118" ry="108" fill="#FFD23F" stroke="#1A061F" strokeWidth="7" />
-            <path
-              d="M-96,-18 C-90,-78 90,-78 96,-18 C88,42 52,78 0,86 C-52,78 -88,42 -96,-18Z"
-              fill="#C6FF00"
-              stroke="#1A061F"
-              strokeWidth="7"
-            />
-            <path d="M-70,-8 C-40,-38 40,-38 70,-8" fill="none" stroke="#FF2D95" strokeWidth="10" strokeLinecap="round" />
-            <path d="M-62,62 H62" fill="none" stroke="#FF2D95" strokeWidth="10" strokeLinecap="round" />
-            <circle cx="-28" cy="8" r="10" fill="#FFE14D" stroke="#1A061F" strokeWidth="4" />
-            <path d="M-28,8 l6,-14 6,14 -16,-6 20,0Z" fill="#FF2D95" />
-            <ellipse cx="0" cy="28" rx="46" ry="10" fill="none" stroke="#FFD24D" strokeWidth="7" />
-            <circle cx="-40" cy="28" r="7" fill="#FFD24D" stroke="#1A061F" strokeWidth="3" />
-            <circle cx="40" cy="28" r="7" fill="#FFD24D" stroke="#1A061F" strokeWidth="3" />
-          </g>
-        </g>
-
-        <g className="hen-wing-anchor" transform="translate(352 418)">
+        <g transform="translate(308 372)">
           <g ref={wingR} className="hen-wing">
-            <ellipse cx="0" cy="0" rx="54" ry="28" fill="#FFC62E" stroke="#1A061F" strokeWidth="6" />
-            <ellipse cx="10" cy="0" rx="18" ry="10" fill="#FFE371" />
+            <ellipse cx="0" cy="0" rx="46" ry="22" fill="#FFD54A" stroke="#1A061F" strokeWidth="8" />
           </g>
         </g>
 
-        <g transform="translate(240 248)">
+        <g transform="translate(210 378)">
+          <g ref={bodyRef} className="hen-body">
+            <ellipse cx="0" cy="0" rx="96" ry="78" fill="#FFD54A" stroke="#1A061F" strokeWidth="8" />
+            <ellipse cx="0" cy="10" rx="58" ry="42" fill="#C6FF00" stroke="#1A061F" strokeWidth="6" />
+          </g>
+        </g>
+
+        <g transform="translate(210 214)">
           <g ref={headRef} className="hen-head">
-            <path d="M-18,-108 C-28,-158 -6,-176 6,-132 C18,-176 44,-164 28,-112Z" fill="#FF2D55" stroke="#1A061F" strokeWidth="6" />
-            <path d="M8,-104 C18,-158 48,-168 42,-112 C62,-150 86,-132 58,-98Z" fill="#FF3B63" stroke="#1A061F" strokeWidth="6" />
-            <path d="M-46,-88 C-70,-132 -40,-146 -22,-100 C-12,-136 12,-128 2,-92Z" fill="#E81E48" stroke="#1A061F" strokeWidth="6" />
+            <ellipse cx="-28" cy="-132" rx="22" ry="34" fill="#FF3B5C" stroke="#1A061F" strokeWidth="8" />
+            <ellipse cx="0" cy="-146" rx="26" ry="40" fill="#FF4D6D" stroke="#1A061F" strokeWidth="8" />
+            <ellipse cx="30" cy="-130" rx="22" ry="32" fill="#FF3B5C" stroke="#1A061F" strokeWidth="8" />
 
-            <ellipse cx="0" cy="-8" rx="108" ry="100" fill="#FFD23F" stroke="#1A061F" strokeWidth="7" />
-            <ellipse cx="0" cy="78" rx="42" ry="28" fill="#FFD23F" stroke="#1A061F" strokeWidth="7" />
-            <ellipse cx="-36" cy="28" rx="22" ry="12" fill="#FF8AA8" opacity="0.85" />
-            <ellipse cx="44" cy="28" rx="22" ry="12" fill="#FF8AA8" opacity="0.85" />
+            <circle cx="0" cy="8" r="128" fill="#FFD54A" stroke="#1A061F" strokeWidth="8" />
 
-            <rect x="-78" y="-86" width="52" height="18" rx="9" fill="#FF2D95" stroke="#1A061F" strokeWidth="4" />
-            <rect x="26" y="-86" width="52" height="18" rx="9" fill="#FF2D95" stroke="#1A061F" strokeWidth="4" />
-            <path d="M-26,-77 H26" stroke="#1A061F" strokeWidth="4" />
-
-            <g transform="translate(-38,-18)">
-              <ellipse cx="0" cy="0" rx="28" ry="26" fill="#FFFDF7" stroke="#1A061F" strokeWidth="5" />
-              <g ref={pupilL}>
-                <circle cx="0" cy="2" r="13" fill="#1A061F" />
-                <circle cx="-4" cy="-2" r="4.5" fill="#fff" />
-                <circle cx="5" cy="6" r="2" fill="#fff" opacity="0.7" />
-              </g>
-              <ellipse ref={lidL} cx="0" cy="0" rx="29" ry="27" fill="#FFD23F" opacity="0" />
-              <path d="M-16,2 Q0,10 16,2" fill="none" stroke="#1A061F" strokeWidth="4" strokeLinecap="round" opacity="0.0" />
-            </g>
-
-            <g transform="translate(40,-18)">
-              <ellipse cx="0" cy="0" rx="28" ry="26" fill="#FFFDF7" stroke="#1A061F" strokeWidth="5" />
-              <g ref={pupilR}>
-                <circle cx="0" cy="2" r="13" fill="#1A061F" />
-                <circle cx="-4" cy="-2" r="4.5" fill="#fff" />
-                <circle cx="5" cy="6" r="2" fill="#fff" opacity="0.7" />
-              </g>
-              <ellipse ref={lidR} cx="0" cy="0" rx="29" ry="27" fill="#FFD23F" opacity="0" />
-            </g>
+            <circle cx="-52" cy="48" r="18" fill="#FF9BB8" />
+            <circle cx="56" cy="48" r="18" fill="#FF9BB8" />
 
             <path
               ref={browL}
-              d="M-64,-50 Q-38,-62 -16,-50"
+              className="hen-brow"
+              d="M-108,-28 Q-62,-52 -22,-28"
               fill="none"
               stroke="#1A061F"
-              strokeWidth="7"
+              strokeWidth="12"
               strokeLinecap="round"
             />
             <path
               ref={browR}
-              d="M16,-50 Q40,-62 66,-50"
+              className="hen-brow"
+              d="M22,-28 Q66,-52 112,-28"
               fill="none"
               stroke="#1A061F"
-              strokeWidth="7"
+              strokeWidth="12"
               strokeLinecap="round"
             />
 
-            <g transform="translate(4 22)">
-              <g ref={beakTop}>
-                <ellipse cx="0" cy="2" rx="28" ry="14" fill="#FF8A1A" stroke="#1A061F" strokeWidth="5" />
-                <ellipse cx="-8" cy="0" rx="6" ry="3" fill="#FFB347" />
+            <g transform="translate(-56,-6)">
+              <g ref={openL}>
+                <circle cx="0" cy="0" r="46" fill="#FFFDF7" stroke="#1A061F" strokeWidth="8" />
+                <g ref={pupilL}>
+                  <circle cx="0" cy="4" r="22" fill="#1A061F" />
+                  <circle cx="-8" cy="-4" r="8" fill="#fff" />
+                </g>
               </g>
-              <g ref={beakBot}>
-                <ellipse cx="0" cy="14" rx="20" ry="9" fill="#E56E10" stroke="#1A061F" strokeWidth="5" />
+              <g ref={shutL} opacity="0">
+                <path d="M-28,6 Q0,22 28,6" fill="none" stroke="#1A061F" strokeWidth="10" strokeLinecap="round" />
               </g>
-              <path d="M-8,26 C-16,44 -4,50 2,34" fill="#E81E48" stroke="#1A061F" strokeWidth="4" />
+              <path
+                ref={happyL}
+                d="M-26,4 Q0,-16 26,4"
+                fill="none"
+                stroke="#1A061F"
+                strokeWidth="10"
+                strokeLinecap="round"
+                opacity="0"
+              />
+            </g>
+
+            <g transform="translate(56,-6)">
+              <g ref={openR}>
+                <circle cx="0" cy="0" r="46" fill="#FFFDF7" stroke="#1A061F" strokeWidth="8" />
+                <g ref={pupilR}>
+                  <circle cx="0" cy="4" r="22" fill="#1A061F" />
+                  <circle cx="-8" cy="-4" r="8" fill="#fff" />
+                </g>
+              </g>
+              <g ref={shutR} opacity="0">
+                <path d="M-28,6 Q0,22 28,6" fill="none" stroke="#1A061F" strokeWidth="10" strokeLinecap="round" />
+              </g>
+              <path
+                ref={happyR}
+                d="M-26,4 Q0,-16 26,4"
+                fill="none"
+                stroke="#1A061F"
+                strokeWidth="10"
+                strokeLinecap="round"
+                opacity="0"
+              />
+            </g>
+
+            <g ref={beak} className="hen-beak">
+              <path d="M-28,58 L0,96 L28,58 Z" fill="#FF8C1A" stroke="#1A061F" strokeWidth="8" strokeLinejoin="round" />
+              <path d="M-6,96 Q-18,118 -4,122 Q8,108 6,96" fill="#FF3B5C" stroke="#1A061F" strokeWidth="6" />
             </g>
           </g>
         </g>

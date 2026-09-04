@@ -1,17 +1,43 @@
 import { useEffect, useRef } from "react";
+import { ExprId, IDLE_POOL, RAPID_CHAIN, applyExpr } from "./expressions";
 import { HenPose, clamp1, defaultPose } from "./pose";
 
 export type FocusField = "none" | "email" | "password" | "login";
-
-type IdleMod = Partial<HenPose> & { until: number };
 
 function rand(min: number, max: number) {
   return min + Math.random() * (max - min);
 }
 
-function pick<T>(items: T[]) {
-  return items[Math.floor(Math.random() * items.length)];
+function pickWeighted(pool: typeof IDLE_POOL, banned: string[]) {
+  const eligible = pool.filter((item) => !banned.includes(item.id));
+  const list = eligible.length ? eligible : pool;
+  const total = list.reduce((sum, item) => sum + item.weight, 0);
+  let roll = Math.random() * total;
+  for (const item of list) {
+    roll -= item.weight;
+    if (roll <= 0) return item;
+  }
+  return list[0];
 }
+
+function unusualEmail(email: string) {
+  if (email.length < 4) return false;
+  if (email.length > 32) return true;
+  if (/^[0-9]+@/.test(email)) return true;
+  if (/\.\.|@@|^\.|@\./.test(email)) return true;
+  if (!email.includes("@") && email.length > 10) return true;
+  return false;
+}
+
+function validishEmail(email: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+}
+
+type Beat = {
+  id: ExprId;
+  until: number;
+  intensity: number;
+};
 
 export function useHenBrain(input: {
   focus: FocusField;
@@ -20,14 +46,27 @@ export function useHenBrain(input: {
   typingEmail: boolean;
   typingPassword: boolean;
   submitting: boolean;
+  celebrating: boolean;
   pointerRef: { current: { x: number; y: number } | null };
+  lastActivityRef: { current: number };
 }) {
   const targetRef = useRef<HenPose>(defaultPose());
-  const idleRef = useRef<IdleMod>({ until: 0 });
-  const peekUntil = useRef(0);
-  const glanceUserUntil = useRef(0);
+  const beatRef = useRef<Beat>({ id: "happy", until: 0, intensity: 1 });
+  const recentRef = useRef<ExprId[]>([]);
   const lastTypedAt = useRef(0);
+  const passwordSince = useRef(0);
   const realizedPassword = useRef(false);
+  const peekUntil = useRef(0);
+  const peekBothUntil = useRef(0);
+  const caughtUntil = useRef(0);
+  const sawNothingUntil = useRef(0);
+  const lastPeekAt = useRef(0);
+  const rapidUntil = useRef(0);
+  const rapidStep = useRef(0);
+  const glanceUserUntil = useRef(0);
+  const shockUntil = useRef(0);
+  const knowsUntil = useRef(0);
+  const lastFocus = useRef<FocusField>("none");
   const inputRef = useRef(input);
   inputRef.current = input;
 
@@ -38,12 +77,18 @@ export function useHenBrain(input: {
   }
 
   useEffect(() => {
+    const prev = lastFocus.current;
+    lastFocus.current = input.focus;
     if (input.focus === "password") {
+      passwordSince.current = performance.now();
       realizedPassword.current = false;
       const id = window.setTimeout(() => {
         realizedPassword.current = true;
-      }, 280);
+      }, 320);
       return () => window.clearTimeout(id);
+    }
+    if (prev === "password") {
+      sawNothingUntil.current = performance.now() + rand(900, 1600);
     }
     realizedPassword.current = false;
   }, [input.focus]);
@@ -55,94 +100,61 @@ export function useHenBrain(input: {
 
     const scheduleBlink = () => {
       blinkTimer = window.setTimeout(() => {
-        idleRef.current = {
-          ...idleRef.current,
-          eyeOpenL: 0,
-          eyeOpenR: Math.random() < 0.15 ? 0.4 : 0,
-          until: performance.now() + rand(90, 160),
-        };
+        const current = inputRef.current;
+        if (current.focus !== "password" && !current.submitting && !current.celebrating) {
+          beatRef.current = {
+            id: Math.random() < 0.18 ? "rapidBlink" : "slowBlink",
+            until: performance.now() + rand(90, 170),
+            intensity: 1,
+          };
+        }
         scheduleBlink();
-      }, rand(1800, 5200));
+      }, rand(1600, 4200));
     };
 
     const scheduleIdle = () => {
       idleTimer = window.setTimeout(() => {
-        if (inputRef.current.focus === "none" && !inputRef.current.submitting) {
-          const now = performance.now();
-          const action = pick([
-            "lookLeft",
-            "lookRight",
-            "lookUser",
-            "lookAway",
-            "tilt",
-            "brow",
-            "puff",
-            "beak",
-            "lean",
-            "wing",
-            "curious",
-          ]);
-          const next: IdleMod = { until: now + rand(420, 1400) };
-          if (action === "lookLeft") {
-            next.lookX = rand(-0.85, -0.25);
-            next.lookY = rand(-0.2, 0.2);
-            next.headTilt = rand(-10, -2);
-          } else if (action === "lookRight") {
-            next.lookX = rand(0.25, 0.85);
-            next.lookY = rand(-0.15, 0.25);
-            next.headTilt = rand(2, 10);
-          } else if (action === "lookUser") {
-            next.lookX = rand(-0.08, 0.08);
-            next.lookY = rand(-0.12, 0.05);
-            next.eyeWiden = 0.12;
-          } else if (action === "lookAway") {
-            next.lookX = rand(-0.5, 0.5);
-            next.lookY = rand(0.2, 0.55);
-            next.headTilt = rand(-14, 14);
-          } else if (action === "tilt") {
-            next.headTilt = pick([-16, -11, 11, 16]);
-            next.browL = rand(0.2, 0.7);
-          } else if (action === "brow") {
-            next.browL = rand(0.4, 1);
-            next.browR = rand(-0.1, 0.35);
-            next.squint = rand(0, 0.2);
-          } else if (action === "puff") {
-            next.puff = rand(0.25, 0.55);
-            next.beak = rand(0.1, 0.35);
-          } else if (action === "beak") {
-            next.beak = rand(0.25, 0.7);
-          } else if (action === "lean") {
-            next.leanY = rand(4, 12);
-            next.leanX = rand(-6, 6);
-          } else if (action === "wing") {
-            next.wingR = rand(8, 18);
-            next.wingL = rand(-4, 6);
+        const current = inputRef.current;
+        const now = performance.now();
+        if (current.focus === "none" && !current.submitting && !current.celebrating && beatRef.current.until < now) {
+          if (Math.random() < 0.045) {
+            rapidUntil.current = now + 1400;
+            rapidStep.current = 0;
           } else {
-            next.headTilt = rand(-12, 12);
-            next.browL = 0.8;
-            next.browR = 0.15;
-            next.beak = 0.35;
-            next.lookX = rand(-0.3, 0.3);
+            const idleMs = now - current.lastActivityRef.current;
+            let pool = IDLE_POOL;
+            if (idleMs < 5000) {
+              pool = IDLE_POOL.filter((item) => item.id !== "bored" && item.id !== "sleepy");
+            }
+            const next = pickWeighted(pool, recentRef.current);
+            beatRef.current = {
+              id: next.id,
+              until: now + rand(next.min, next.max) * rand(0.85, 1.2),
+              intensity: rand(0.7, 1.12),
+            };
+            recentRef.current = [...recentRef.current, next.id].slice(-4);
           }
-          idleRef.current = next;
         }
         scheduleIdle();
-      }, rand(700, 2800));
+      }, rand(380, 1100));
     };
 
     const schedulePeek = () => {
       peekTimer = window.setTimeout(() => {
         const current = inputRef.current;
-        if (current.focus === "password" && !current.passwordVisible && Math.random() < 0.72) {
-          peekUntil.current = performance.now() + rand(280, 720);
-          if (Math.random() < 0.22) {
-            window.setTimeout(() => {
-              peekUntil.current = performance.now() + rand(220, 480);
-            }, rand(500, 900));
+        const now = performance.now();
+        if (current.focus === "password" && !current.passwordVisible && realizedPassword.current) {
+          const typingLong = now - passwordSince.current > 4200;
+          const chance = typingLong ? 0.82 : 0.62;
+          if (Math.random() < chance) {
+            const both = Math.random() < 0.18;
+            peekUntil.current = now + rand(180, 520);
+            lastPeekAt.current = now;
+            if (both) peekBothUntil.current = now + rand(120, 220);
           }
         }
         schedulePeek();
-      }, rand(1800, 5200));
+      }, rand(1400, 3800));
     };
 
     scheduleBlink();
@@ -160,129 +172,121 @@ export function useHenBrain(input: {
     const tick = (now: number) => {
       const current = inputRef.current;
       const t = targetRef.current;
-      const idle: IdleMod = idleRef.current.until > now ? idleRef.current : { until: 0 };
       const breathe = Math.sin(now / 640) * 0.5 + 0.5;
+      const idleMs = now - current.lastActivityRef.current;
+      const pointer = current.pointerRef.current;
 
-      t.lookX = 0;
-      t.lookY = 0;
-      t.headTilt = Math.sin(now / 1800) * 2.2;
-      t.headTurn = 0;
-      t.leanX = 0;
-      t.leanY = Math.sin(now / 640) * 3;
-      t.browL = 0;
-      t.browR = 0;
-      t.eyeOpenL = 1;
-      t.eyeOpenR = 1;
-      t.eyeWiden = 0;
-      t.squint = 0;
-      t.beak = 0.08 + breathe * 0.04;
-      t.puff = breathe * 0.08;
+      Object.assign(t, defaultPose());
       t.breathe = breathe;
+      t.leanY = Math.sin(now / 640) * 2.4;
+      t.headTilt = Math.sin(now / 1800) * 2;
+      t.beak = 0.08 + breathe * 0.04;
+      t.smile = 0.18;
       t.wingL = Math.sin(now / 900) * 2;
       t.wingR = Math.sin(now / 820 + 1) * 2;
-      t.happy = 0;
+      t.bounce = Math.sin(now / 420) * 1.2;
 
-      if (current.submitting) {
-        t.happy = 1;
-        t.eyeOpenL = 0;
-        t.eyeOpenR = 0;
-        t.beak = 1;
-        t.headTilt = Math.sin(now / 90) * 10;
-        t.leanY = -12;
-        t.wingL = 22;
-        t.wingR = 22;
-        t.puff = 0.4;
+      if (pointer && current.focus === "none") {
+        t.lookX = pointer.x * 0.38;
+        t.lookY = pointer.y * 0.28;
+      }
+
+      const overHen = Boolean(pointer && pointer.x < -0.05);
+      if (overHen && peekUntil.current + 900 > now && peekUntil.current <= now && caughtUntil.current < now) {
+        caughtUntil.current = now + rand(520, 900);
+      }
+
+      if (current.submitting || current.celebrating) {
+        applyExpr(t, "proudOfYou", 1, now);
       } else if (current.focus === "login") {
+        applyExpr(t, "excited", 0.9, now);
         t.lookX = 0.85;
-        t.lookY = 0.2;
-        t.headTilt = -8;
-        t.eyeWiden = 0.35;
-        t.browL = 0.7;
-        t.browR = 0.7;
-        t.leanX = 12;
-        t.beak = 0.35;
-      } else if (current.focus === "password" && current.passwordVisible) {
-        t.lookX = 0.9;
         t.lookY = 0.15;
-        t.leanX = 16;
-        t.leanY = 8;
-        t.eyeWiden = 0.55;
-        t.browL = 0.95;
-        t.browR = 0.15;
-        t.beak = 0.6;
-        t.headTilt = -10;
-        t.eyeOpenL = 1;
-        t.eyeOpenR = 1;
+        t.neck = 0.35;
+      } else if (current.focus === "password" && current.passwordVisible) {
+        applyExpr(t, "shocked", 0.8, now);
+        t.lookX = 0.92;
+        t.lookY = 0.1;
+        t.headTurn = 0.2;
+        t.blush = 0.55;
       } else if (current.focus === "password") {
-        const peeking = peekUntil.current > now;
         if (!realizedPassword.current) {
-          t.lookX = 0.9;
-          t.lookY = 0.1;
-          t.eyeWiden = 0.8;
-          t.beak = 0.5;
-          t.headTilt = -8;
-          t.browL = 1;
-          t.browR = 1;
-          t.eyeOpenL = 1;
-          t.eyeOpenR = 1;
-        } else if (peeking) {
-          t.headTilt = 12;
-          t.eyeOpenL = 0;
-          t.eyeOpenR = 1;
-          t.lookX = 0.95;
-          t.lookY = 0.1;
-          t.browR = 1;
-          t.browL = -0.2;
-          t.beak = 0.2;
+          applyExpr(t, "private", 1, now);
+        } else if (caughtUntil.current > now) {
+          applyExpr(t, "caught", 1, now);
+        } else if (peekBothUntil.current > now) {
+          applyExpr(t, "peekBoth", 1, now);
+        } else if (peekUntil.current > now) {
+          applyExpr(t, "peek", 1, now);
+        } else if (now - passwordSince.current > 5000 && current.typingPassword) {
+          applyExpr(t, "tempted", 1, now);
         } else {
-          t.headTilt = 16;
-          t.lookX = -1;
-          t.lookY = 0;
-          t.eyeOpenL = 0;
-          t.eyeOpenR = 0;
-          t.browL = 0.2;
-          t.browR = 0.2;
-          t.leanX = -8;
-          t.beak = 0.05;
-          if (current.typingPassword) {
-            t.headTilt = 18;
-          }
+          applyExpr(t, "innocent", 1, now);
+          t.headTilt += Math.sin(now / 240) * 2;
         }
+      } else if (sawNothingUntil.current > now) {
+        applyExpr(t, "sawNothing", 1, now);
       } else if (current.focus === "email") {
-        const progress = clamp1(current.email.length / 22);
-        const paused = now - lastTypedAt.current > 720;
-        if (paused && now - lastTypedAt.current < 2400 && glanceUserUntil.current < now) {
-          glanceUserUntil.current = now + rand(500, 900);
+        const typedAgo = now - lastTypedAt.current;
+        const paused = typedAgo > 780;
+        if (!current.email.includes("@")) {
+          shockUntil.current = 0;
+        } else if (current.email.includes("@") && shockUntil.current === 0) {
+          shockUntil.current = now + 280;
         }
-        const glancing = glanceUserUntil.current > now && paused;
-        t.lookX = glancing ? 0 : 0.55 + progress * 0.4;
-        t.lookY = glancing ? -0.15 : 0.08;
-        t.leanX = 12 + progress * 8;
-        t.leanY = 6;
-        t.eyeWiden = 0.45;
-        t.browL = 1;
-        t.browR = 0.35;
-        t.headTilt = glancing ? 12 : current.typingEmail ? -10 : 6;
-        t.squint = paused && !glancing ? 0.35 : 0;
-        t.beak = glancing ? 0.45 : 0.2;
-        t.eyeOpenL = 1;
-        t.eyeOpenR = 1;
+        if (shockUntil.current > now && current.email.includes("@") && typedAgo < 400) {
+          applyExpr(t, "shocked", 0.75, now);
+          t.lookX = 0.8;
+        } else if (current.typingEmail) {
+          applyExpr(t, "detective", 1, now);
+          t.lookX = 0.55 + clamp1(current.email.length / 22) * 0.4;
+        } else if (paused && validishEmail(current.email) && knowsUntil.current < now && typedAgo < 2600) {
+          knowsUntil.current = now + rand(900, 1500);
+          applyExpr(t, "knows", 1, now);
+        } else if (knowsUntil.current > now) {
+          applyExpr(t, "knows", 1, now);
+          if (now > knowsUntil.current - 400) {
+            t.lookX = 0.35;
+            t.headTurn = 0.2;
+          }
+        } else if (paused && unusualEmail(current.email)) {
+          applyExpr(t, "judging", 1, now);
+        } else if (paused && typedAgo > 1400) {
+          if (glanceUserUntil.current < now) glanceUserUntil.current = now + rand(500, 900);
+          if (glanceUserUntil.current > now) {
+            applyExpr(t, "nosy", 0.85, now);
+            t.lookX = 0;
+            t.lookY = -0.12;
+          } else {
+            applyExpr(t, "nosy", 1, now);
+          }
+        } else {
+          applyExpr(t, "curious", 1, now);
+        }
+      } else if (rapidUntil.current > now) {
+        const step = Math.min(RAPID_CHAIN.length - 1, Math.floor((1400 - (rapidUntil.current - now)) / 280));
+        rapidStep.current = step;
+        applyExpr(t, RAPID_CHAIN[step], 1, now);
+      } else if (idleMs > 9000 && current.focus === "none") {
+        applyExpr(t, idleMs > 14000 ? "sleepy" : "bored", 1, now);
+        if (pointer && Math.abs(pointer.x) + Math.abs(pointer.y) > 0.15 && idleMs > 200) {
+          applyExpr(t, "curious", 0.7, now);
+          t.lookX = pointer.x * 0.6;
+        }
+      } else if (idleMs > 7000 && current.focus === "none") {
+        applyExpr(t, "suspicious", 0.85, now);
+      } else if (beatRef.current.until > now) {
+        applyExpr(t, beatRef.current.id, beatRef.current.intensity, now);
+        if (pointer && beatRef.current.id !== "slowBlink" && beatRef.current.id !== "rapidBlink") {
+          t.lookX += pointer.x * 0.18;
+          t.lookY += pointer.y * 0.12;
+        }
       } else {
-        t.lookX += idle.lookX ?? (current.pointerRef.current ? current.pointerRef.current.x * 0.42 : 0);
-        t.lookY += idle.lookY ?? (current.pointerRef.current ? current.pointerRef.current.y * 0.32 : 0);
-        t.headTilt += idle.headTilt ?? 0;
-        t.browL += idle.browL ?? 0;
-        t.browR += idle.browR ?? 0;
-        t.puff += idle.puff ?? 0;
-        t.beak += idle.beak ?? 0;
-        t.leanX += idle.leanX ?? 0;
-        t.leanY += idle.leanY ?? 0;
-        t.wingL += idle.wingL ?? 0;
-        t.wingR += idle.wingR ?? 0;
-        t.eyeWiden += idle.eyeWiden ?? 0;
-        t.squint += idle.squint ?? 0;
-        if (idle.eyeOpenL !== undefined) t.eyeOpenL = idle.eyeOpenL;
-        if (idle.eyeOpenR !== undefined) t.eyeOpenR = idle.eyeOpenR;
+        applyExpr(t, "happy", 0.85, now);
+        if (pointer) {
+          t.lookX = pointer.x * 0.42;
+          t.lookY = pointer.y * 0.3;
+        }
       }
 
       t.lookX = clamp1(t.lookX);

@@ -35,10 +35,9 @@ export default function App() {
   const emailTimer = useRef(0);
   const passwordTimer = useRef(0);
   const pointerRef = useRef<{ x: number; y: number } | null>(null);
+  const lastActivityRef = useRef(typeof performance === "undefined" ? 0 : performance.now());
 
   const focus: FocusField = busy ? "none" : loginHover ? "login" : fieldFocus;
-  const henMood =
-    busy ? "success" : passwordVisible && fieldFocus === "password" ? "visible" : focus;
 
   const targetRef = useHenBrain({
     focus,
@@ -47,7 +46,9 @@ export default function App() {
     typingEmail,
     typingPassword,
     submitting: busy,
+    celebrating: Boolean(session) || busy,
     pointerRef,
+    lastActivityRef,
   });
 
   const headline = useMemo(() => (mode === "login" ? "Log in" : "Create account"), [mode]);
@@ -103,19 +104,26 @@ export default function App() {
     setFieldFocus("none");
   }
 
+  function bumpActivity() {
+    lastActivityRef.current = performance.now();
+  }
+
   function markEmailTyping() {
     setTypingEmail(true);
+    bumpActivity();
     window.clearTimeout(emailTimer.current);
     emailTimer.current = window.setTimeout(() => setTypingEmail(false), 420);
   }
 
   function markPasswordTyping() {
     setTypingPassword(true);
+    bumpActivity();
     window.clearTimeout(passwordTimer.current);
     passwordTimer.current = window.setTimeout(() => setTypingPassword(false), 420);
   }
 
   function onPointerMove(event: React.PointerEvent<HTMLDivElement>) {
+    bumpActivity();
     const box = henBox.current;
     if (!box) return;
     const rect = box.getBoundingClientRect();
@@ -129,12 +137,12 @@ export default function App() {
 
   const hen = (
     <div className="hen-stage">
-      <HenCharacter targetRef={targetRef} mood={session ? "success" : henMood} />
+      <HenCharacter targetRef={targetRef} />
     </div>
   );
 
   return (
-    <div className="page" onPointerMove={onPointerMove}>
+    <div className="page" onPointerMove={onPointerMove} onPointerDown={bumpActivity} onKeyDown={bumpActivity}>
       <header className="topbar">
         <a className="brand" href="#home">
           PocketMemory
@@ -220,7 +228,10 @@ export default function App() {
                     setEmail(event.target.value);
                     markEmailTyping();
                   }}
-                  onFocus={() => setFieldFocus("email")}
+                    onFocus={() => {
+                      bumpActivity();
+                      setFieldFocus("email");
+                    }}
                   onMouseDown={() => setFieldFocus("email")}
                   onBlur={() => setFieldFocus((current) => (current === "email" ? "none" : current))}
                 />
@@ -240,7 +251,10 @@ export default function App() {
                       setPassword(event.target.value);
                       markPasswordTyping();
                     }}
-                    onFocus={() => setFieldFocus("password")}
+                    onFocus={() => {
+                      bumpActivity();
+                      setFieldFocus("password");
+                    }}
                     onMouseDown={() => setFieldFocus("password")}
                     onBlur={() => setFieldFocus((current) => (current === "password" ? "none" : current))}
                   />

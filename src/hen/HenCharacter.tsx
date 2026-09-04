@@ -96,21 +96,17 @@ export default function HenCharacter({ targetRef, mood }: Props) {
   return (
     <svg className="hen-svg" data-mood={mood} viewBox="0 0 400 400" role="img" aria-label="Hen watching the login form">
       <g ref={rootRef} className="hen-root">
-        <circle cx="200" cy="210" r="168" fill="#fff8f1" stroke="#1c1917" strokeWidth="7" />
-        <path
-          d="M168 58 C176 18 200 8 200 8 C200 8 224 18 232 58"
-          fill="#d94a3d"
-          stroke="#1c1917"
-          strokeWidth="6"
-          strokeLinejoin="round"
-        />
-        <g transform="translate(132 178)">
+        <circle cx="200" cy="222" r="148" fill="#fff8f1" stroke="#1c1917" strokeWidth="7" />
+        <circle cx="164" cy="74" r="24" fill="#d94a3d" stroke="#1c1917" strokeWidth="6" />
+        <circle cx="200" cy="54" r="30" fill="#e05648" stroke="#1c1917" strokeWidth="6" />
+        <circle cx="236" cy="74" r="24" fill="#d94a3d" stroke="#1c1917" strokeWidth="6" />
+        <g transform="translate(138 198)">
           <Eye happy={eyesHappy} shut={eyesShut} pupilRef={pupilL} />
         </g>
-        <g transform="translate(268 178)">
+        <g transform="translate(262 198)">
           <Eye happy={eyesHappy} shut={eyesShut} pupilRef={pupilR} />
         </g>
-        <path d="M186 228 L200 258 L214 228 Z" fill="#e8892d" stroke="#1c1917" strokeWidth="5" strokeLinejoin="round" />
+        <path d="M186 248 L200 278 L214 248 Z" fill="#e8892d" stroke="#1c1917" strokeWidth="5" strokeLinejoin="round" />
       </g>
     </svg>
   );

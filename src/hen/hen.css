@@ -1,11 +1,10 @@
 .hen-svg {
-  width: 158%;
-  height: 158%;
+  width: min(92%, 720px);
+  height: 92%;
   max-width: none;
-  max-height: none;
   overflow: visible;
   display: block;
-  margin: 0;
+  margin: 0 auto;
 }
 
 .hen-root {

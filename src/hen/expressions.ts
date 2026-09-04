@@ -4,6 +4,7 @@ export type ExprId =
   | "happy"
   | "confused"
   | "curious"
+  | "woo"
   | "nosy"
   | "detective"
   | "knows"
@@ -83,6 +84,22 @@ export function applyExpr(p: HenPose, id: ExprId, intensity = 1, now = 0) {
       p.lookX = 0.72;
       p.lookY = 0.08;
       p.headTilt = i(-6, n);
+      break;
+    case "woo":
+      p.eyeWiden = 1;
+      p.eyeOpenL = 1;
+      p.eyeOpenR = 1;
+      p.browL = 1;
+      p.browR = 1;
+      p.beak = 1;
+      p.smile = 0;
+      p.lookX = 0.78;
+      p.lookY = 0.04;
+      p.neck = i(0.55, n);
+      p.leanX = i(12, n);
+      p.headTilt = -5;
+      p.puff = 0.18;
+      p.freeze = 0.25;
       break;
     case "nosy":
       p.leanX = i(22, n);

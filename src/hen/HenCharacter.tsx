@@ -30,6 +30,8 @@ export default function HenCharacter({ targetRef }: Props) {
   const lidL = useRef<SVGRectElement>(null);
   const lidR = useRef<SVGRectElement>(null);
   const beakRef = useRef<SVGGElement>(null);
+  const beakClosed = useRef<SVGGElement>(null);
+  const beakWoo = useRef<SVGGElement>(null);
   const wattleRef = useRef<SVGGElement>(null);
   const blushL = useRef<SVGEllipseElement>(null);
   const blushR = useRef<SVGEllipseElement>(null);
@@ -87,8 +89,11 @@ export default function HenCharacter({ targetRef }: Props) {
       if (lidR.current) lidR.current.setAttribute("height", String(p.eyeOpenR > 0.82 ? 0 : (1 - p.eyeOpenR) * 92));
 
       if (beakRef.current) {
-        beakRef.current.style.transform = `scale(1, ${1 + p.beak * 0.45}) translate(0, ${p.smile * -2}px)`;
+        beakRef.current.style.transform = `scale(1, ${1 + p.beak * 0.22}) translate(0, ${p.smile * -2}px)`;
       }
+      const woo = p.beak > 0.55 && p.smile < 0.4;
+      setShown(beakClosed.current, !woo);
+      setShown(beakWoo.current, woo);
       if (wattleRef.current) {
         wattleRef.current.style.transform = `translate(0, ${p.beak * 6}px) rotate(${p.headTilt * 0.08}deg)`;
       }
@@ -110,7 +115,7 @@ export default function HenCharacter({ targetRef }: Props) {
   }, [targetRef]);
 
   return (
-    <svg className="hen-svg" viewBox="32 12 336 408" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Hen reacting to the login form">
+    <svg className="hen-svg" viewBox="28 0 344 400" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Hen reacting to the login form">
       <g ref={rootRef} className="hen-root">
         <g ref={bodyRef} className="hen-body">
           <ellipse cx="200" cy="448" rx="92" ry="44" fill="#fff8f1" stroke="#1c1917" strokeWidth="6" />
@@ -192,10 +197,17 @@ export default function HenCharacter({ targetRef }: Props) {
             </g>
 
             <g ref={beakRef} className="hen-beak">
-              <path d="M-16 28 L0 62 L16 28 Z" fill="#e8892d" stroke="#1c1917" strokeWidth="5" strokeLinejoin="round" />
-              <path d="M-10 32 Q0 42 10 32" fill="#f4b45a" />
-              <circle cx="-4" cy="38" r="2.2" fill="#1c1917" />
-              <circle cx="4" cy="38" r="2.2" fill="#1c1917" />
+              <g ref={beakClosed}>
+                <path d="M-16 28 L0 62 L16 28 Z" fill="#e8892d" stroke="#1c1917" strokeWidth="5" strokeLinejoin="round" />
+                <path d="M-10 32 Q0 42 10 32" fill="#f4b45a" />
+                <circle cx="-4" cy="38" r="2.2" fill="#1c1917" />
+                <circle cx="4" cy="38" r="2.2" fill="#1c1917" />
+              </g>
+              <g ref={beakWoo} style={{ display: "none" }}>
+                <ellipse cx="0" cy="52" rx="20" ry="26" fill="#e8892d" stroke="#1c1917" strokeWidth="5" />
+                <ellipse cx="0" cy="54" rx="11" ry="16" fill="#4a1810" />
+                <ellipse cx="-3" cy="48" rx="4" ry="5" fill="#6b2a1c" opacity="0.7" />
+              </g>
             </g>
 
             <g ref={wattleRef} className="hen-wattle">

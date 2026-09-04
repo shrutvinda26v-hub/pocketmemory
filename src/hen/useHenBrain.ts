@@ -63,7 +63,6 @@ export function useHenBrain(input: {
   const lastPeekAt = useRef(0);
   const rapidUntil = useRef(0);
   const rapidStep = useRef(0);
-  const glanceUserUntil = useRef(0);
   const shockUntil = useRef(0);
   const lastFocus = useRef<FocusField>("none");
   const inputRef = useRef(input);
@@ -238,28 +237,20 @@ export function useHenBrain(input: {
           shockUntil.current = now + 280;
         }
         if (shockUntil.current > now && current.email.includes("@") && typedAgo < 400) {
-          applyExpr(t, "shocked", 0.75, now);
+          applyExpr(t, "woo", 1, now);
           t.lookX = 0.8;
-        } else if (current.typingEmail) {
-          applyExpr(t, "detective", 1, now);
-          t.lookX = 0.55 + clamp1(current.email.length / 22) * 0.4;
-        } else if (paused && validishEmail(current.email)) {
+        } else if (paused && validishEmail(current.email) && typedAgo > 1400) {
           applyExpr(t, "knows", 1, now);
-          t.lookX = typedAgo > 1600 ? 0.2 : 0;
-          t.headTurn = typedAgo > 1800 ? 0.18 : 0;
-        } else if (paused && unusualEmail(current.email)) {
+          t.lookX = typedAgo > 2000 ? 0.2 : 0;
+          t.headTurn = typedAgo > 2200 ? 0.18 : 0;
+        } else if (paused && unusualEmail(current.email) && typedAgo > 1400) {
           applyExpr(t, "judging", 1, now);
-        } else if (paused && typedAgo > 1400) {
-          if (glanceUserUntil.current < now) glanceUserUntil.current = now + rand(500, 900);
-          if (glanceUserUntil.current > now) {
-            applyExpr(t, "nosy", 0.85, now);
-            t.lookX = 0;
-            t.lookY = -0.12;
-          } else {
-            applyExpr(t, "nosy", 1, now);
-          }
         } else {
-          applyExpr(t, "curious", 1, now);
+          applyExpr(t, "woo", 1, now);
+          t.lookX = 0.55 + clamp1(current.email.length / 22) * 0.35;
+          t.beak = 1;
+          t.smile = 0;
+          t.eyeWiden = 1;
         }
       } else if (rapidUntil.current > now) {
         const step = Math.min(RAPID_CHAIN.length - 1, Math.floor((1400 - (rapidUntil.current - now)) / 280));

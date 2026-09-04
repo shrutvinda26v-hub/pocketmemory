@@ -74,7 +74,7 @@ export function lerpPose(current: HenPose, target: HenPose, eyeT: number, bodyT:
   current.leanY += (target.leanY - current.leanY) * snap;
   current.eyeWiden += (target.eyeWiden - current.eyeWiden) * snap;
   current.squint += (target.squint - current.squint) * snap;
-  current.beak += (target.beak - current.beak) * 0.22;
+  current.beak += (target.beak - current.beak) * 0.38;
   current.smile += (target.smile - current.smile) * 0.18;
   current.puff += (target.puff - current.puff) * bodyT;
   current.breathe += (target.breathe - current.breathe) * 0.08;

@@ -20,6 +20,7 @@ export default function App() {
   const [name, setName] = useState("");
   const [remember, setRemember] = useState(true);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const [session, setSession] = useState<string | null>(() => readSession());
 
@@ -40,6 +41,7 @@ export default function App() {
   function onSubmit(event: FormEvent) {
     event.preventDefault();
     setError("");
+    setNotice("");
 
     const trimmedEmail = email.trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
@@ -113,6 +115,7 @@ export default function App() {
               <span className="blob" />
               <span className="star" />
               <span className="zig" />
+              <span className="ground" />
               <img
                 className="hen"
                 src="/henrietta-hen.png"
@@ -137,6 +140,7 @@ export default function App() {
                   onClick={() => {
                     setMode("login");
                     setError("");
+                    setNotice("");
                   }}
                 >
                   Log in
@@ -147,6 +151,7 @@ export default function App() {
                   onClick={() => {
                     setMode("signup");
                     setError("");
+                    setNotice("");
                   }}
                 >
                   Sign up
@@ -154,6 +159,7 @@ export default function App() {
               </div>
 
               {error ? <div className="error">{error}</div> : null}
+              {notice ? <div className="notice">{notice}</div> : null}
 
               {mode === "signup" ? (
                 <div className="field">
@@ -204,7 +210,13 @@ export default function App() {
                   />
                   Keep me struttin’
                 </label>
-                <button className="ghost-link" type="button">
+                <button
+                  className="ghost-link"
+                  type="button"
+                  onClick={() =>
+                    setNotice("Henrietta never forgets. Use any 6+ character password for this demo.")
+                  }
+                >
                   Forgot the groove?
                 </button>
               </div>

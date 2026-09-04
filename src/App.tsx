@@ -135,7 +135,7 @@ export default function App() {
       <header className="topbar">
         <a className="brand" href="#home">
           <span className="brand-mark">
-            <img src="/henrietta-hen.png" alt="" />
+            <img src="/hen-kawaii.png" alt="" />
           </span>
           <span className="brand-copy">
             <span className="brand-name">PocketMemory</span>

@@ -104,10 +104,7 @@
 }
 
 .hero-left {
-  background:
-    radial-gradient(circle at 20% 80%, rgba(255, 45, 149, 0.22), transparent 32%),
-    radial-gradient(circle at 90% 12%, rgba(25, 232, 255, 0.28), transparent 28%),
-    linear-gradient(160deg, #fff8e6 0%, #ffe27a 42%, #ffb4e2 100%);
+  background: #fde897;
   display: block;
   padding: 0;
 }

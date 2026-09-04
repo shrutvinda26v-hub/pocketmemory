@@ -1,0 +1,44 @@
+:root {
+  --grape: #2a0838;
+  --grape-deep: #16041f;
+  --cream: #fff4dc;
+  --pink: #ff2d95;
+  --lime: #c6ff00;
+  --cyan: #19e8ff;
+  --orange: #ff7a18;
+  --yellow: #ffe14d;
+  --ink: #1a061f;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: "Outfit", system-ui, sans-serif;
+  color: var(--ink);
+  background: var(--grape-deep);
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}

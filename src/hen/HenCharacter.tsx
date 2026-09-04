@@ -153,11 +153,11 @@ export default function HenCharacter({ targetRef }: Props) {
             <ellipse ref={blushL} cx="-78" cy="36" rx="26" ry="14" fill="#f3b6a8" opacity="0.22" />
             <ellipse ref={blushR} cx="78" cy="36" rx="26" ry="14" fill="#f3b6a8" opacity="0.22" />
 
-            <g ref={browLRef} className="hen-brow" transform="translate(-64 -96)">
-              <path d="M-32 0 Q0 -14 32 0" fill="none" stroke="#1c1917" strokeWidth="8" strokeLinecap="round" />
+            <g ref={browLRef} className="hen-brow" transform="translate(-64 -90)">
+              <path d="M-34 2 Q0 -16 34 2" fill="none" stroke="#000" strokeWidth="11" strokeLinecap="round" />
             </g>
-            <g ref={browRRef} className="hen-brow" transform="translate(64 -96)">
-              <path d="M-32 0 Q0 -14 32 0" fill="none" stroke="#1c1917" strokeWidth="8" strokeLinecap="round" />
+            <g ref={browRRef} className="hen-brow" transform="translate(64 -90)">
+              <path d="M-34 2 Q0 -16 34 2" fill="none" stroke="#000" strokeWidth="11" strokeLinecap="round" />
             </g>
 
             <g transform="translate(-64 -22)">

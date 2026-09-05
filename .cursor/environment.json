@@ -1,0 +1,15 @@
+{
+  "name": "PocketMemory",
+  "install": "npm ci",
+  "terminals": [
+    {
+      "name": "dev",
+      "command": "npm run dev"
+    }
+  ],
+  "ports": [
+    {
+      "port": 5173
+    }
+  ]
+}

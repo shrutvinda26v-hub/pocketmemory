@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ORRIO — A public tidal garden</title>
+  <meta name="description" content="ORRIO is a public garden on a northern inlet. Walk the salt meadow, sit in the glass room, and let the water keep the hour.">
+  <style>
+    @font-face {
+      font-family: Fraunces;
+      src: url("fonts/fraunces-620.ttf") format("truetype");
+      font-weight: 620;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: Fraunces;
+      src: url("fonts/fraunces-560.ttf") format("truetype");
+      font-weight: 560;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: Fraunces;
+      src: url("fonts/fraunces-460.ttf") format("truetype");
+      font-weight: 460;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: Fraunces;
+      src: url("fonts/fraunces-italic.ttf") format("truetype");
+      font-weight: 460;
+      font-style: italic;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: Outfit;
+      src: url("fonts/outfit-300.ttf") format("truetype");
+      font-weight: 300;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: Outfit;
+      src: url("fonts/outfit-400.ttf") format("truetype");
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: Outfit;
+      src: url("fonts/outfit-500.ttf") format("truetype");
+      font-weight: 500;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --paper: #f4efe6;
+      --ink: #1a1814;
+      --muted: #5c564c;
+      --lagoon: #123f3c;
+      --lagoon-mid: #1a5852;
+      --lagoon-deep: #0c2a28;
+      --moon: #f7e6c6;
+      --copper: #e4632d;
+      --sand: #e6c98e;
+      --cream: #f6f1e6;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      background:
+        radial-gradient(880px 520px at 16% 8%, #fbf7f1 0%, rgba(251, 247, 241, 0) 68%),
+        var(--paper);
+      color: var(--ink);
+      font-family: Outfit, sans-serif;
+      font-weight: 400;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+    a { color: inherit; text-decoration: none; }
+    button, a { font-family: inherit; }
+
+    .page {
+      position: relative;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    .shore {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 52%;
+      height: 100%;
+      background:
+        radial-gradient(420px 420px at 68% 38%, #1a564f 0%, rgba(26, 86, 79, 0) 70%),
+        var(--lagoon);
+      clip-path: url(#shore-clip);
+      z-index: 0;
+    }
+
+    .ring {
+      position: absolute;
+      z-index: 1;
+      right: 9.2%;
+      top: 15.5%;
+      width: min(430px, 30vw);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      border: 1.25px solid rgba(247, 230, 198, 0.28);
+      pointer-events: none;
+    }
+    .ring.inner {
+      width: min(360px, 25.2vw);
+      right: 11.4%;
+      top: 19.2%;
+      border-color: rgba(247, 230, 198, 0.5);
+    }
+
+    .moon {
+      position: absolute;
+      z-index: 2;
+      right: 13.1%;
+      top: 22.4%;
+      width: min(292px, 20.4vw);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: radial-gradient(circle at 36% 32%, #fff8ec 0%, #f7e6c6 46%, #e7d0a4 100%);
+      display: grid;
+      place-items: center;
+      box-shadow: inset 0 0 0 1px rgba(26, 24, 20, 0.06);
+    }
+    .dial {
+      position: absolute;
+      inset: 7%;
+      width: 86%;
+      height: 86%;
+    }
+    .moon-copy {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      color: var(--ink);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      margin-top: -4%;
+      transform: translateX(14px);
+    }
+    .moon-copy span {
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #5a4636;
+    }
+    .moon-copy strong {
+      font-family: Fraunces, serif;
+      font-weight: 620;
+      font-size: clamp(42px, 3.5vw, 58px);
+      letter-spacing: -0.04em;
+      line-height: 0.9;
+      color: var(--ink);
+    }
+
+    .waves {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      height: 54%;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    header {
+      position: absolute;
+      z-index: 6;
+      top: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      align-items: center;
+      gap: 34px;
+      padding: 26px 36px 0 32px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: max-content;
+    }
+    .brand-name {
+      display: flex;
+      flex-direction: column;
+      line-height: 1;
+      gap: 3px;
+    }
+    .brand-name strong {
+      font-family: Fraunces, serif;
+      font-weight: 620;
+      font-size: 18px;
+      letter-spacing: 0.14em;
+    }
+    .brand-name em {
+      font-style: normal;
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 26px;
+    }
+    nav a {
+      font-size: 14px;
+      letter-spacing: 0.02em;
+      color: var(--ink);
+      position: relative;
+    }
+    nav a::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: -4px;
+      width: 100%;
+      height: 1px;
+      background: var(--copper);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.25s ease;
+    }
+    nav a:hover::after { transform: scaleX(1); }
+
+    .ghost {
+      margin-left: auto;
+      border: 1px solid rgba(246, 241, 230, 0.55);
+      color: var(--cream);
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s ease;
+    }
+    .ghost:hover { background: rgba(246, 241, 230, 0.1); }
+
+    .copy {
+      position: absolute;
+      z-index: 5;
+      left: 64px;
+      top: 138px;
+      width: min(620px, 46vw);
+    }
+    .eyebrow {
+      margin: 0 0 18px;
+      font-size: 12px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .eyebrow::before {
+      content: "";
+      width: 28px;
+      height: 1px;
+      background: var(--copper);
+    }
+    h1 {
+      margin: 0;
+      font-family: Fraunces, serif;
+      font-weight: 620;
+      font-size: clamp(96px, 10.6vw, 168px);
+      line-height: 0.78;
+      letter-spacing: -0.05em;
+      color: var(--ink);
+    }
+    .sub {
+      margin: 22px 0 0;
+      font-family: Fraunces, serif;
+      font-weight: 460;
+      font-style: italic;
+      font-size: clamp(26px, 2.15vw, 34px);
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+    }
+    .sub em {
+      font-style: italic;
+      color: var(--copper);
+    }
+    .lede {
+      margin: 16px 0 0;
+      max-width: 38ch;
+      font-weight: 300;
+      font-size: 16.5px;
+      line-height: 1.5;
+      color: var(--muted);
+    }
+    .btn {
+      margin-top: 26px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--copper);
+      color: #1a120c;
+      border-radius: 999px;
+      padding: 13px 18px 13px 20px;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+    .btn:hover { transform: translateY(-1px); background: #ef7340; }
+    .btn svg { display: block; }
+
+    .path {
+      margin-top: 28px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    footer {
+      position: absolute;
+      z-index: 5;
+      left: 48px;
+      right: 48px;
+      bottom: 28px;
+      display: grid;
+      gap: 18px;
+      color: var(--cream);
+    }
+    .facts {
+      display: grid;
+      grid-template-columns: repeat(3, max-content);
+      gap: 54px;
+    }
+    .facts strong {
+      display: block;
+      font-family: Fraunces, serif;
+      font-weight: 560;
+      font-size: 28px;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      color: var(--moon);
+    }
+    .facts span {
+      display: block;
+      margin-top: 6px;
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(246, 241, 230, 0.72);
+    }
+    .meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(246, 241, 230, 0.2);
+      font-size: 12px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(246, 241, 230, 0.78);
+    }
+
+    .grain {
+      position: absolute;
+      inset: 0;
+      z-index: 7;
+      pointer-events: none;
+      opacity: 0.28;
+      mix-blend-mode: overlay;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--copper);
+      outline-offset: 3px;
+    }
+
+    @media (max-width: 980px) {
+      body { overflow: auto; height: auto; }
+      .page {
+        height: auto;
+        min-height: 100vh;
+        overflow: visible;
+        display: flex;
+        flex-direction: column;
+      }
+      .shore, .ring, .ring.inner, nav, .ghost { display: none; }
+      header {
+        position: relative;
+        order: 1;
+        padding: 22px 22px 0;
+      }
+      .copy {
+        position: relative;
+        order: 2;
+        left: auto;
+        top: auto;
+        width: auto;
+        padding: 32px 22px 8px;
+      }
+      h1 { font-size: 76px; }
+      .sub { font-size: 28px; }
+      .moon {
+        position: relative;
+        order: 3;
+        width: 230px;
+        margin: 18px auto 0;
+        right: auto;
+        top: auto;
+      }
+      .waves {
+        position: relative;
+        order: 4;
+        height: 120px;
+        margin-top: 8px;
+      }
+      footer {
+        position: relative;
+        order: 5;
+        left: auto;
+        right: auto;
+        bottom: auto;
+        margin-top: 0;
+        padding: 8px 22px 32px;
+        background: var(--lagoon-deep);
+      }
+      .facts {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      .meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      .grain { position: fixed; }
+    }
+  </style>
+</head>
+<body>
+  <svg width="0" height="0" aria-hidden="true">
+    <clipPath id="shore-clip" clipPathUnits="objectBoundingBox">
+      <path d="M0.12,0 C0.03,0.14 0.22,0.28 0.07,0.46 C0.0,0.62 0.2,0.76 0.08,1 L1,1 L1,0 Z"/>
+    </clipPath>
+  </svg>
+
+  <div class="page">
+    <div class="shore" aria-hidden="true"></div>
+    <div class="ring" aria-hidden="true"></div>
+    <div class="ring inner" aria-hidden="true"></div>
+
+    <div class="moon" id="tides">
+      <svg class="dial" viewBox="0 0 200 200" aria-hidden="true">
+        <line x1="100.0" y1="26.0" x2="100.0" y2="10.0" stroke="#1C1915" stroke-opacity="0.8" stroke-width="1.6" stroke-linecap="round"/>
+        <line x1="120.7" y1="22.7" x2="123.3" y2="13.1" stroke="#1C1915" stroke-opacity="0.28" stroke-width="0.8" stroke-linecap="round"/>
+        <line x1="137.0" y1="35.9" x2="145.0" y2="22.1" stroke="#1C1915" stroke-opacity="0.8" stroke-width="1.6" stroke-linecap="round"/>
+        <line x1="156.6" y1="43.4" x2="163.6" y2="36.4" stroke="#1C1915" stroke-opacity="0.28" stroke-width="0.8" stroke-linecap="round"/>
+        <line x1="164.1" y1="63.0" x2="177.9" y2="55.0" stroke="#1C1915" stroke-opacity="0.8" stroke-width="1.6" stroke-linecap="round"/>
+        <line x1="177.3" y1="79.3" x2="186.9" y2="76.7" stroke="#1C1915" stroke-opacity="0.28" stroke-width="0.8" stroke-linecap="round"/>
+        <line x1="174.0" y1="100.0" x2="190.0" y2="100.0" stroke="#1C1915" stroke-opacity="0.8" stroke-width="1.6" stroke-linecap="round"/>
+        <line x1="177.3" y1="120.7" x2="186.9" y2="123.3" stroke="#1C1915" stroke-opacity="0.28" stroke-width="0.8" stroke-linecap="round"/>
+        <line x1="164.1" y1="137.0" x2="177.9" y2="145.0" stroke="#1C1915" stroke-opacity="0.8" stroke-width="1.6" stroke-linecap="round"/>
+        <line x1="156.6" y1="156.6" x2="163.6" y2="163.6" stroke="#1C1915" stroke-opacity="0.28" stroke-width="0.8" stroke-linecap="round"/>
+        <line x1="137.0" y1="164.1" x2="145.0" y2="177.9" stroke="#1C1915" stroke-opacity="0.8" stroke-width="1.6" stroke-linecap="round"/>
+        <line x1="120.7" y1="177.3" x2="123.3" y2="186.9" stroke="#1C1915" stroke-opacity="0.28" stroke-width="0.8" stroke-linecap="round"/>
+        <line x1="100.0" y1="174.0" x2="100.0" y2="190.0" stroke="#1C1915" stroke-opacity="0.8" stroke-width="1.6" stroke-linecap="round"/>
+        <line x1="79.3" y1="177.3" x2="76.7" y2="186.9" stroke="#1C1915" stroke-opacity="0.28" stroke-width="0.8" stroke-linecap="round"/>
+        <line x1="63.0" y1="164.1" x2="55.0" y2="177.9" stroke="#1C1915" stroke-opacity="0.8" stroke-width="1.6" stroke-linecap="round"/>
+        <line x1="43.4" y1="156.6" x2="36.4" y2="163.6" stroke="#1C1915" stroke-opacity="0.28" stroke-width="0.8" stroke-linecap="round"/>
+        <line x1="35.9" y1="137.0" x2="22.1" y2="145.0" stroke="#1C1915" stroke-opacity="0.8" stroke-width="1.6" stroke-linecap="round"/>
+        <line x1="22.7" y1="120.7" x2="13.1" y2="123.3" stroke="#1C1915" stroke-opacity="0.28" stroke-width="0.8" stroke-linecap="round"/>
+        <line x1="26.0" y1="100.0" x2="10.0" y2="100.0" stroke="#1C1915" stroke-opacity="0.8" stroke-width="1.6" stroke-linecap="round"/>
+        <line x1="22.7" y1="79.3" x2="13.1" y2="76.7" stroke="#1C1915" stroke-opacity="0.28" stroke-width="0.8" stroke-linecap="round"/>
+        <line x1="35.9" y1="63.0" x2="22.1" y2="55.0" stroke="#1C1915" stroke-opacity="0.8" stroke-width="1.6" stroke-linecap="round"/>
+        <line x1="43.4" y1="43.4" x2="36.4" y2="36.4" stroke="#1C1915" stroke-opacity="0.28" stroke-width="0.8" stroke-linecap="round"/>
+        <line x1="63.0" y1="35.9" x2="55.0" y2="22.1" stroke="#1C1915" stroke-opacity="0.8" stroke-width="1.6" stroke-linecap="round"/>
+        <line x1="79.3" y1="22.7" x2="76.7" y2="13.1" stroke="#1C1915" stroke-opacity="0.28" stroke-width="0.8" stroke-linecap="round"/>
+        <path d="M27.3 142 A84 84 0 0 1 27.3 58" fill="none" stroke="#E4632D" stroke-width="2.6" stroke-linecap="round"/>
+        <circle cx="17.4" cy="84.7" r="3.6" fill="#E4632D"/>
+      </svg>
+      <div class="moon-copy">
+        <span>Today's tide</span>
+        <strong>18:42</strong>
+        <span>High water · neap</span>
+      </div>
+    </div>
+
+    <svg class="waves" viewBox="0 0 1600 520" preserveAspectRatio="none" aria-hidden="true">
+      <path fill="#1a5852" d="M0.0 184.1 C13.3 188.6 53.3 203.1 80.0 211.4 C106.7 219.8 133.3 227.6 160.0 234.1 C186.7 240.6 213.3 246.0 240.0 250.5 C266.7 254.9 293.3 258.1 320.0 260.8 C346.7 263.6 373.3 265.3 400.0 267.0 C426.7 268.6 453.3 269.8 480.0 270.8 C506.7 271.9 533.3 272.8 560.0 273.2 C586.7 273.6 613.3 274.1 640.0 273.4 C666.7 272.8 693.3 271.9 720.0 269.5 C746.7 267.0 773.3 263.7 800.0 258.9 C826.7 254.0 853.3 247.7 880.0 240.3 C906.7 232.8 933.3 223.6 960.0 214.2 C986.7 204.7 1013.3 193.7 1040.0 183.7 C1066.7 173.6 1093.3 162.7 1120.0 153.7 C1146.7 144.8 1173.3 136.1 1200.0 130.1 C1226.7 124.0 1253.3 119.4 1280.0 117.5 C1306.7 115.6 1333.3 116.0 1360.0 118.5 C1386.7 121.0 1413.3 126.2 1440.0 132.5 C1466.7 138.7 1493.3 147.4 1520.0 156.0 C1546.7 164.6 1586.7 179.4 1600.0 184.1 L1600.0 520.0 L0 520.0 Z"/>
+      <path fill="none" stroke="#F6F1E6" stroke-opacity="0.55" stroke-width="1.6" d="M0.0 184.1 C13.3 188.6 53.3 203.1 80.0 211.4 C106.7 219.8 133.3 227.6 160.0 234.1 C186.7 240.6 213.3 246.0 240.0 250.5 C266.7 254.9 293.3 258.1 320.0 260.8 C346.7 263.6 373.3 265.3 400.0 267.0 C426.7 268.6 453.3 269.8 480.0 270.8 C506.7 271.9 533.3 272.8 560.0 273.2 C586.7 273.6 613.3 274.1 640.0 273.4 C666.7 272.8 693.3 271.9 720.0 269.5 C746.7 267.0 773.3 263.7 800.0 258.9 C826.7 254.0 853.3 247.7 880.0 240.3 C906.7 232.8 933.3 223.6 960.0 214.2 C986.7 204.7 1013.3 193.7 1040.0 183.7 C1066.7 173.6 1093.3 162.7 1120.0 153.7 C1146.7 144.8 1173.3 136.1 1200.0 130.1 C1226.7 124.0 1253.3 119.4 1280.0 117.5 C1306.7 115.6 1333.3 116.0 1360.0 118.5 C1386.7 121.0 1413.3 126.2 1440.0 132.5 C1466.7 138.7 1493.3 147.4 1520.0 156.0 C1546.7 164.6 1586.7 179.4 1600.0 184.1"/>
+      <path fill="#144640" d="M0.0 311.4 C13.3 313.4 53.3 321.9 80.0 323.7 C106.7 325.6 133.3 325.3 160.0 322.6 C186.7 319.9 213.3 314.2 240.0 307.5 C266.7 300.9 293.3 291.3 320.0 282.7 C346.7 274.0 373.3 263.7 400.0 255.5 C426.7 247.4 453.3 239.3 480.0 233.8 C506.7 228.3 533.3 224.4 560.0 222.5 C586.7 220.7 613.3 221.1 640.0 222.5 C666.7 223.8 693.3 227.3 720.0 230.7 C746.7 234.1 773.3 238.7 800.0 242.7 C826.7 246.7 853.3 251.0 880.0 254.9 C906.7 258.7 933.3 262.2 960.0 265.8 C986.7 269.4 1013.3 272.7 1040.0 276.4 C1066.7 280.0 1093.3 283.9 1120.0 287.8 C1146.7 291.8 1173.3 296.3 1200.0 300.1 C1226.7 303.8 1253.3 308.0 1280.0 310.4 C1306.7 312.8 1333.3 314.8 1360.0 314.5 C1386.7 314.2 1413.3 312.4 1440.0 308.5 C1466.7 304.6 1493.3 298.3 1520.0 291.2 C1546.7 284.1 1586.7 270.0 1600.0 265.8 L1600.0 520.0 L0 520.0 Z"/>
+      <path fill="none" stroke="#E6C98E" stroke-width="2" d="M0.0 311.4 C13.3 313.4 53.3 321.9 80.0 323.7 C106.7 325.6 133.3 325.3 160.0 322.6 C186.7 319.9 213.3 314.2 240.0 307.5 C266.7 300.9 293.3 291.3 320.0 282.7 C346.7 274.0 373.3 263.7 400.0 255.5 C426.7 247.4 453.3 239.3 480.0 233.8 C506.7 228.3 533.3 224.4 560.0 222.5 C586.7 220.7 613.3 221.1 640.0 222.5 C666.7 223.8 693.3 227.3 720.0 230.7 C746.7 234.1 773.3 238.7 800.0 242.7 C826.7 246.7 853.3 251.0 880.0 254.9 C906.7 258.7 933.3 262.2 960.0 265.8 C986.7 269.4 1013.3 272.7 1040.0 276.4 C1066.7 280.0 1093.3 283.9 1120.0 287.8 C1146.7 291.8 1173.3 296.3 1200.0 300.1 C1226.7 303.8 1253.3 308.0 1280.0 310.4 C1306.7 312.8 1333.3 314.8 1360.0 314.5 C1386.7 314.2 1413.3 312.4 1440.0 308.5 C1466.7 304.6 1493.3 298.3 1520.0 291.2 C1546.7 284.1 1586.7 270.0 1600.0 265.8"/>
+      <path fill="#0c2a28" d="M0.0 356.8 C13.3 355.1 53.3 351.0 80.0 346.5 C106.7 342.1 133.3 335.6 160.0 330.3 C186.7 325.0 213.3 318.8 240.0 314.8 C266.7 310.7 293.3 307.7 320.0 306.1 C346.7 304.5 373.3 304.9 400.0 305.3 C426.7 305.7 453.3 307.6 480.0 308.4 C506.7 309.2 533.3 310.0 560.0 310.1 C586.7 310.1 613.3 309.1 640.0 308.5 C666.7 308.0 693.3 306.6 720.0 306.9 C746.7 307.2 773.3 308.0 800.0 310.5 C826.7 313.0 853.3 317.3 880.0 322.0 C906.7 326.6 933.3 333.3 960.0 338.4 C986.7 343.6 1013.3 349.5 1040.0 353.1 C1066.7 356.7 1093.3 359.2 1120.0 360.0 C1146.7 360.9 1173.3 359.6 1200.0 358.3 C1226.7 357.1 1253.3 354.1 1280.0 352.3 C1306.7 350.6 1333.3 348.6 1360.0 347.6 C1386.7 346.7 1413.3 346.7 1440.0 346.4 C1466.7 346.2 1493.3 346.8 1520.0 345.9 C1546.7 345.0 1586.7 341.9 1600.0 341.0 L1600.0 520.0 L0 520.0 Z"/>
+      <circle cx="1468" cy="392" r="16" fill="#E4632D"/>
+      <circle cx="1468" cy="392" r="28" fill="none" stroke="#F6F1E6" stroke-opacity="0.45"/>
+    </svg>
+
+    <header>
+      <a class="brand" href="#garden" aria-label="ORRIO home">
+        <svg class="mark" width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
+          <circle cx="16" cy="16" r="14.5" fill="none" stroke="#1A1814" stroke-width="1.25"/>
+          <path d="M6.5 18.5c2-2.6 3.7-2.6 5.7 0s3.7 2.6 5.7 0 3.6-2.6 5.6 0" fill="none" stroke="#E4632D" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="brand-name">
+          <strong>ORRIO</strong>
+          <em>Tidal garden</em>
+        </span>
+      </a>
+      <nav aria-label="Primary">
+        <a href="#garden">The Garden</a>
+        <a href="#tides">Tides</a>
+        <a href="#room">Glass Room</a>
+        <a href="#visit">Visit</a>
+      </nav>
+      <a class="ghost" href="#visit">Plan a walk</a>
+    </header>
+
+    <main class="copy" id="garden">
+      <p class="eyebrow">Northern inlet · open to anyone</p>
+      <h1>ORRIO</h1>
+      <p class="sub">The inlet keeps a<br><em>slower hour.</em></p>
+      <p class="lede" id="room">A public garden on a northern shore. Walk the salt meadow, sit in the glass room, and let the water mark the afternoon.</p>
+      <a class="btn" href="#visit">
+        Plan a walk
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+      <div class="path">
+        <svg width="92" height="28" viewBox="0 0 92 28" aria-hidden="true">
+          <path d="M1 20 C 14 20, 16 6, 30 6 S 46 22, 58 16 S 74 4, 91 8" fill="none" stroke="#1A1814" stroke-opacity="0.45" stroke-width="1.25" stroke-linecap="round"/>
+          <circle cx="58" cy="16" r="2.2" fill="#E4632D"/>
+        </svg>
+        Meadow loop
+      </div>
+    </main>
+
+    <footer id="visit">
+      <div class="facts">
+        <div><strong>2 km</strong><span>Meadow loop</span></div>
+        <div><strong>Dawn–dusk</strong><span>Gates follow the light</span></div>
+        <div><strong>Free</strong><span>Nothing is for sale</span></div>
+      </div>
+      <div class="meta">
+        <span>North Inlet Road</span>
+        <span>64.2° N</span>
+        <span>Next public walk · 18 May, dusk</span>
+      </div>
+    </footer>
+
+    <svg class="grain" aria-hidden="true">
+      <filter id="noise">
+        <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/>
+        <feColorMatrix type="saturate" values="0"/>
+      </filter>
+      <rect width="100%" height="100%" filter="url(#noise)"/>
+    </svg>
+  </div>
+</body>
+</html>
